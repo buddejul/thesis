@@ -12,7 +12,8 @@ pdbcls = "pdbp:Pdb"
 target-version = "py311"
 select = ["ALL"]
 fix = true
-fix-only = true # No linting errors will be reported
+pylint.max-args = 6
+fix-only = false # No linting errors will be reported
 extend-ignore = [
     "S101",  # Use of `assert` detected.
     "ANN",  # Missing type annotations
