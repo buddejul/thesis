@@ -21,4 +21,4 @@ dependencies:
   - setuptools_scm
   - statsmodels
   - toml
-  - pip: [-e ., kaleido, pdbp]
+  - pip: [-e ., kaleido==0.1.0.post1, pdbp]

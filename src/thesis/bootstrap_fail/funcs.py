@@ -5,6 +5,9 @@ from math import comb
 import numpy as np
 import pandas as pd  # type: ignore[import-untyped]
 from numpy.typing import ArrayLike
+from scipy import integrate  # type: ignore[import-untyped]
+
+PSCORES = [0.4, 0.6]
 
 
 def simulation_bootstrap(
@@ -14,6 +17,7 @@ def simulation_bootstrap(
     u_hi: float,
     alpha: float,
     rng: np.random.Generator,
+    param_pos: str = "boundary",
 ) -> pd.DataFrame:
     """Simulate the bootstrap experiment.
 
@@ -24,6 +28,7 @@ def simulation_bootstrap(
         u_hi: Upper bound of target parameter.
         alpha: Bootstrap percentile for confidence interval (1-alpha for upper).
         rng: Random number generator.
+        param_pos: Position of the parameter in the identified set.
 
     Returns:
         DataFrame with the results of the simulation.
@@ -31,12 +36,16 @@ def simulation_bootstrap(
     """
     results = np.zeros((n_sims, 2))
 
-    for i in range(n_sims):
-        data = _draw_data(n_obs, rng)
-        lo, hi = _bootstrap_ci(alpha, u_hi, data, n_boot, n_obs, rng)
-        results[i] = lo, hi
+    true_target = _true_late(u_hi, param_pos=param_pos)
 
-    return pd.DataFrame(results, columns=["lo", "hi"])
+    for i in range(n_sims):
+        data = _draw_data(n_obs, rng, param_pos=param_pos)
+        results[i] = _bootstrap_ci(alpha, u_hi, data, n_boot, rng)
+
+    out = pd.DataFrame(results, columns=["lo", "hi"])
+    out["true"] = true_target
+
+    return out
 
 
 def _bootstrap_ci(
@@ -44,27 +53,38 @@ def _bootstrap_ci(
     u_hi: float,
     data: np.ndarray,
     n_boot: int,
-    n_obs: int,
     rng: np.random.Generator,
-) -> tuple[ArrayLike, ArrayLike]:
+    return_distr: bool = False,  # noqa: FBT001, FBT002
+) -> tuple[ArrayLike, ...]:
     boot_lo = np.zeros(n_boot)
     boot_hi = np.zeros(n_boot)
+    boot_late = np.zeros(n_boot)
+
+    n_obs = data.shape[0]
 
     for i in range(n_boot):
         boot_data = data[rng.choice(n_obs, size=n_obs, replace=True)]
         late = _late(boot_data)
         lo, hi = _idset(late, u_hi)
 
+        boot_late[i] = late
         boot_lo[i] = lo
         boot_hi[i] = hi
+
+    if return_distr:
+        return boot_lo, boot_hi, boot_late
 
     # Take the alpha quantile of boot_lo and 1 - alpha quantile of boot_hi
     return np.quantile(boot_lo, alpha), np.quantile(boot_hi, 1 - alpha)
 
 
 def _idset(b_late: float, u_hi: float) -> tuple[float, float]:
-    lo = (0.6 - 0.4) / (u_hi - 0.4) * b_late - (u_hi - 0.6) / (u_hi - 0.4)
-    hi = (0.6 - 0.4) / (u_hi - 0.4) * b_late + (u_hi - 0.6) / (u_hi - 0.4)
+    lo = (PSCORES[1] - PSCORES[0]) / (u_hi - PSCORES[0]) * b_late - (
+        u_hi - PSCORES[1]
+    ) / (u_hi - PSCORES[0])
+    hi = (PSCORES[1] - PSCORES[0]) / (u_hi - PSCORES[0]) * b_late + (
+        u_hi - PSCORES[1]
+    ) / (u_hi - PSCORES[0])
 
     return lo, hi
 
@@ -79,20 +99,20 @@ def _late(data: np.ndarray) -> float:
     return (yz1 - yz0) / (dz1 - dz0)
 
 
-def _draw_data(n_obs, rng: np.random.Generator) -> np.ndarray:
+def _draw_data(n_obs, rng: np.random.Generator, param_pos: str) -> np.ndarray:
     z = rng.choice([0, 1], size=n_obs, p=[0.5, 0.5])
-
-    d = rng.choice([0, 1], size=n_obs, p=[0.4, 0.6]) * z + rng.choice(
-        [0, 1],
-        size=n_obs,
-        p=[0.6, 0.4],
-    ) * (1 - z)
 
     u = rng.uniform(low=0, high=1, size=n_obs)
 
-    y = d * _m1(u) + (1 - d) * _m0(u)
+    d = np.where(z == 1, u <= PSCORES[1], u <= PSCORES[0])
 
-    return np.column_stack((y, d, z))
+    # Situation, where the parameter is at the param_pos of the identified set.
+    if param_pos == "boundary":
+        y0 = 0
+        y1 = np.where(u <= PSCORES[1], 0, 1)
+        y = d * y1 + (1 - d) * y0 + rng.normal(scale=0.1, size=n_obs)
+
+    return np.column_stack((y, d, z, u))
 
 
 def _m0(u: float | np.ndarray) -> float | np.ndarray:
@@ -108,3 +128,13 @@ def _m1(u: float | np.ndarray) -> float | np.ndarray:
 def _bern(v: int, n: int, x: float | np.ndarray) -> float | np.ndarray:
     """Compute the Bernstein polynomial of degree n and index i at x."""
     return comb(n, v) * x**v * (1 - x) ** (n - v)
+
+
+def _true_late(u_hi: float, param_pos: str) -> float:
+    if param_pos == "boundary":
+        return 0 + 1 * (u_hi - PSCORES[1]) / (u_hi - PSCORES[0])
+
+    return (
+        integrate.quad(_m1, PSCORES[0], u_hi)[0]
+        - integrate.quad(_m0, PSCORES[0], u_hi)[0]
+    )

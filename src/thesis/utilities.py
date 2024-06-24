@@ -1,6 +1,8 @@
 """Utilities used in various parts of the project."""
 
-import yaml
+from pathlib import Path
+
+import yaml  # type: ignore[import-untyped]
 
 
 def read_yaml(path):
@@ -13,7 +15,7 @@ def read_yaml(path):
         dict: The parsed YAML file.
 
     """
-    with open(path) as stream:
+    with Path.open(path) as stream:
         try:
             out = yaml.safe_load(stream)
         except yaml.YAMLError as error:
