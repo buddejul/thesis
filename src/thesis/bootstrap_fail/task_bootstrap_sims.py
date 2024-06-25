@@ -15,19 +15,19 @@ class _Arguments(NamedTuple):
     path_to_data: Path
     alpha: float = 0.05
     n_obs: int = 100
-    n_boot: int = 1_000
-    n_sims: int = 1_000
+    n_boot: int = 2_000
+    n_sims: int = 2_000
     rng: np.random.Generator = RNG
 
 
-U_HI = np.arange(0.6, 0.7, 0.01)
-N_OBS = [100, 250, 500]
+U_HI = np.linspace(0.60, 0.65, num=10)
+N_OBS = [25, 100, 250]
 
 ID_TO_KWARGS = {
-    f"bootstrap_sims_{u_hi:.2f}_n_obs_{n_obs}": _Arguments(
+    f"bootstrap_sims_{u_hi}_n_obs_{n_obs}": _Arguments(
         u_hi=u_hi,
         n_obs=n_obs,
-        path_to_data=Path(BLD / "boot" / f"data_{u_hi:.2f}_n_obs_{n_obs}.pkl"),
+        path_to_data=Path(BLD / "boot" / f"data_{u_hi}_n_obs_{n_obs}.pkl"),
     )
     for u_hi in U_HI
     for n_obs in N_OBS
