@@ -12,6 +12,7 @@ def simulation(
     n_obs: int,
     p: float,
     alpha: float,
+    ci_type: str,
     rng: np.random.Generator = RNG,
     beta_params: tuple[float, float] = (1, 1),
 ) -> pd.DataFrame:
@@ -27,7 +28,14 @@ def simulation(
 
     res = pd.DataFrame(
         [
-            _experiment(n_obs, p, alpha, beta_params=beta_params, rng=rng)
+            _experiment(
+                n_obs,
+                p,
+                alpha,
+                beta_params=beta_params,
+                rng=rng,
+                ci_type=ci_type,
+            )
             for _ in range(n_sims)
         ],
         columns=columns,
@@ -46,6 +54,8 @@ def _experiment(
     p: float,
     alpha: float,
     beta_params: tuple[float, float],
+    ci_type: str,
+    n_boot: int = 1_000,
     rng: np.random.Generator = RNG,
 ):
     y, w = _draw_data(n_obs, p, beta_params=beta_params, rng=rng)
@@ -62,22 +72,41 @@ def _experiment(
         a_max=None,
     )
 
-    cilo_idset, cihi_idset = _compute_ci(
-        alpha,
-        p,
-        mu_bar,
-        sigma_sq_bar,
-        n_obs,
-        target="idset",
-    )
-    cilo_param, cihi_param = _compute_ci(
-        alpha,
-        p,
-        mu_bar,
-        sigma_sq_bar,
-        n_obs,
-        target="param",
-    )
+    if ci_type == "analytical":
+        cilo_idset, cihi_idset = _compute_ci(
+            alpha,
+            p,
+            mu_bar,
+            sigma_sq_bar,
+            n_obs,
+            target="idset",
+        )
+        cilo_param, cihi_param = _compute_ci(
+            alpha,
+            p,
+            mu_bar,
+            sigma_sq_bar,
+            n_obs,
+            target="param",
+        )
+
+    elif ci_type == "bootstrap":
+        cilo_idset, cihi_idset = _compute_bootstrap_ci(
+            n_boot=n_boot,
+            y=y,
+            w=w,
+            alpha=alpha,
+            p=p,
+            target="idset",
+        )
+        cilo_param, cihi_param = _compute_bootstrap_ci(
+            n_boot=n_boot,
+            y=y,
+            w=w,
+            alpha=alpha,
+            p=p,
+            target="param",
+        )
 
     return cilo_idset, cihi_idset, cilo_param, cihi_param, mu_bar, sigma_sq_bar
 
@@ -110,5 +139,32 @@ def _compute_ci(
 
     lower = (mu_bar - z * (np.sqrt(sigma_sq_bar) / np.sqrt(p * n_obs))) * p
     upper = (mu_bar + z * (np.sqrt(sigma_sq_bar) / np.sqrt(p * n_obs))) * p + 1 - p
+
+    return lower, upper
+
+
+def _compute_bootstrap_ci(
+    n_boot: int,
+    y: np.ndarray,
+    w: np.ndarray,
+    alpha: float,
+    p: float,
+    target: str,
+    rng: np.random.Generator = RNG,
+) -> tuple[float, float]:
+    boot_mu_bar = np.zeros(n_boot)
+    y_nomiss = y[w == 1]
+
+    for b in range(n_boot):
+        boot_y_nomiss = rng.choice(y_nomiss, size=len(y_nomiss), replace=True)
+        boot_mu_bar[b] = np.mean(boot_y_nomiss)
+
+    if target == "idset":
+        mu_lo, mu_hi = np.quantile(boot_mu_bar, [alpha / 2, 1 - alpha / 2])
+    elif target == "param":
+        mu_lo, mu_hi = np.quantile(boot_mu_bar, [alpha, 1 - alpha])
+
+    lower = mu_lo * p
+    upper = mu_hi * p + 1 - p
 
     return lower, upper
