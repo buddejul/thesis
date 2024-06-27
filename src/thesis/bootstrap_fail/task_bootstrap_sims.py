@@ -20,8 +20,8 @@ class _Arguments(NamedTuple):
     rng: np.random.Generator = RNG
 
 
-U_HI = np.linspace(0.60, 0.65, num=10)
-N_OBS = [25, 100, 250]
+U_HI = np.linspace(0, 0.05, num=5)
+N_OBS = [25, 100]
 
 ID_TO_KWARGS = {
     f"bootstrap_sims_{u_hi}_n_obs_{n_obs}": _Arguments(

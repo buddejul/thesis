@@ -1,7 +1,9 @@
 """Test functions for bootstrap_fail."""
 
+import numpy as np
 import pandas as pd  # type: ignore[import-untyped]
-from thesis.bootstrap_fail.funcs import _draw_data
+import pytest
+from thesis.bootstrap_fail.funcs import _compute_pscores, _draw_data
 from thesis.config import RNG
 
 
@@ -17,7 +19,7 @@ def test_data_moments_boundary() -> None:
     )
 
     data = pd.DataFrame(
-        _draw_data(n_obs, RNG, boundary=True),
+        _draw_data(n_obs, RNG, param_pos="boundary"),
         columns=["y", "d", "z", "u"],
     )
 
@@ -30,3 +32,15 @@ def test_data_moments_boundary() -> None:
     )
 
     pd.testing.assert_frame_equal(actual, expected, atol=0.01)
+
+
+def test_compute_pscores() -> None:
+    n_obs = 1_000_000
+
+    data = _draw_data(n_obs, RNG, param_pos="boundary")
+
+    expected = (0.4, 0.6)
+
+    actual = _compute_pscores(data)
+
+    assert expected == pytest.approx(actual, abs=3 / np.sqrt(n_obs))

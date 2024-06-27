@@ -7,11 +7,12 @@ import pandas as pd  # type: ignore[import-untyped]
 import plotly.graph_objects as go  # type: ignore[import-untyped]
 from pytask import Product
 
-from thesis.bootstrap_fail.task_bootstrap_sims import ID_TO_KWARGS
+from thesis.bootstrap_fail.task_bootstrap_sims import ID_TO_KWARGS, _Arguments
 from thesis.config import BLD
 
 
 def task_plot_boostrap_sims(
+    id_to_kwargs: dict[str, _Arguments] = ID_TO_KWARGS,
     path_to_plot_coverage: Annotated[Path, Product] = Path(
         BLD / "figures" / "coverage.png",
     ),
@@ -24,7 +25,7 @@ def task_plot_boostrap_sims(
     # of the confidence interval. Then plot against u_hi.
     coverage = []
 
-    for kwargs in ID_TO_KWARGS.values():
+    for kwargs in id_to_kwargs.values():
         res = pd.read_pickle(kwargs.path_to_data)  # noqa: S301
         res["ci_covers"] = (res["lo"] < res["true"]) & (res["hi"] > res["true"])
         res["ci_length"] = res["hi"] - res["lo"]

@@ -35,15 +35,18 @@ def simulation_bootstrap(
 
     """
     results = np.zeros((n_sims, 2))
-
-    true_target = _true_late(u_hi, param_pos=param_pos)
+    targets = np.zeros(n_sims)
 
     for i in range(n_sims):
         data = _draw_data(n_obs, rng, param_pos=param_pos)
-        results[i] = _bootstrap_ci(alpha, u_hi, data, n_boot, rng)
+        pscores = _compute_pscores(data)
+
+        results[i] = _bootstrap_ci(alpha, u_hi, data, pscores, n_boot, rng)
+
+        targets[i] = _true_late(u_hi, pscores, param_pos=param_pos)
 
     out = pd.DataFrame(results, columns=["lo", "hi"])
-    out["true"] = true_target
+    out["true"] = targets
 
     return out
 
@@ -52,6 +55,7 @@ def _bootstrap_ci(
     alpha: float,
     u_hi: float,
     data: np.ndarray,
+    pscores: tuple[float, float],
     n_boot: int,
     rng: np.random.Generator,
     return_distr: bool = False,  # noqa: FBT001, FBT002
@@ -65,7 +69,7 @@ def _bootstrap_ci(
     for i in range(n_boot):
         boot_data = data[rng.choice(n_obs, size=n_obs, replace=True)]
         late = _late(boot_data)
-        lo, hi = _idset(late, u_hi)
+        lo, hi = _idset(late, u_hi, pscores)
 
         boot_late[i] = late
         boot_lo[i] = lo
@@ -78,13 +82,15 @@ def _bootstrap_ci(
     return np.quantile(boot_lo, alpha), np.quantile(boot_hi, 1 - alpha)
 
 
-def _idset(b_late: float, u_hi: float) -> tuple[float, float]:
-    lo = (PSCORES[1] - PSCORES[0]) / (u_hi - PSCORES[0]) * b_late - (
-        u_hi - PSCORES[1]
-    ) / (u_hi - PSCORES[0])
-    hi = (PSCORES[1] - PSCORES[0]) / (u_hi - PSCORES[0]) * b_late + (
-        u_hi - PSCORES[1]
-    ) / (u_hi - PSCORES[0])
+def _idset(
+    b_late: float,
+    u_hi: float,
+    pscores: tuple[float, float],
+) -> tuple[float, float]:
+    w = (pscores[1] - pscores[0]) / (u_hi + pscores[1] - pscores[0])
+
+    lo = w * b_late - (1 - w)
+    hi = w * b_late + (1 - w)
 
     return lo, hi
 
@@ -130,11 +136,16 @@ def _bern(v: int, n: int, x: float | np.ndarray) -> float | np.ndarray:
     return comb(n, v) * x**v * (1 - x) ** (n - v)
 
 
-def _true_late(u_hi: float, param_pos: str) -> float:
+def _true_late(u_hi: float, pscores: tuple[float, float], param_pos: str) -> float:
     if param_pos == "boundary":
-        return 0 + 1 * (u_hi - PSCORES[1]) / (u_hi - PSCORES[0])
+        return 0 + 1 * (u_hi) / (u_hi + pscores[1] - pscores[0])
 
     return (
-        integrate.quad(_m1, PSCORES[0], u_hi)[0]
-        - integrate.quad(_m0, PSCORES[0], u_hi)[0]
+        integrate.quad(_m1, pscores[0], pscores[1] + u_hi)[0]
+        - integrate.quad(_m0, pscores[0], pscores[1] + u_hi)[0]
     )
+
+
+def _compute_pscores(data: np.ndarray) -> tuple[float, float]:
+    """Compute the propensity score."""
+    return (data[data[:, 2] == 0, 1].mean(), data[data[:, 2] == 1, 1].mean())
