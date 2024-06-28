@@ -15,6 +15,7 @@ def simulation(
     ci_type: str,
     rng: np.random.Generator = RNG,
     beta_params: tuple[float, float] = (1, 1),
+    n_boot: int = 1_000,
 ) -> pd.DataFrame:
     """Run simulation."""
     columns = [
@@ -35,6 +36,7 @@ def simulation(
                 beta_params=beta_params,
                 rng=rng,
                 ci_type=ci_type,
+                n_boot=n_boot,
             )
             for _ in range(n_sims)
         ],
@@ -160,9 +162,9 @@ def _compute_bootstrap_ci(
         boot_mu_bar[b] = np.mean(boot_y_nomiss)
 
     if target == "idset":
-        mu_lo, mu_hi = np.quantile(boot_mu_bar, [alpha / 2, 1 - alpha / 2])
+        mu_lo, mu_hi = np.quantile(boot_mu_bar, [(1 - alpha) / 2, 1 - (1 - alpha) / 2])
     elif target == "param":
-        mu_lo, mu_hi = np.quantile(boot_mu_bar, [alpha, 1 - alpha])
+        mu_lo, mu_hi = np.quantile(boot_mu_bar, [1 - alpha, alpha])
 
     lower = mu_lo * p
     upper = mu_hi * p + 1 - p

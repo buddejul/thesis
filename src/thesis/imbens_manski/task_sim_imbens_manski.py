@@ -20,18 +20,25 @@ class _Arguments(NamedTuple):
     beta_params: tuple[float, float] = (0.5, 0.5)
 
 
-P_VALUES = np.linspace(0.9, 0.99, 100)
-N_OBS_VALUES = [25, 50, 100]
+P_VALUES = np.linspace(0.9, 0.99, 25)
+N_OBS_VALUES = [100, 250, 1000]
 N_SIMS = 1_000
-CI_TYPES = ["analytical", "bootstrap"]
+N_BOOT = 1_000
+CI_TYPES = [
+    "analytical",
+    "bootstrap",
+]
 
 ID_TO_KWARGS = {
-    f"p_{p}_n_obs_{n_obs}": _Arguments(
+    f"p_{p}_n_obs_{n_obs}_{ci_type}": _Arguments(
         p=p,
         n_obs=n_obs,
         n_sims=N_SIMS,
         ci_type=ci_type,
-        path_to_results=BLD / f"p_{p}_n_obs_{n_obs}_{ci_type}.pkl",
+        path_to_results=BLD
+        / "imbens_manski"
+        / "results"
+        / f"p_{p}_n_obs_{n_obs}_{ci_type}.pkl",
     )
     for p in P_VALUES
     for n_obs in N_OBS_VALUES
@@ -58,6 +65,7 @@ for id_, kwargs in ID_TO_KWARGS.items():
             alpha=alpha,
             ci_type=ci_type,
             beta_params=beta_params,
+            n_boot=N_BOOT,
             rng=RNG,
         )
         res.to_pickle(path_to_results)
