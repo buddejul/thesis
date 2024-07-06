@@ -7,7 +7,7 @@ import pandas as pd  # type: ignore[import-untyped]
 from numpy.typing import ArrayLike
 from scipy import integrate  # type: ignore[import-untyped]
 
-PSCORES = [0.4, 0.6]
+from thesis.classes import Instrument
 
 
 def simulation_bootstrap(
@@ -16,6 +16,7 @@ def simulation_bootstrap(
     n_boot: int,
     u_hi: float,
     alpha: float,
+    instrument: Instrument,
     rng: np.random.Generator,
     param_pos: str = "boundary",
 ) -> pd.DataFrame:
@@ -27,6 +28,7 @@ def simulation_bootstrap(
         n_boot: Number of bootstrap samples.
         u_hi: Upper bound of target parameter.
         alpha: Bootstrap percentile for confidence interval (1-alpha for upper).
+        instrument: Instrument object containing properties of the instrument.
         rng: Random number generator.
         param_pos: Position of the parameter in the identified set.
 
@@ -35,18 +37,15 @@ def simulation_bootstrap(
 
     """
     results = np.zeros((n_sims, 2))
-    targets = np.zeros(n_sims)
 
     for i in range(n_sims):
-        data = _draw_data(n_obs, rng, param_pos=param_pos)
-        pscores = _compute_pscores(data)
+        data = _draw_data(n_obs, rng, param_pos=param_pos, instrument=instrument)
 
-        results[i] = _bootstrap_ci(alpha, u_hi, data, pscores, n_boot, rng)
-
-        targets[i] = _true_late(u_hi, pscores, param_pos=param_pos)
+        results[i] = _bootstrap_ci(alpha, u_hi, data, n_boot, rng)
 
     out = pd.DataFrame(results, columns=["lo", "hi"])
-    out["true"] = targets
+    out["u_hi"] = u_hi
+    out["true"] = _true_late(u_hi, instrument=instrument, param_pos=param_pos)
 
     return out
 
@@ -55,7 +54,6 @@ def _bootstrap_ci(
     alpha: float,
     u_hi: float,
     data: np.ndarray,
-    pscores: tuple[float, float],
     n_boot: int,
     rng: np.random.Generator,
     return_distr: bool = False,  # noqa: FBT001, FBT002
@@ -69,7 +67,8 @@ def _bootstrap_ci(
     for i in range(n_boot):
         boot_data = data[rng.choice(n_obs, size=n_obs, replace=True)]
         late = _late(boot_data)
-        lo, hi = _idset(late, u_hi, pscores)
+        pscores_hat = _estimate_pscores(boot_data)
+        lo, hi = _idset(late, u_hi, pscores_hat)
 
         boot_late[i] = late
         boot_lo[i] = lo
@@ -85,9 +84,9 @@ def _bootstrap_ci(
 def _idset(
     b_late: float,
     u_hi: float,
-    pscores: tuple[float, float],
+    pscores_hat: tuple[float, float],
 ) -> tuple[float, float]:
-    w = (pscores[1] - pscores[0]) / (u_hi + pscores[1] - pscores[0])
+    w = (pscores_hat[1] - pscores_hat[0]) / (u_hi + pscores_hat[1] - pscores_hat[0])
 
     lo = w * b_late - (1 - w)
     hi = w * b_late + (1 - w)
@@ -105,17 +104,22 @@ def _late(data: np.ndarray) -> float:
     return (yz1 - yz0) / (dz1 - dz0)
 
 
-def _draw_data(n_obs, rng: np.random.Generator, param_pos: str) -> np.ndarray:
-    z = rng.choice([0, 1], size=n_obs, p=[0.5, 0.5])
+def _draw_data(
+    n_obs,
+    rng: np.random.Generator,
+    param_pos: str,
+    instrument: Instrument,
+) -> np.ndarray:
+    z = rng.choice(instrument.support, size=n_obs, p=instrument.pmf)
 
     u = rng.uniform(low=0, high=1, size=n_obs)
 
-    d = np.where(z == 1, u <= PSCORES[1], u <= PSCORES[0])
+    d = np.where(z == 1, u <= instrument.pscores[1], u <= instrument.pscores[1])
 
-    # Situation, where the parameter is at the param_pos of the identified set.
+    # Situation, where the parameter is at the boundary of the identified set.
     if param_pos == "boundary":
         y0 = 0
-        y1 = np.where(u <= PSCORES[1], 0, 1)
+        y1 = np.where(u <= instrument.pscores[1], 0, 1)
         y = d * y1 + (1 - d) * y0 + rng.normal(scale=0.1, size=n_obs)
 
     return np.column_stack((y, d, z, u))
@@ -136,16 +140,16 @@ def _bern(v: int, n: int, x: float | np.ndarray) -> float | np.ndarray:
     return comb(n, v) * x**v * (1 - x) ** (n - v)
 
 
-def _true_late(u_hi: float, pscores: tuple[float, float], param_pos: str) -> float:
+def _true_late(u_hi: float, instrument: Instrument, param_pos: str) -> float:
     if param_pos == "boundary":
-        return 0 + 1 * (u_hi) / (u_hi + pscores[1] - pscores[0])
+        return 0 + 1 * (u_hi) / (u_hi + instrument.pscores[1] - instrument.pscores[0])
 
     return (
-        integrate.quad(_m1, pscores[0], pscores[1] + u_hi)[0]
-        - integrate.quad(_m0, pscores[0], pscores[1] + u_hi)[0]
+        integrate.quad(_m1, instrument.pscores[0], instrument.pscores[1] + u_hi)[0]
+        - integrate.quad(_m0, instrument.pscores[0], instrument.pscores[1] + u_hi)[0]
     )
 
 
-def _compute_pscores(data: np.ndarray) -> tuple[float, float]:
-    """Compute the propensity score."""
+def _estimate_pscores(data: np.ndarray) -> tuple[float, float]:
+    """Estimate the propensity score."""
     return (data[data[:, 2] == 0, 1].mean(), data[data[:, 2] == 1, 1].mean())
