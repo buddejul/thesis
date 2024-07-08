@@ -14,10 +14,10 @@ from thesis.config import BLD
 def task_plot_boostrap_sims(
     id_to_kwargs: dict[str, _Arguments] = ID_TO_KWARGS,
     path_to_plot_coverage: Annotated[Path, Product] = Path(
-        BLD / "figures" / "coverage.png",
+        BLD / "boot" / "figures" / "coverage.png",
     ),
     path_to_plot_length: Annotated[Path, Product] = Path(
-        BLD / "figures" / "length.png",
+        BLD / "boot" / "figures" / "length.png",
     ),
 ) -> None:
     """Plot the coverage probability of the confidence interval."""

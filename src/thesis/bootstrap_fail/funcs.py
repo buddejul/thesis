@@ -114,7 +114,7 @@ def _draw_data(
 
     u = rng.uniform(low=0, high=1, size=n_obs)
 
-    d = np.where(z == 1, u <= instrument.pscores[1], u <= instrument.pscores[1])
+    d = np.where(z == 1, u <= instrument.pscores[1], u <= instrument.pscores[0])
 
     # Situation, where the parameter is at the boundary of the identified set.
     if param_pos == "boundary":

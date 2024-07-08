@@ -15,16 +15,16 @@ class _Arguments(NamedTuple):
     u_hi: float
     path_to_data: Path
     pscore_low: float
+    n_obs: int
     pscore_hi: float = 0.6
     alpha: float = 0.05
-    n_obs: int = 100
-    n_boot: int = 2_000
-    n_sims: int = 2_000
+    n_boot: int = 1_000
+    n_sims: int = 1_000
     rng: np.random.Generator = RNG
 
 
-U_HI = np.linspace(0, 0.05, num=5)
-N_OBS = [25, 100]
+U_HI = np.linspace(0, 0.05, num=10)
+N_OBS = [100, 250]
 PSCORES_LOW = np.linspace(0.5, 0.6, num=20)
 
 ID_TO_KWARGS = {
@@ -33,7 +33,10 @@ ID_TO_KWARGS = {
         n_obs=n_obs,
         pscore_low=pscore_low,
         path_to_data=Path(
-            BLD / "boot" / f"data_{u_hi}_n_obs_{n_obs}_pscore_low_{pscore_low}.pkl",
+            BLD
+            / "boot"
+            / "results"
+            / f"data_{u_hi}_n_obs_{n_obs}_pscore_low_{pscore_low}.pkl",
         ),
     )
     for u_hi in U_HI
