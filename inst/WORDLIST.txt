@@ -25,6 +25,8 @@ cirmmt
 cls
 conda
 config
+complier
+compliers
 cookiecutter
 cov
 CSE

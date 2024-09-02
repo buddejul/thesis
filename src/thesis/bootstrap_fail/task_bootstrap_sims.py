@@ -25,7 +25,7 @@ class _Arguments(NamedTuple):
 
 U_HI = np.linspace(0, 0.05, num=10)
 N_OBS = [100, 250]
-PSCORES_LOW = np.linspace(0.5, 0.6, num=20)
+PSCORES_LOW = np.linspace(0.55, 0.6, num=10)
 
 ID_TO_KWARGS = {
     f"bootstrap_sims_{u_hi}_n_obs_{n_obs}_pscore_low_{pscore_low}": _Arguments(
