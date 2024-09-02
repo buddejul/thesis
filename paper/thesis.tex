@@ -1,4 +1,3 @@
-
 \documentclass[11pt,a4paper,english]{article} %document type and language
 \usepackage[utf8]{inputenc}	% set character set to support some UTF-8
 \usepackage{babel} 	% multi-language support
@@ -78,7 +77,7 @@
 \usepackage{subcaption}                    % adds sub figure & sub caption
 \usepackage{sidecap}                       % adds side captions
 \usepackage{hyperref}                      % add hyperlinks to references
-\usepackage[noabbrev,nameinlink]{cleveref} % better references than default \ref
+\usepackage[noabbrev,nameinlink]{cleveref} % better references than default~\ref
 % Hack:https://tex.stackexchange.com/questions/285950/package-autonum-needs-the-obsolete-etex-package
 \expandafter\def\csname ver@etex.sty\endcsname{3000/12/31}
 \let\globcount\newcount
@@ -114,6 +113,7 @@
 
 % For rendering tikz
 \usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
 \usetikzlibrary{decorations.pathreplacing} % Load the library for drawing braces
 
 
@@ -147,7 +147,7 @@ The goal is to extrapolate from a point-identified LATE for instrument-compliers
 I discuss solutions for constant splines, which in this case --- constant weights of target and identified parameters over a finite number of population intervals --- deliver sharp bounds (Theorem 4 in the paper).
 The linear program in this simple example has analytical solutions which helps to illustrate the nature of the inference problem.
 
-In particular, I discuss solutions in the cases of unrestricted MTR functions and under shape restrictions (e.g. increasing MTR functions).
+In particular, I discuss solutions in the cases of unrestricted MTR functions and under shape restrictions (e.g.\ increasing MTR functions).
 In the first case, if the outcome is bounded between $0$ and $1$, the identified set is of the form
 \begin{equation}
 	\omega \beta_s \pm (1 - \omega),
@@ -184,7 +184,7 @@ Binary treatment $D_i$ is determined by the selection model with
 where $U_i\sim U(0,1)$, $U_i \indep Z_i$ and $I\{A\}$ denotes the indicator function for event $A$.
 Thus, $p(z) \equiv P(D_i = 1 | Z_i = z)$ is the propensity score.
 
-Assuming that it is known that $p(0) \leq p(1)$ we can identify $LATE(p(0), p(1))$, the local average treatment effect for the subpopulation with $U_i$ realizations in $(p(0), p(1)]$\footnote{In practice, it is unknown to the researcher whether $p(0) < p(1)$ and hence whether the target has upper bound $p(0) + \overline{u}$ or $p(1) + \overline{u}$. So probably the target should be treated as $\max\{p(1), p(0)\} + \overline{u}$ and the lower bound equivalently.}.
+Assuming that it is known that $p(0) \leq p(1)$ we can identify $LATE(p(0), p(1))$, the local average treatment effect for the subpopulation with $U_i$ realizations in $\mathopen(p(0), p(1)\mathclose]$\footnote{In practice, it is unknown to the researcher whether $p(0) < p(1)$ and hence whether the target has upper bound $p(0) + \overline{u}$ or $p(1) + \overline{u}$. So probably the target should be treated as $\max\{p(1), p(0)\} + \overline{u}$ and the lower bound equivalently.}.
 We are interested in extending this to $LATE(p(0), p(1) + \overline{u})$ with $\overline{u} \geq 0$ and such that $p(1) + \overline{u} \leq 1$.
 
 In this simple case we can find an exact solution to the linear program presented in the previous section using a finite-dimensional approximation to the underlying MTR functions.
@@ -218,7 +218,7 @@ where $\omega = \frac{p(1) - p(0)}{\overline{u} + p(1) - p(0)} = \frac{p(1) - p(
 This is intuitive: The target estimand is a weighted average of the identified $LATE(p(0), p(1))$ and the unknown $LATE(p(1), \overline{u})$.
 The weights correspond to the relative size of the subpopulations and the bounds for the unknown LATE are $-1$ and $1$, respectively.
 Importantly, this only holds because $LATE(p(0), p(1))$ does not put any restrictions on the MTR functions outside the interval $(p(0), p(1)]$, which is intuitive and can easily be seen from the LP constraints.
-This is generally different for other identified target estimands like the OLS slope, which put non-zero weight outside this interval\footnote{OLS does so asymmetrically for $d=0$ and $d=1$ which reflects why OLS does not correspond to a well defined causal quantity in this model. Note: This would be interesting to connect to the ideas in \cite{poirier2024quantifying}: How could we think about the subpopulation in terms of $u$?}.
+This is generally different for other identified target estimands like the OLS slope, which put non-zero weight outside this interval\footnote{OLS does so asymmetrically for $d=0$ and $d=1$ which reflects why OLS does not correspond to a well defined causal quantity in this model. Note: This would be interesting to connect to the ideas in~\cite{poirier2024quantifying}: How could we think about the subpopulation in terms of $u$?}.
 
 
 Note that by the usual identification argument we have
@@ -230,12 +230,12 @@ But this implies the interval simplifies to
 	\beta^* \in \left[\frac{\E\left[Y|Z=1\right] - \E\left[Y|Z=0\right]}{\overline{u} + p(1) - p(0)} \pm (1 - \omega)\right].
 \end{equation}
 
-Now if $\overline{u}\geq0$ is fixed, this immediately tells we no longer have the weak identification problem when $p(1) - p(0)\geq0$ is close to zero. Further, in the case $p(1) - p(0) = 0$ we have that the numerator is also equal to zero by the exclusion restriction on $Z$. Hence, the identified set is -- obviously so -- given by $[-1, 1]$.
+Now if $\overline{u}\geq0$ is fixed, this immediately tells we no longer have the weak identification problem when $p(1) - p(0)\geq0$ is close to zero. Further, in the case $p(1) - p(0) = 0$ we have that the numerator is also equal to zero by the exclusion restriction on $Z$. Hence, the identified set is --- obviously so --- given by $[-1, 1]$.
 
 However, for asymptotics with \textit{both} $p(1) - p(0)$ and $\overline{u}$ going to zero with the sample size at the right rate issues with a denominator close to zero should again arise.
 
 \subsection{Graphical Illustration}
-Figure \ref{fig:sm_upper_no_restr} illustrates the solution to the extrapolation problem for the upper bound.
+Figure~\ref{fig:sm_upper_no_restr} illustrates the solution to the extrapolation problem for the upper bound.
 First, note that the MTR functions outside $[p(0), p(1) + \overline{u}]$ are irrelevant as neither the identified nor the target parameter depends on them. Hence they are not depicted.
 Next, note that in this special non-parametric case without any additional restrictions, the choices of $\theta_{2d}$ and $\theta_{3d}$ are independent.
 Thus, the upper bound is given by any arguments that satisfy $\theta_{21} - \theta_{20} = \beta_s$ and the maximum upper bound is attained at $\beta_u = 1$ at $\theta_{31} = 1, \theta_{30} = 0$.
@@ -243,8 +243,7 @@ One such set of choice variables is depicted in the graph.
 
 \begin{figure}
 	\input{figures/sm_upper_no_restr.tex}
-	\caption{Solution for Upper Bound without Restrictions}
-	\label{fig:sm_upper_no_restr}
+	\caption{Solution for Upper Bound without Restrictions}\label{fig:sm_upper_no_restr}
 \end{figure}
 
 \subsection{Solutions with Restrictions}
@@ -285,16 +284,15 @@ and
 	\end{cases}
 \end{equation}
 
-Figure \ref{fig:sm_upper_incr.tex} illustrates how the constraint is binding in the case with $\beta_s < 0$ for the upper bound.
+Figure~\ref{fig:sm_upper_incr.tex} illustrates how the constraint is binding in the case with $\beta_s < 0$ for the upper bound.
 Note we would like to set $\theta_{30} = 0$ but this violates the constraint $\theta_{30} \geq \theta_{20} = -\beta_s > 0$.
 
 \begin{figure}
 	\input{figures/sm_upper_incr.tex}
-	\caption{Upper Bound with Monotone MTR Functions}
-	\label{fig:sm_upper_incr.tex}
+	\caption{Upper Bound with Monotone MTR Functions}\label{fig:sm_upper_incr.tex}
 \end{figure}
 
-Figure \ref{fig:sm_sol_upper} displays the solution to the upper bound $\overline{\beta^*}$ and lower bound $\underleftarrow{\beta^*}$ as a function of $\beta_s$ under different restrictions.
+Figure~\ref{fig:sm_sol_upper} displays the solution to the upper bound $\overline{\beta^*}$ and lower bound $\underleftarrow{\beta^*}$ as a function of $\beta_s$ under different restrictions.
 \begin{figure}
 	\centering
 	\begin{subfigure}{0.45\textwidth}
@@ -308,13 +306,12 @@ Figure \ref{fig:sm_sol_upper} displays the solution to the upper bound $\overlin
 		\input{figures/sm_sol_lower.tex}
 		\caption{Solution to $\underline{\beta^*}$}
 	\end{subfigure}
-	\caption{Solutions under Different Constraints}
-	\label{fig:sm_sol_upper}
+	\caption{Solutions under Different Constraints}\label{fig:sm_sol_upper}
 \end{figure}
 
 \subsection{Estimation and Inference}
 \paragraph{Unknown propensity score}
-One subtle conceptual difficulty is that the researcher does not observe $p(0), p(1)$ but only a noisy estimate when they perform their extrapolation exercise. In terms of sampling, this would mean we over- or under-sample compliers, i.e. those with realizations $u_i\in (p(0), p(1)]$, resulting in a too large or too small difference in propensity scores.
+One subtle conceptual difficulty is that the researcher does not observe $p(0), p(1)$ but only a noisy estimate when they perform their extrapolation exercise. In terms of sampling, this would mean we over- or under-sample compliers, i.e.\ those with realizations $u_i\in (p(0), p(1)]$, resulting in a too large or too small difference in propensity scores.
 
 We still consider the case where the researcher wants to perform inference on the parameter $p(0), p(1)$, which seems to be the only reasonable approach.
 
@@ -325,7 +322,7 @@ The explicit solution above suggests a simple plug-in estimator for the identifi
 \end{equation}
 Here,
 \begin{equation}
-	\hat{\beta}^{LATE}  = \frac{1/N_1 \sum_{i=1}^N Z_iY_i - 1/N_0 \sum_{i=1}^N(1-Z_i)Y_i}{1/N_1\sum_{i=1}^NZ_iD_i - 1/N_0\sum_{i=1}^N (1-Z_i)D_i}.
+	\hat{\beta}^{LATE}  = \frac{1/N_1 \sum_{i=1}^N Z_i Y_i - 1/N_0 \sum_{i=1}^N(1-Z_i)Y_i}{1/N_1\sum_{i=1}^N Z_i D_i - 1/N_0\sum_{i=1}^N (1-Z_i)D_i}.
 \end{equation}
 where $N_1 = \sum_{i=1}^N Z_i$ and $N = N_0 + N_1$. Further,
 \begin{equation}
@@ -340,6 +337,6 @@ Using the simplification noted above, the estimator can be equivalently written 
 
 
 \bibliographystyle{plain}
-\bibliography{thesis_lit.bib}
+\bibliography{refs.bib}
 
 \end{document}
