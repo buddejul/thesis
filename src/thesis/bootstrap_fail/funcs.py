@@ -5,9 +5,8 @@ from math import comb
 import numpy as np
 import pandas as pd  # type: ignore[import-untyped]
 from numpy.typing import ArrayLike
-from scipy import integrate  # type: ignore[import-untyped]
 
-from thesis.classes import Instrument
+from thesis.classes import Instrument, LocalATEs
 
 
 def simulation_bootstrap(
@@ -15,10 +14,10 @@ def simulation_bootstrap(
     n_obs: int,
     n_boot: int,
     u_hi: float,
-    alpha: float,
+    local_ates: LocalATEs,
     instrument: Instrument,
+    alpha: float,
     rng: np.random.Generator,
-    param_pos: str = "boundary",
 ) -> pd.DataFrame:
     """Simulate the bootstrap experiment.
 
@@ -26,11 +25,11 @@ def simulation_bootstrap(
         n_sims: Number of simulations.
         n_obs: Number of observations.
         n_boot: Number of bootstrap samples.
+        local_ates: Local average treatment effects by complier type.
         u_hi: Upper bound of target parameter.
-        alpha: Bootstrap percentile for confidence interval (1-alpha for upper).
         instrument: Instrument object containing properties of the instrument.
+        alpha: Bootstrap percentile for confidence interval (1-alpha for upper).
         rng: Random number generator.
-        param_pos: Position of the parameter in the identified set.
 
     Returns:
         DataFrame with the results of the simulation.
@@ -39,13 +38,13 @@ def simulation_bootstrap(
     results = np.zeros((n_sims, 2))
 
     for i in range(n_sims):
-        data = _draw_data(n_obs, rng, param_pos=param_pos, instrument=instrument)
+        data = _draw_data(n_obs, local_ates=local_ates, instrument=instrument, rng=rng)
 
         results[i] = _bootstrap_ci(alpha, u_hi, data, n_boot, rng)
 
     out = pd.DataFrame(results, columns=["lo", "hi"])
     out["u_hi"] = u_hi
-    out["true"] = _true_late(u_hi, instrument=instrument, param_pos=param_pos)
+    out["true"] = _true_late(u_hi, instrument=instrument, local_ates=local_ates)
 
     return out
 
@@ -106,9 +105,9 @@ def _late(data: np.ndarray) -> float:
 
 def _draw_data(
     n_obs,
-    rng: np.random.Generator,
-    param_pos: str,
+    local_ates: LocalATEs,
     instrument: Instrument,
+    rng: np.random.Generator,
 ) -> np.ndarray:
     z = rng.choice(instrument.support, size=n_obs, p=instrument.pmf)
 
@@ -116,11 +115,19 @@ def _draw_data(
 
     d = np.where(z == 1, u <= instrument.pscores[1], u <= instrument.pscores[0])
 
-    # Situation, where the parameter is at the boundary of the identified set.
-    if param_pos == "boundary":
-        y0 = 0
-        y1 = np.where(u <= instrument.pscores[1], 0, 1)
-        y = d * y1 + (1 - d) * y0 + rng.normal(scale=0.1, size=n_obs)
+    _never_takers = u <= instrument.pscores[0]
+    _compliers = (u > instrument.pscores[0]) & (u <= instrument.pscores[1])
+    _always_takers = u > instrument.pscores[1]
+
+    y0 = np.zeros(n_obs)
+
+    y1 = (
+        _never_takers * local_ates.never_taker
+        + _compliers * local_ates.complier
+        + _always_takers * local_ates.always_taker
+    )
+
+    y = d * y1 + (1 - d) * y0 + rng.normal(scale=0.1, size=n_obs)
 
     return np.column_stack((y, d, z, u))
 
@@ -140,16 +147,29 @@ def _bern(v: int, n: int, x: float | np.ndarray) -> float | np.ndarray:
     return comb(n, v) * x**v * (1 - x) ** (n - v)
 
 
-def _true_late(u_hi: float, instrument: Instrument, param_pos: str) -> float:
-    if param_pos == "boundary":
-        return 0 + 1 * (u_hi) / (u_hi + instrument.pscores[1] - instrument.pscores[0])
+def _true_late(u_hi: float, instrument: Instrument, local_ates: LocalATEs) -> float:
+    _target_pop_size = u_hi + instrument.pscores[1] - instrument.pscores[0]
+    _complier_share = (instrument.pscores[1] - instrument.pscores[0]) / _target_pop_size
 
     return (
-        integrate.quad(_m1, instrument.pscores[0], instrument.pscores[1] + u_hi)[0]
-        - integrate.quad(_m0, instrument.pscores[0], instrument.pscores[1] + u_hi)[0]
+        _complier_share * local_ates.complier
+        + (1 - _complier_share) * local_ates.always_taker
     )
 
 
 def _estimate_pscores(data: np.ndarray) -> tuple[float, float]:
     """Estimate the propensity score."""
     return (data[data[:, 2] == 0, 1].mean(), data[data[:, 2] == 1, 1].mean())
+
+
+def _phi_max(theta: float, cutoff: float = 0):
+    return np.maximum(theta, cutoff)
+
+
+def _phi_kink(
+    theta: float,
+    kink: float,
+    slope_left: float = 0.5,
+    slope_right: float = 1,
+):
+    return slope_left * theta * (theta < kink) + slope_right * theta * (theta >= kink)

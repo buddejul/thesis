@@ -1,4 +1,5 @@
 """Custom classes for thesis."""
+
 from collections.abc import Callable
 from dataclasses import dataclass
 from typing import NamedTuple
@@ -71,3 +72,11 @@ class MonteCarloSetup(NamedTuple):
     sample_size: int
     repetitions: int
     u_hi_range: np.ndarray | None = None
+
+
+class LocalATEs(NamedTuple):
+    """LATEs for subpopulations: never-taker, complier, always-taker."""
+
+    never_taker: float
+    complier: float
+    always_taker: float

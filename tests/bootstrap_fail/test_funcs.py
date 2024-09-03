@@ -3,8 +3,8 @@
 import numpy as np
 import pandas as pd  # type: ignore[import-untyped]
 import pytest
-from thesis.bootstrap_fail.funcs import _draw_data, _estimate_pscores
-from thesis.classes import Instrument
+from thesis.bootstrap_fail.funcs import _draw_data, _estimate_pscores, _late
+from thesis.classes import Instrument, LocalATEs
 from thesis.config import RNG
 
 
@@ -17,7 +17,25 @@ def instrument() -> Instrument:
     )
 
 
-def test_data_moments_boundary(instrument) -> None:
+@pytest.fixture()
+def local_ates_zero() -> LocalATEs:
+    return LocalATEs(
+        never_taker=0,
+        complier=0,
+        always_taker=0,
+    )
+
+
+@pytest.fixture()
+def local_ates_nonzero() -> LocalATEs:
+    return LocalATEs(
+        never_taker=0,
+        complier=0.5,
+        always_taker=1,
+    )
+
+
+def test_data_moments_boundary(instrument, local_ates_zero) -> None:
     n_obs = 100_000
 
     expected = pd.DataFrame(
@@ -29,7 +47,7 @@ def test_data_moments_boundary(instrument) -> None:
     )
 
     data = pd.DataFrame(
-        _draw_data(n_obs, RNG, instrument=instrument, param_pos="boundary"),
+        _draw_data(n_obs, rng=RNG, instrument=instrument, local_ates=local_ates_zero),
         columns=["y", "d", "z", "u"],
     )
 
@@ -44,13 +62,33 @@ def test_data_moments_boundary(instrument) -> None:
     pd.testing.assert_frame_equal(actual, expected, atol=0.01)
 
 
-def test_compute_pscores(instrument) -> None:
+def test_compute_pscores(instrument, local_ates_nonzero) -> None:
     n_obs = 1_000_000
 
-    data = _draw_data(n_obs, RNG, instrument=instrument, param_pos="boundary")
+    data = _draw_data(
+        n_obs,
+        rng=RNG,
+        instrument=instrument,
+        local_ates=local_ates_nonzero,
+    )
 
     expected = (0.4, 0.6)
 
     actual = _estimate_pscores(data)
 
     assert expected == pytest.approx(actual, abs=3 / np.sqrt(n_obs))
+
+
+def test_generate_late(instrument, local_ates_nonzero):
+    expected = local_ates_nonzero.complier
+
+    data = _draw_data(
+        n_obs=100_000,
+        local_ates=local_ates_nonzero,
+        instrument=instrument,
+        rng=RNG,
+    )
+
+    actual = _late(data)
+
+    assert actual == pytest.approx(expected, abs=2 * np.sqrt(10_000))
