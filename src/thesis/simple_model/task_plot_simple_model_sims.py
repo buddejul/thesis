@@ -7,8 +7,8 @@ import pandas as pd  # type: ignore[import-untyped]
 import plotly.graph_objects as go  # type: ignore[import-untyped]
 from pytask import Product
 
-from thesis.bootstrap_fail.task_bootstrap_sims import ID_TO_KWARGS, _Arguments
 from thesis.config import BLD
+from thesis.simple_model.task_simple_model_sims import ID_TO_KWARGS, _Arguments
 
 
 def task_plot_boostrap_sims(

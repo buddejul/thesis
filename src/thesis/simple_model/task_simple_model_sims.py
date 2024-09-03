@@ -6,9 +6,9 @@ from typing import Annotated, NamedTuple
 import numpy as np
 from pytask import Product, task
 
-from thesis.bootstrap_fail.funcs import simulation_bootstrap
 from thesis.classes import Instrument, LocalATEs
 from thesis.config import BLD, RNG
+from thesis.simple_model.funcs import simulation_bootstrap
 
 
 class _Arguments(NamedTuple):

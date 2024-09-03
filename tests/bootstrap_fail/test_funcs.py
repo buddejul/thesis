@@ -1,11 +1,11 @@
-"""Test functions for bootstrap_fail."""
+"""Test functions for simple_model."""
 
 import numpy as np
 import pandas as pd  # type: ignore[import-untyped]
 import pytest
-from thesis.bootstrap_fail.funcs import _draw_data, _estimate_pscores, _late
 from thesis.classes import Instrument, LocalATEs
 from thesis.config import RNG
+from thesis.simple_model.funcs import _draw_data, _estimate_pscores, _late
 
 
 @pytest.fixture()

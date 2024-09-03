@@ -1,1 +1,1 @@
-"""Tests for the bootstrap_fail functions."""
+"""Tests for the simple_model functions."""
