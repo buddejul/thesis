@@ -17,8 +17,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
-        python-version: ['3.11']
+        # Currently only developing on windows.
+        os: [windows-latest]
+        # os: [ubuntu-latest, macos-latest, windows-latest]
+        python-version: ['3.12']
     steps:
       - uses: actions/checkout@v3
       - name: create build environment
@@ -35,7 +37,7 @@ jobs:
           micromamba activate gha-testing
           pytest --cov-report=xml --cov=./
       - name: Upload coverage report.
-        if: runner.os == 'Linux' && matrix.python-version == '3.11'
+        if: runner.os == 'Linux' && matrix.python-version == '3.12'
         uses: codecov/codecov-action@v3
         # with:
         #   token: ${{ secrets.CODECOV_TOKEN }}
