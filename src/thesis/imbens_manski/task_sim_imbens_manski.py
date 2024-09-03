@@ -8,7 +8,7 @@ import pytask
 from pytask import Product, task
 
 from thesis.config import BLD, RNG
-from thesis.imbens_manski.funcs import simulation
+from thesis.imbens_manski.im_funcs import simulation
 
 
 class _Arguments(NamedTuple):
