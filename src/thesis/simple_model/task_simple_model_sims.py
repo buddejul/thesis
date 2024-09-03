@@ -17,6 +17,7 @@ class _Arguments(NamedTuple):
     pscore_low: float
     n_obs: int
     local_ates: LocalATEs
+    constraint_mtr: str
     pscore_hi: float = 0.6
     alpha: float = 0.05
     n_boot: int = 2
@@ -24,12 +25,16 @@ class _Arguments(NamedTuple):
     rng: np.random.Generator = RNG
 
 
-U_HI = [0.025, 0.05, 0.1]
+U_HI = [0.1]
 N_OBS = [250, 1_000]
 PSCORES_LOW = [0.4]
+CONSTRAINTS_MTR = ["increasing"]
 
 ID_TO_KWARGS = {
-    f"bootstrap_sims_{u_hi}_n_obs_{n_obs}_pscore_low_{pscore_low}": _Arguments(
+    (
+        f"bootstrap_sims_{u_hi}_n_obs_{n_obs}_pscore_low_{pscore_low}"
+        f"_late_complier_{late_complier}_constraint_mtr_{constraint_mtr}"
+    ): _Arguments(
         u_hi=u_hi,
         n_obs=n_obs,
         pscore_low=pscore_low,
@@ -38,13 +43,14 @@ ID_TO_KWARGS = {
             complier=late_complier,
             always_taker=1,
         ),
+        constraint_mtr=constraint_mtr,
         path_to_data=Path(
             BLD
             / "boot"
             / "results"
             / (
                 f"data_{u_hi}_n_obs_{n_obs}_pscore_low_{pscore_low}"
-                f"_late_complier_{late_complier}.pkl"
+                f"_late_complier_{late_complier}_constraint_mtr_{constraint_mtr}.pkl"
             ),
         ),
     )
@@ -52,6 +58,7 @@ ID_TO_KWARGS = {
     for n_obs in N_OBS
     for pscore_low in PSCORES_LOW
     for late_complier in np.concat((np.linspace(-0.1, 0.1, num=10), np.zeros(1)))
+    for constraint_mtr in CONSTRAINTS_MTR
 }
 
 
@@ -67,6 +74,7 @@ for id_, kwargs in ID_TO_KWARGS.items():
         pscore_low: float,
         pscore_hi: float,
         local_ates: LocalATEs,
+        constraint_mtr: str,
         rng: np.random.Generator,
         path_to_data: Annotated[Path, Product],
     ) -> None:
@@ -85,6 +93,7 @@ for id_, kwargs in ID_TO_KWARGS.items():
             local_ates=local_ates,
             alpha=alpha,
             instrument=instrument,
+            constraint_mtr=constraint_mtr,
             rng=rng,
         )
 

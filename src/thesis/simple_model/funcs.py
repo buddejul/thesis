@@ -17,6 +17,7 @@ def simulation_bootstrap(
     local_ates: LocalATEs,
     instrument: Instrument,
     alpha: float,
+    constraint_mtr: str,
     rng: np.random.Generator,
 ) -> pd.DataFrame:
     """Simulate the bootstrap experiment.
@@ -29,21 +30,30 @@ def simulation_bootstrap(
         u_hi: Upper bound of target parameter.
         instrument: Instrument object containing properties of the instrument.
         alpha: Bootstrap percentile for confidence interval (1-alpha for upper).
+        constraint_mtr: Constraint on the marginal treatment response functions.
         rng: Random number generator.
 
     Returns:
         DataFrame with the results of the simulation.
 
     """
+    _check_constraint_supported(constraint_mtr)
+
     results = np.zeros((n_sims, 2))
 
     for i in range(n_sims):
         data = _draw_data(n_obs, local_ates=local_ates, instrument=instrument, rng=rng)
 
-        results[i] = _bootstrap_ci(alpha, u_hi, data, n_boot, rng)
+        results[i] = _bootstrap_ci(
+            alpha=alpha,
+            u_hi=u_hi,
+            data=data,
+            n_boot=n_boot,
+            constraint_mtr=constraint_mtr,
+            rng=rng,
+        )
 
     out = pd.DataFrame(results, columns=["lo", "hi"])
-    out["u_hi"] = u_hi
     out["true"] = _true_late(u_hi, instrument=instrument, local_ates=local_ates)
 
     return out
@@ -54,6 +64,7 @@ def _bootstrap_ci(
     u_hi: float,
     data: np.ndarray,
     n_boot: int,
+    constraint_mtr: str,
     rng: np.random.Generator,
     return_distr: bool = False,  # noqa: FBT001, FBT002
 ) -> tuple[ArrayLike, ...]:
@@ -67,7 +78,7 @@ def _bootstrap_ci(
         boot_data = data[rng.choice(n_obs, size=n_obs, replace=True)]
         late = _late(boot_data)
         pscores_hat = _estimate_pscores(boot_data)
-        lo, hi = _idset(late, u_hi, pscores_hat)
+        lo, hi = _idset(late, u_hi, pscores_hat, constraint_mtr=constraint_mtr)
 
         boot_late[i] = late
         boot_lo[i] = lo
@@ -84,11 +95,19 @@ def _idset(
     b_late: float,
     u_hi: float,
     pscores_hat: tuple[float, float],
+    constraint_mtr: str,
 ) -> tuple[float, float]:
     w = (pscores_hat[1] - pscores_hat[0]) / (u_hi + pscores_hat[1] - pscores_hat[0])
 
-    lo = w * b_late - (1 - w)
-    hi = w * b_late + (1 - w)
+    if constraint_mtr == "none":
+        lo = w * b_late - (1 - w)
+        hi = w * b_late + (1 - w)
+
+    # Restricting the MTRs to be increasing changes the solution to have a kink when
+    # viewed as a function of the identified parameter.
+    elif constraint_mtr == "increasing":
+        hi = _phi_kink(theta=b_late, kink=0, slope_left=1, slope_right=w) + (1 - w)
+        lo = _phi_kink(theta=b_late, kink=0, slope_left=w, slope_right=1) - (1 - w)
 
     return lo, hi
 
@@ -173,3 +192,13 @@ def _phi_kink(
     slope_right: float = 1,
 ):
     return slope_left * theta * (theta < kink) + slope_right * theta * (theta >= kink)
+
+
+def _check_constraint_supported(constraint_mtr: str) -> None:
+    supported = ["none", "increasing"]
+    if constraint_mtr not in supported:
+        msg = (
+            f"Constraint '{constraint_mtr}' not supported.\n"
+            f"Supported constraints: {supported}"
+        )
+        raise ValueError(msg)
