@@ -10,7 +10,9 @@ from thesis.config import RNG
 from thesis.simple_model.funcs import (
     _draw_data,
     _estimate_pscores,
+    _idset,
     _late,
+    _true_late,
     simulation_bootstrap,
 )
 
@@ -111,7 +113,7 @@ def test_generate_late(instrument, local_ates_nonzero):
 
     actual = _late(data)
 
-    assert actual == pytest.approx(expected, abs=2 * np.sqrt(10_000))
+    assert actual == pytest.approx(expected, abs=2 / np.sqrt(10_000))
 
 
 def test_simulation_runs(local_ates_nonzero, instrument, sim_boot) -> None:
@@ -147,3 +149,81 @@ def test_check_invalid_bootstrap_method(
             constraint_mtr="increasing",
             bootstrap_method="invalid",
         )
+
+
+def test_true_late():
+    instrument = Instrument(
+        support=np.array([0, 1]),
+        pmf=np.array([0.5, 0.5]),
+        pscores=np.array([0.4, 0.6]),
+    )
+
+    u_hi = 0.2
+
+    complier_lates = np.linspace(-0.1, 0.1, num=10)
+
+    # With u_hi = 0.2, the weights are 0.5 (both relevant populations have mass 0.2).
+    expected = 0.5 * complier_lates + 0.5 * 1
+
+    local_ates = [
+        LocalATEs(
+            never_taker=0,
+            complier=cp_late,
+            always_taker=1,
+        )
+        for cp_late in complier_lates
+    ]
+
+    actual = [
+        _true_late(instrument=instrument, local_ates=la, u_hi=u_hi) for la in local_ates
+    ]
+
+    np.testing.assert_allclose(actual, expected, atol=1e-10)
+
+
+def test_id_set_consistent() -> None:
+    instrument = Instrument(
+        support=np.array([0, 1]),
+        pmf=np.array([0.5, 0.5]),
+        pscores=np.array([0.4, 0.6]),
+    )
+
+    u_hi = 0.2
+
+    local_ates = LocalATEs(
+        never_taker=0,
+        complier=-0.1,
+        always_taker=1,
+    )
+
+    constraint_mtr = "none"
+
+    n_obs = 10_000
+    n_sims = 1_000
+
+    res = np.zeros((n_sims, 2))
+
+    for i in range(n_sims):
+        data = _draw_data(
+            n_obs=n_obs,
+            local_ates=local_ates,
+            instrument=instrument,
+            rng=RNG,
+        )
+
+        res[i] = _idset(
+            b_late=_late(data),
+            u_hi=u_hi,
+            pscores_hat=_estimate_pscores(data),
+            constraint_mtr=constraint_mtr,
+        )
+
+    # Take means over columns
+
+    actual = res.mean(axis=0)
+
+    actual[0]
+    mean_hi = actual[1]
+
+    expected_hi = 0.45
+    assert mean_hi == pytest.approx(expected_hi, abs=3 / np.sqrt(n_obs))
