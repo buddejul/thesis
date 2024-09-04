@@ -45,6 +45,15 @@ def local_ates_nonzero() -> LocalATEs:
 
 
 @pytest.fixture()
+def local_ates_complier_negative() -> LocalATEs:
+    return LocalATEs(
+        never_taker=0,
+        complier=-0.5,
+        always_taker=1,
+    )
+
+
+@pytest.fixture()
 def sim_boot():
     return partial(
         simulation_bootstrap,
@@ -227,3 +236,29 @@ def test_id_set_consistent() -> None:
 
     expected_hi = 0.45
     assert mean_hi == pytest.approx(expected_hi, abs=3 / np.sqrt(n_obs))
+
+
+def test_inconsistent_complier_and_always_taker_ate(
+    sim_boot,
+    local_ates_complier_negative,
+    instrument,
+) -> None:
+    # In settings with no constraint on the MTR functions it is possible to have a
+    # negative complier ATE and a always-taker ATE of 1.
+    sim_boot(
+        local_ates=local_ates_complier_negative,
+        instrument=instrument,
+        constraint_mtr="none",
+        bootstrap_method="standard",
+    )
+
+    # With increasing MTR functions this is not possible, as the largest possible value
+    # given a negative complier ATE is 1 + complier ATE < 1.
+
+    with pytest.raises(ValueError, match="largest possible always-taker ATE"):
+        sim_boot(
+            local_ates=local_ates_complier_negative,
+            instrument=instrument,
+            constraint_mtr="increasing",
+            bootstrap_method="standard",
+        )

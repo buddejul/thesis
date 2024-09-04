@@ -43,6 +43,7 @@ def simulation_bootstrap(
     _check_constraint_supported(constraint_mtr)
     _check_bootsrap_method_supported(bootstrap_method)
     _check_instrument_and_u_hi_consistent(u_hi, instrument)
+    _check_complier_always_taker_consistent(local_ates, constraint_mtr)
 
     results = np.zeros((n_sims, 2))
 
@@ -347,5 +348,19 @@ def _check_instrument_and_u_hi_consistent(u_hi: float, instrument: Instrument) -
         msg = (
             f"Upper bound u_hi + pscores[1] = {u_hi + instrument.pscores[1]} "
             f"exceeds 1. This is not allowed."
+        )
+        raise ValueError(msg)
+
+
+def _check_complier_always_taker_consistent(local_ates, constraint_mtr):
+    if constraint_mtr == "increasing" and (
+        local_ates.complier < 0 and local_ates.always_taker >= 1
+    ):
+        # To be consistent with increasing MTR assumptions, the always-taker can be at
+        # most min(1, 1 + complier ate). Hence, if the complier ATE is negative, the
+        # always-taker ATE needs to be smaller than 1.
+        msg = (
+            "Whenever late_complier < 0, the largest possible always-taker ATE is "
+            "1 + later_complier < 1."
         )
         raise ValueError(msg)

@@ -45,7 +45,10 @@ ID_TO_KWARGS = {
         local_ates=LocalATEs(
             never_taker=0,
             complier=late_complier,
-            always_taker=1,
+            # The following ensures that the model is always correctly specified under
+            # increasing MTR functions: Whenever late_complier < 0, the largest possible
+            # always-taker ATE is 1 + later_complier < 1.
+            always_taker=np.min(1, 1 + late_complier),
         ),
         constraint_mtr=constraint_mtr,
         bootstrap_method=bootstrap_method,
