@@ -21,13 +21,13 @@ class _Arguments(NamedTuple):
     bootstrap_method: str
     pscore_hi: float = 0.6
     alpha: float = 0.05
-    n_boot: int = 2_000
-    n_sims: int = 2
+    n_boot: int = 250
+    n_sims: int = 250
     rng: np.random.Generator = RNG
 
 
-U_HI = [0.1]
-N_OBS = [250, 1_000]
+U_HI = [0.2]
+N_OBS = [250, 1_000, 10_000]
 PSCORES_LOW = [0.4]
 CONSTRAINTS_MTR = ["increasing"]
 BOOTSTRAP_METHODS = ["standard", "numerical_delta"]

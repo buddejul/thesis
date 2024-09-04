@@ -152,7 +152,12 @@ def _ci_standard_bootstrap(
     # Explicitly make this a float to avoid static typing issues. np.quantile returns a
     # np.float64 type, which is not compatible with the float type hint, although this
     # seems to be addressed in https://github.com/numpy/numpy/pull/27334.
-    return float(np.quantile(boot_lo, alpha)), float(np.quantile(boot_hi, 1 - alpha))
+    # Note we also take (1 - ) alpha/2 quantiles. This is to keep to code consistent.
+    # Following the usual Imbens and Manski argument, when covering the parameter we
+    # would only use (1 - ) alpha quantiles.
+    return float(np.quantile(boot_lo, alpha / 2)), float(
+        np.quantile(boot_hi, 1 - alpha / 2),
+    )
 
 
 def _ci_numerical_delta_bootstrap(
