@@ -42,6 +42,7 @@ def simulation_bootstrap(
     """
     _check_constraint_supported(constraint_mtr)
     _check_bootsrap_method_supported(bootstrap_method)
+    _check_instrument_and_u_hi_consistent(u_hi, instrument)
 
     results = np.zeros((n_sims, 2))
 
@@ -139,6 +140,8 @@ def _ci_standard_bootstrap(
     for i in range(n_boot):
         boot_data = data[rng.choice(n_obs, size=n_obs, replace=True)]
 
+        # TODO(@buddejul): This might be more efficiently implemented by vectorizing the
+        # _idset call on the _late and _estimate_pscores bootstrap estimates.
         boot_lo[i], boot_hi[i] = _idset(
             b_late=_late(boot_data),
             u_hi=u_hi,
@@ -164,6 +167,9 @@ def _ci_numerical_delta_bootstrap(
     """Compute the numerical delta bootstrap confidence interval.
 
     Based on Hong and Li (2018), for details see p. 382.
+
+    The stepsize is set to log(n) by default, which is at least theoretically consistent
+    with rn/eps -> infty.
 
     """
     n_obs = data.shape[0]
@@ -327,5 +333,14 @@ def _check_bootsrap_method_supported(bootstrap_method: str) -> None:
         msg = (
             f"Bootstrap method '{bootstrap_method}' not supported.\n"
             f"Supported constraints: {supported}"
+        )
+        raise ValueError(msg)
+
+
+def _check_instrument_and_u_hi_consistent(u_hi: float, instrument: Instrument) -> None:
+    if u_hi + instrument.pscores[1] > 1:
+        msg = (
+            f"Upper bound u_hi + pscores[1] = {u_hi + instrument.pscores[1]} "
+            f"exceeds 1. This is not allowed."
         )
         raise ValueError(msg)

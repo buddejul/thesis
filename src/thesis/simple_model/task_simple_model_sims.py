@@ -18,10 +18,11 @@ class _Arguments(NamedTuple):
     n_obs: int
     local_ates: LocalATEs
     constraint_mtr: str
+    bootstrap_method: str
     pscore_hi: float = 0.6
     alpha: float = 0.05
     n_boot: int = 2_000
-    n_sims: int = 2_000
+    n_sims: int = 2
     rng: np.random.Generator = RNG
 
 
@@ -29,11 +30,14 @@ U_HI = [0.1]
 N_OBS = [250, 1_000]
 PSCORES_LOW = [0.4]
 CONSTRAINTS_MTR = ["increasing"]
+BOOTSTRAP_METHODS = ["standard", "numerical_delta"]
+LATES_COMPLIER = np.concat((np.linspace(-0.1, 0.1, num=10), np.zeros(1)))
 
 ID_TO_KWARGS = {
     (
         f"bootstrap_sims_{u_hi}_n_obs_{n_obs}_pscore_low_{pscore_low}"
         f"_late_complier_{late_complier}_constraint_mtr_{constraint_mtr}"
+        f"bootstrap_method_{bootstrap_method}"
     ): _Arguments(
         u_hi=u_hi,
         n_obs=n_obs,
@@ -44,21 +48,24 @@ ID_TO_KWARGS = {
             always_taker=1,
         ),
         constraint_mtr=constraint_mtr,
+        bootstrap_method=bootstrap_method,
         path_to_data=Path(
             BLD
             / "boot"
             / "results"
             / (
                 f"data_{u_hi}_n_obs_{n_obs}_pscore_low_{pscore_low}"
-                f"_late_complier_{late_complier}_constraint_mtr_{constraint_mtr}.pkl"
+                f"_late_complier_{late_complier}_constraint_mtr_{constraint_mtr}"
+                f"bootsrap_method_{bootstrap_method}.pkl"
             ),
         ),
     )
     for u_hi in U_HI
     for n_obs in N_OBS
     for pscore_low in PSCORES_LOW
-    for late_complier in np.concat((np.linspace(-0.1, 0.1, num=10), np.zeros(1)))
+    for late_complier in LATES_COMPLIER
     for constraint_mtr in CONSTRAINTS_MTR
+    for bootstrap_method in BOOTSTRAP_METHODS
 }
 
 
@@ -75,6 +82,7 @@ for id_, kwargs in ID_TO_KWARGS.items():
         pscore_hi: float,
         local_ates: LocalATEs,
         constraint_mtr: str,
+        bootstrap_method: str,
         rng: np.random.Generator,
         path_to_data: Annotated[Path, Product],
     ) -> None:
@@ -95,7 +103,7 @@ for id_, kwargs in ID_TO_KWARGS.items():
             instrument=instrument,
             constraint_mtr=constraint_mtr,
             rng=rng,
-            bootstrap_method="standard",
+            bootstrap_method=bootstrap_method,
         )
 
         res.to_pickle(path_to_data)

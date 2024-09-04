@@ -12,7 +12,9 @@ pdbcls = "pdbp:Pdb"
 target-version = "py311"
 select = ["ALL"]
 fix = true
-pylint.max-args = 11
+# Might want to reduce this at some point, currently just the set to whatever number
+# is required.
+pylint.max-args = 12
 fix-only = false # No linting errors will be reported
 extend-ignore = [
     "S101",  # Use of `assert` detected.
