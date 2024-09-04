@@ -95,6 +95,7 @@ for id_, kwargs in ID_TO_KWARGS.items():
             instrument=instrument,
             constraint_mtr=constraint_mtr,
             rng=rng,
+            bootstrap_method="standard",
         )
 
         res.to_pickle(path_to_data)

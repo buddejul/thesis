@@ -1,11 +1,18 @@
 """Test functions for simple_model."""
 
+from functools import partial
+
 import numpy as np
 import pandas as pd  # type: ignore[import-untyped]
 import pytest
 from thesis.classes import Instrument, LocalATEs
 from thesis.config import RNG
-from thesis.simple_model.funcs import _draw_data, _estimate_pscores, _late
+from thesis.simple_model.funcs import (
+    _draw_data,
+    _estimate_pscores,
+    _late,
+    simulation_bootstrap,
+)
 
 
 @pytest.fixture()
@@ -32,6 +39,19 @@ def local_ates_nonzero() -> LocalATEs:
         never_taker=0,
         complier=0.5,
         always_taker=1,
+    )
+
+
+@pytest.fixture()
+def sim_boot():
+    return partial(
+        simulation_bootstrap,
+        n_sims=2,
+        n_obs=10_000,
+        n_boot=2_000,
+        u_hi=0.1,
+        alpha=0.05,
+        rng=RNG,
     )
 
 
@@ -92,3 +112,38 @@ def test_generate_late(instrument, local_ates_nonzero):
     actual = _late(data)
 
     assert actual == pytest.approx(expected, abs=2 * np.sqrt(10_000))
+
+
+def test_simulation_runs(local_ates_nonzero, instrument, sim_boot) -> None:
+    for boot_met in ["standard"]:
+        for const_mtr in ["increasing", "none"]:
+            sim_boot(
+                local_ates=local_ates_nonzero,
+                instrument=instrument,
+                constraint_mtr=const_mtr,
+                bootstrap_method=boot_met,
+            )
+
+
+def test_check_invalid_constraint_mtr(instrument, local_ates_nonzero, sim_boot) -> None:
+    with pytest.raises(ValueError, match="Constraint 'invalid' not supported."):
+        sim_boot(
+            local_ates=local_ates_nonzero,
+            instrument=instrument,
+            constraint_mtr="invalid",
+            bootstrap_method="standard",
+        )
+
+
+def test_check_invalid_bootstrap_method(
+    instrument,
+    local_ates_nonzero,
+    sim_boot,
+) -> None:
+    with pytest.raises(ValueError, match="Bootstrap method 'invalid' not supported."):
+        sim_boot(
+            local_ates=local_ates_nonzero,
+            instrument=instrument,
+            constraint_mtr="increasing",
+            bootstrap_method="invalid",
+        )

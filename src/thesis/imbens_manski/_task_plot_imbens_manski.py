@@ -8,7 +8,7 @@ import plotly.graph_objects as go  # type: ignore[import-untyped]
 from pytask import Product
 
 from thesis.config import BLD
-from thesis.imbens_manski.task_sim_imbens_manski import (
+from thesis.imbens_manski._task_sim_imbens_manski import (
     ID_TO_KWARGS,
     N_BOOT,
     N_SIMS,

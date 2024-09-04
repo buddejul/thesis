@@ -18,6 +18,7 @@ def simulation_bootstrap(
     instrument: Instrument,
     alpha: float,
     constraint_mtr: str,
+    bootstrap_method: str,
     rng: np.random.Generator,
 ) -> pd.DataFrame:
     """Simulate the bootstrap experiment.
@@ -32,12 +33,14 @@ def simulation_bootstrap(
         alpha: Bootstrap percentile for confidence interval (1-alpha for upper).
         constraint_mtr: Constraint on the marginal treatment response functions.
         rng: Random number generator.
+        bootstrap_method: Method to compute the bootstrap confidence interval.
 
     Returns:
         DataFrame with the results of the simulation.
 
     """
     _check_constraint_supported(constraint_mtr)
+    _check_bootsrap_method_supported(bootstrap_method)
 
     results = np.zeros((n_sims, 2))
 
@@ -45,10 +48,11 @@ def simulation_bootstrap(
         data = _draw_data(n_obs, local_ates=local_ates, instrument=instrument, rng=rng)
 
         results[i] = _bootstrap_ci(
+            n_boot=n_boot,
+            bootstrap_method=bootstrap_method,
             alpha=alpha,
             u_hi=u_hi,
             data=data,
-            n_boot=n_boot,
             constraint_mtr=constraint_mtr,
             rng=rng,
         )
@@ -60,35 +64,82 @@ def simulation_bootstrap(
 
 
 def _bootstrap_ci(
+    bootstrap_method: str,
     alpha: float,
     u_hi: float,
     data: np.ndarray,
     n_boot: int,
     constraint_mtr: str,
     rng: np.random.Generator,
-    return_distr: bool = False,  # noqa: FBT001, FBT002
 ) -> tuple[ArrayLike, ...]:
+    """Compute bootstrap confidence interval.
+
+    The function allows for different type of bootstrap confidence intervals:
+    - standard: Calculates phi(beta_s) for every bootstrap drawn. Then it returns the
+        quantiles of the bootstrap distribution.
+    - numerical delta: Separately bootstraps the distribution of beta_s and estimates a
+        a derivative phi'(beta_s) using a numerical approximation.
+        Based on Hong and Li (2018).
+    - analytical delta: Separately bootstraps the distribution of beta_s and estimates a
+        a derivative phi'(beta_s) utilizing the analytical structure of the derivative.
+        Based on Fang and Santos (2017).
+
+    """
+    # Note that we currently implement this by separately bootstrapping the data for
+    # each method. This is not the most efficient way to do this, but keeps the code
+    # easy to organize. If it turns we out we spend a significant time on resampling
+    # we might want to consider a more efficient implementation.
+
+    if bootstrap_method == "standard":
+        return _ci_standard_bootstrap(
+            n_boot=n_boot,
+            data=data,
+            alpha=alpha,
+            u_hi=u_hi,
+            constraint_mtr=constraint_mtr,
+            rng=rng,
+        )
+    # In principle, this should not be needed because we check the supported methods
+    # after input. However, mypy does not seem to recognize this. Or maybe this function
+    # is called from somewhere else.
+    msg = f"Bootstrap method '{bootstrap_method}' not supported."
+    raise ValueError(msg)
+
+
+def _ci_standard_bootstrap(
+    n_boot: int,
+    data: np.ndarray,
+    alpha: float,
+    u_hi: float,
+    constraint_mtr: str,
+    rng: np.random.Generator,
+) -> tuple[float, float]:
+    """Compute the standard bootstrap confidence interval.
+
+    The standard, non-parametric approach calculates phi(X_hat) for each bootstrap. In
+    our case this amounts to computing the identified set based on the bootstrap sample.
+    Then quantiles of this bootstrap distribution are used to construct CIs.
+
+    """
     boot_lo = np.zeros(n_boot)
     boot_hi = np.zeros(n_boot)
-    boot_late = np.zeros(n_boot)
 
     n_obs = data.shape[0]
 
     for i in range(n_boot):
         boot_data = data[rng.choice(n_obs, size=n_obs, replace=True)]
-        late = _late(boot_data)
-        pscores_hat = _estimate_pscores(boot_data)
-        lo, hi = _idset(late, u_hi, pscores_hat, constraint_mtr=constraint_mtr)
 
-        boot_late[i] = late
-        boot_lo[i] = lo
-        boot_hi[i] = hi
+        boot_lo[i], boot_hi[i] = _idset(
+            b_late=_late(boot_data),
+            u_hi=u_hi,
+            pscores_hat=_estimate_pscores(boot_data),
+            constraint_mtr=constraint_mtr,
+        )
 
-    if return_distr:
-        return boot_lo, boot_hi, boot_late
-
-    # Take the alpha quantile of boot_lo and 1 - alpha quantile of boot_hi
-    return np.quantile(boot_lo, alpha), np.quantile(boot_hi, 1 - alpha)
+    # Explicitly make this a float to avoid static typing issues. np.quantile returns a
+    # np.float64 type, which is not compatible with the float type hint, although this
+    # seems to be addressed in https://github.com/numpy/numpy/pull/27334.
+    return float(np.quantile(boot_lo, alpha)), float(np.quantile(boot_hi, 1 - alpha))
 
 
 def _idset(
@@ -199,6 +250,16 @@ def _check_constraint_supported(constraint_mtr: str) -> None:
     if constraint_mtr not in supported:
         msg = (
             f"Constraint '{constraint_mtr}' not supported.\n"
+            f"Supported constraints: {supported}"
+        )
+        raise ValueError(msg)
+
+
+def _check_bootsrap_method_supported(bootstrap_method: str) -> None:
+    supported = ["standard"]
+    if bootstrap_method not in supported:
+        msg = (
+            f"Bootstrap method '{bootstrap_method}' not supported.\n"
             f"Supported constraints: {supported}"
         )
         raise ValueError(msg)
