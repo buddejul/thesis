@@ -1,5 +1,6 @@
 """Functions for bootstrap sampling experiment."""
 
+from collections.abc import Callable
 from math import comb
 
 import numpy as np
@@ -99,6 +100,15 @@ def _bootstrap_ci(
             constraint_mtr=constraint_mtr,
             rng=rng,
         )
+    if bootstrap_method == "numerical_delta":
+        return _ci_numerical_delta_bootstrap(
+            n_boot=n_boot,
+            data=data,
+            alpha=alpha,
+            u_hi=u_hi,
+            constraint_mtr=constraint_mtr,
+            rng=rng,
+        )
     # In principle, this should not be needed because we check the supported methods
     # after input. However, mypy does not seem to recognize this. Or maybe this function
     # is called from somewhere else.
@@ -142,12 +152,68 @@ def _ci_standard_bootstrap(
     return float(np.quantile(boot_lo, alpha)), float(np.quantile(boot_hi, 1 - alpha))
 
 
+def _ci_numerical_delta_bootstrap(
+    n_boot: int,
+    data: np.ndarray,
+    alpha: float,
+    u_hi: float,
+    constraint_mtr: str,
+    rng: np.random.Generator,
+    step_size: Callable = np.log,
+) -> tuple[float, float]:
+    """Compute the numerical delta bootstrap confidence interval.
+
+    Based on Hong and Li (2018), for details see p. 382.
+
+    """
+    n_obs = data.shape[0]
+
+    eps = step_size(n_obs)
+    rn = np.sqrt(n_obs)
+
+    late = _late(data)
+    _id_data = _idset(late, u_hi, _estimate_pscores(data), constraint_mtr)
+
+    boot_delta_lo = np.zeros(n_boot)
+    boot_delta_hi = np.zeros(n_boot)
+
+    for i in range(n_boot):
+        # Step 1: Draw Z_s from the bootstrap distribution.
+        boot_data = data[rng.choice(n_obs, size=n_obs, replace=True)]
+        z_s = rn * (_late(boot_data) - _late(data))
+
+        # Step 2: Compute the numerical derivative.
+        # Note that in our case we need to do this for both the lower and upper bound.
+
+        _id_plus_eps_boot = _idset(
+            b_late=late + eps * z_s,
+            u_hi=u_hi,
+            pscores_hat=_estimate_pscores(boot_data),
+            constraint_mtr=constraint_mtr,
+        )
+
+        boot_delta_lo[i], boot_delta_hi[i] = (1 / eps) * (_id_plus_eps_boot - _id_data)
+
+    # Construct 1 - alpha two-sided equal-tailed confidence interval for phi(beta_s).
+    # Note: Based on the Imbens and Manski argument for covering the parameter - instead
+    # of the identified set - we might only need to take "alpha" critical values here,
+    # instead of alpha. To achieve this, the user may supply alpha * 2 as the alpha.
+
+    # Compute the lower CI bound for the lower bound of the identified set.
+    ci_lo = _id_data[0] - (1 / rn) * np.quantile(boot_delta_lo, 1 - alpha / 2)
+
+    # Compute the upper CI bound for the upper bound of the identified set.
+    ci_hi = _id_data[1] - (1 / rn) * np.quantile(boot_delta_hi, alpha / 2)
+
+    return ci_lo, ci_hi
+
+
 def _idset(
     b_late: float,
     u_hi: float,
     pscores_hat: tuple[float, float],
     constraint_mtr: str,
-) -> tuple[float, float]:
+) -> np.ndarray:
     w = (pscores_hat[1] - pscores_hat[0]) / (u_hi + pscores_hat[1] - pscores_hat[0])
 
     if constraint_mtr == "none":
@@ -160,7 +226,7 @@ def _idset(
         hi = _phi_kink(theta=b_late, kink=0, slope_left=1, slope_right=w) + (1 - w)
         lo = _phi_kink(theta=b_late, kink=0, slope_left=w, slope_right=1) - (1 - w)
 
-    return lo, hi
+    return np.array([lo, hi])
 
 
 def _late(data: np.ndarray) -> float:
@@ -256,7 +322,7 @@ def _check_constraint_supported(constraint_mtr: str) -> None:
 
 
 def _check_bootsrap_method_supported(bootstrap_method: str) -> None:
-    supported = ["standard"]
+    supported = ["standard", "numerical_delta"]
     if bootstrap_method not in supported:
         msg = (
             f"Bootstrap method '{bootstrap_method}' not supported.\n"

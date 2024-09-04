@@ -115,7 +115,7 @@ def test_generate_late(instrument, local_ates_nonzero):
 
 
 def test_simulation_runs(local_ates_nonzero, instrument, sim_boot) -> None:
-    for boot_met in ["standard"]:
+    for boot_met in ["standard", "numerical_delta"]:
         for const_mtr in ["increasing", "none"]:
             sim_boot(
                 local_ates=local_ates_nonzero,
