@@ -174,12 +174,12 @@ def _ci_numerical_delta_bootstrap(
     Based on Hong and Li (2018), for details see p. 382.
 
     The stepsize is set to log(n) by default, which is at least theoretically consistent
-    with rn/eps -> infty.
+    with eps -> zero and rn * eps -> infty, i.e. eps converges more slowly.
 
     """
     n_obs = data.shape[0]
 
-    eps = step_size(n_obs)
+    eps = 1 / step_size(n_obs)
     rn = np.sqrt(n_obs)
 
     late = _late(data)

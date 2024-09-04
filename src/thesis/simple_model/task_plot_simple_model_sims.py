@@ -80,6 +80,7 @@ def task_plot_boostrap_sims(
     line_type_by_n_obs = {
         250: "solid",
         1_000: "dash",
+        10_000: "dot",
     }
 
     for col_to_plot in ["coverage", "length"]:
@@ -101,7 +102,7 @@ def task_plot_boostrap_sims(
                         ),
                         line={
                             "color": color_by_bootstrap_method[bootstrap_method],
-                            "dash": line_type_by_n_obs[n_obs],
+                            "dash": line_type_by_n_obs[int(n_obs)],
                             "width": 2,
                         },
                     ),
