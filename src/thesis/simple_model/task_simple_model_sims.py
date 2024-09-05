@@ -1,6 +1,5 @@
 """Task for running bootstrap simulations."""
 
-import inspect
 from collections.abc import Callable
 from pathlib import Path
 from typing import Annotated, NamedTuple
@@ -11,6 +10,7 @@ from pytask import Product, task
 from thesis.classes import Instrument, LocalATEs
 from thesis.config import BLD, RNG
 from thesis.simple_model.funcs import simulation_bootstrap
+from thesis.utilities import get_func_as_string
 
 
 class _Arguments(NamedTuple):
@@ -27,15 +27,6 @@ class _Arguments(NamedTuple):
     n_boot: int = 2
     n_sims: int = 2
     rng: np.random.Generator = RNG
-
-
-def _get_func_as_string(func: Callable) -> str:
-    func_str = str(inspect.getsourcelines(func)[0])
-    func_str = func_str.split(":")[1].strip()
-    func_str = func_str.removesuffix(")\\n']")
-    func_str = func_str.replace(" ", "")
-    func_str = func_str.replace("**", "pow")
-    return func_str.replace("/", "div")
 
 
 U_HI = [0.2]
@@ -60,7 +51,7 @@ ID_TO_KWARGS = {
         f"bootstrap_sims_{u_hi}_n_obs_{n_obs}_pscore_low_{pscore_low}"
         f"_late_complier_{late_complier}_constraint_mtr_{constraint_mtr}"
         f"bootstrap_method_{bootstrap_method}"
-        f"_eps_fun_{_get_func_as_string(eps_fun)}"
+        f"_eps_fun_{get_func_as_string(eps_fun)}"
     ): _Arguments(
         u_hi=u_hi,
         n_obs=n_obs,
@@ -84,7 +75,7 @@ ID_TO_KWARGS = {
                 f"data_{u_hi}_n_obs_{n_obs}_pscore_low_{pscore_low}"
                 f"_late_complier_{late_complier}_constraint_mtr_{constraint_mtr}"
                 f"_bootstrap_method_{bootstrap_method}"
-                f"_eps_fun_{_get_func_as_string(eps_fun)}.pkl"
+                f"_eps_fun_{get_func_as_string(eps_fun)}.pkl"
             ),
         ),
     )
@@ -139,7 +130,5 @@ for id_, kwargs in ID_TO_KWARGS.items():
             bootstrap_method=bootstrap_method,
             bootstrap_params=bootstrap_params,
         )
-
-        res["eps_fun"] = _get_func_as_string(bootstrap_params["eps_fun"])
 
         res.to_pickle(path_to_data)

@@ -11,8 +11,8 @@ from thesis.config import BLD
 from thesis.simple_model.task_simple_model_sims import (
     ID_TO_KWARGS,
     _Arguments,
-    _get_func_as_string,
 )
+from thesis.utilities import get_func_as_string
 
 
 # TODO(@buddejul): Put graphs below in a loop, currently there is a lot of copy/paste.
@@ -27,6 +27,9 @@ def task_plot_boostrap_sims(
     ),
     path_to_plot_means: Annotated[Path, Product] = Path(
         BLD / "boot" / "figures" / "means.png",
+    ),
+    path_to_plot_coverage_by_eps_fun: Annotated[Path, Product] = Path(
+        BLD / "boot" / "figures" / "coverage_eps_fun.png",
     ),
 ) -> None:
     """Plot the coverage probability of the confidence interval."""
@@ -47,7 +50,7 @@ def task_plot_boostrap_sims(
                 kwargs.n_obs,
                 kwargs.local_ates.complier,
                 kwargs.bootstrap_method,
-                _get_func_as_string(kwargs.bootstrap_params["eps_fun"]),
+                get_func_as_string(kwargs.bootstrap_params["eps_fun"]),
                 kwargs.constraint_mtr,
                 res["true"].mean(),
                 res["ci_covers_true_param"].mean(),
@@ -166,3 +169,27 @@ def task_plot_boostrap_sims(
     )
 
     fig.write_image(path_to_plot_means)
+
+    # ==================================================================================
+    # Plot coverage by eps_fun
+    # ==================================================================================
+    fig = go.Figure()
+
+    for eps_fun in data.eps_fun.unique():
+        data_sub = data[data.eps_fun == eps_fun]
+        fig.add_trace(
+            go.Scatter(
+                x=data_sub.late_complier,
+                y=data_sub.coverage,
+                name=f"eps_fun={eps_fun}",
+                line={"dash": "solid"},
+            ),
+        )
+
+    fig.update_layout(
+        title="Coverage by eps_fun",
+        xaxis_title="late_complier",
+        yaxis_title="Coverage",
+    )
+
+    fig.write_image(path_to_plot_coverage_by_eps_fun)
