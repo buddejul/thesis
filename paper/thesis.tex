@@ -335,6 +335,35 @@ Using the simplification noted above, the estimator can be equivalently written 
 	.
 \end{equation}
 
+\section{Simulation Results}
+
+\begin{figure}
+	\centering
+	\begin{subfigure}{0.45\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{../bld/boot/figures/coverage.png}
+		\caption{Coverage for True Parameter}
+	\end{subfigure}
+	\hfill
+	\begin{subfigure}{0.45\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{../bld/boot/figures/length.png}
+		\caption{Length of CIs}
+	\end{subfigure}
+
+	\begin{subfigure}{0.45\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{../bld/boot/figures/means.png}
+		\caption{Means of Upper and Lower Bound}
+	\end{subfigure}
+	\hfill
+	\begin{subfigure}{0.45\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{../bld/boot/figures/coverage_eps_fun.png}
+		\caption{Coverage by Step Size for Numerical Delta Method}
+	\end{subfigure}
+	\caption{Simulation: CI Properties for Standard and Numerical Delta Bootstrap}\label{fig:simulation_ci_bootstrap}
+\end{figure}
 
 \bibliographystyle{plain}
 \bibliography{refs.bib}
