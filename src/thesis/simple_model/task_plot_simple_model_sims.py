@@ -8,7 +8,11 @@ import plotly.graph_objects as go  # type: ignore[import-untyped]
 from pytask import Product
 
 from thesis.config import BLD
-from thesis.simple_model.task_simple_model_sims import ID_TO_KWARGS, _Arguments
+from thesis.simple_model.task_simple_model_sims import (
+    ID_TO_KWARGS,
+    _Arguments,
+    _get_func_as_string,
+)
 
 
 # TODO(@buddejul): Put graphs below in a loop, currently there is a lot of copy/paste.
@@ -43,6 +47,7 @@ def task_plot_boostrap_sims(
                 kwargs.n_obs,
                 kwargs.local_ates.complier,
                 kwargs.bootstrap_method,
+                _get_func_as_string(kwargs.bootstrap_params["eps_fun"]),
                 kwargs.constraint_mtr,
                 res["true"].mean(),
                 res["ci_covers_true_param"].mean(),
@@ -57,6 +62,7 @@ def task_plot_boostrap_sims(
         "n_obs",
         "late_complier",
         "bootstrap_method",
+        "eps_fun",
         "constraint_mtr",
         "true",
         "coverage",

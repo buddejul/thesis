@@ -1,5 +1,7 @@
 """Task for running bootstrap simulations."""
 
+import inspect
+from collections.abc import Callable
 from pathlib import Path
 from typing import Annotated, NamedTuple
 
@@ -19,11 +21,21 @@ class _Arguments(NamedTuple):
     local_ates: LocalATEs
     constraint_mtr: str
     bootstrap_method: str
+    bootstrap_params: dict[str, Callable]
     pscore_hi: float = 0.6
     alpha: float = 0.05
-    n_boot: int = 250
-    n_sims: int = 250
+    n_boot: int = 2
+    n_sims: int = 2
     rng: np.random.Generator = RNG
+
+
+def _get_func_as_string(func: Callable) -> str:
+    func_str = str(inspect.getsourcelines(func)[0])
+    func_str = func_str.split(":")[1].strip()
+    func_str = func_str.removesuffix(")\\n']")
+    func_str = func_str.replace(" ", "")
+    func_str = func_str.replace("**", "pow")
+    return func_str.replace("/", "div")
 
 
 U_HI = [0.2]
@@ -32,12 +44,23 @@ PSCORES_LOW = [0.4]
 CONSTRAINTS_MTR = ["increasing"]
 BOOTSTRAP_METHODS = ["standard", "numerical_delta"]
 LATES_COMPLIER = np.concat((np.linspace(-0.1, 0.1, num=10), np.zeros(1)))
+EPS_FUNS_NUMERICAL_DELTA = [
+    lambda n: n ** (-1 / 2),
+    lambda n: n ** (-1 / 3),
+    lambda n: n ** (-1 / 6),
+]
 
+
+# TODO(@buddejul): An alternative way to do this would be to simply give this a
+# non-meaningful name (e.g. simple_models_sims_`i`) and store all params in the dataset
+# or a separate dict (probably more efficient). We can then retrieve the params from the
+# dataset or dict after saving. We can then query the settings dict before merging.
 ID_TO_KWARGS = {
     (
         f"bootstrap_sims_{u_hi}_n_obs_{n_obs}_pscore_low_{pscore_low}"
         f"_late_complier_{late_complier}_constraint_mtr_{constraint_mtr}"
         f"bootstrap_method_{bootstrap_method}"
+        f"_eps_fun_{_get_func_as_string(eps_fun)}"
     ): _Arguments(
         u_hi=u_hi,
         n_obs=n_obs,
@@ -48,10 +71,11 @@ ID_TO_KWARGS = {
             # The following ensures that the model is always correctly specified under
             # increasing MTR functions: Whenever late_complier < 0, the largest possible
             # always-taker ATE is 1 + later_complier < 1.
-            always_taker=np.min(1, 1 + late_complier),
+            always_taker=np.min((1, 1 + late_complier)),
         ),
         constraint_mtr=constraint_mtr,
         bootstrap_method=bootstrap_method,
+        bootstrap_params={"eps_fun": eps_fun},
         path_to_data=Path(
             BLD
             / "boot"
@@ -59,7 +83,8 @@ ID_TO_KWARGS = {
             / (
                 f"data_{u_hi}_n_obs_{n_obs}_pscore_low_{pscore_low}"
                 f"_late_complier_{late_complier}_constraint_mtr_{constraint_mtr}"
-                f"bootsrap_method_{bootstrap_method}.pkl"
+                f"_bootstrap_method_{bootstrap_method}"
+                f"_eps_fun_{_get_func_as_string(eps_fun)}.pkl"
             ),
         ),
     )
@@ -69,6 +94,10 @@ ID_TO_KWARGS = {
     for late_complier in LATES_COMPLIER
     for constraint_mtr in CONSTRAINTS_MTR
     for bootstrap_method in BOOTSTRAP_METHODS
+    for eps_fun in EPS_FUNS_NUMERICAL_DELTA
+    if not (
+        bootstrap_method == "standard" and eps_fun is not EPS_FUNS_NUMERICAL_DELTA[0]
+    )
 }
 
 
@@ -86,6 +115,7 @@ for id_, kwargs in ID_TO_KWARGS.items():
         local_ates: LocalATEs,
         constraint_mtr: str,
         bootstrap_method: str,
+        bootstrap_params: dict[str, Callable],
         rng: np.random.Generator,
         path_to_data: Annotated[Path, Product],
     ) -> None:
@@ -107,6 +137,9 @@ for id_, kwargs in ID_TO_KWARGS.items():
             constraint_mtr=constraint_mtr,
             rng=rng,
             bootstrap_method=bootstrap_method,
+            bootstrap_params=bootstrap_params,
         )
+
+        res["eps_fun"] = _get_func_as_string(bootstrap_params["eps_fun"])
 
         res.to_pickle(path_to_data)

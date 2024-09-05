@@ -128,11 +128,17 @@ def test_generate_late(instrument, local_ates_nonzero):
 def test_simulation_runs(local_ates_nonzero, instrument, sim_boot) -> None:
     for boot_met in ["standard", "numerical_delta"]:
         for const_mtr in ["increasing", "none"]:
+            if boot_met == "numerical_delta":
+                bootstrap_params = {"eps_fun": lambda n: n ** (-1 / 3)}
+            else:
+                bootstrap_params = {}
+
             sim_boot(
                 local_ates=local_ates_nonzero,
                 instrument=instrument,
                 constraint_mtr=const_mtr,
                 bootstrap_method=boot_met,
+                bootstrap_params=bootstrap_params,
             )
 
 
@@ -261,4 +267,15 @@ def test_inconsistent_complier_and_always_taker_ate(
             instrument=instrument,
             constraint_mtr="increasing",
             bootstrap_method="standard",
+        )
+
+
+def test_bootstrap_params_supplied(sim_boot, local_ates_nonzero, instrument) -> None:
+    with pytest.raises(ValueError, match="Numerical delta bootstrap method requires"):
+        sim_boot(
+            local_ates=local_ates_nonzero,
+            instrument=instrument,
+            constraint_mtr="increasing",
+            bootstrap_method="numerical_delta",
+            bootstrap_params={},
         )

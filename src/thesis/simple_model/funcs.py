@@ -21,6 +21,7 @@ def simulation_bootstrap(
     constraint_mtr: str,
     bootstrap_method: str,
     rng: np.random.Generator,
+    bootstrap_params: dict[str, Callable] | None = None,
 ) -> pd.DataFrame:
     """Simulate the bootstrap experiment.
 
@@ -35,15 +36,20 @@ def simulation_bootstrap(
         constraint_mtr: Constraint on the marginal treatment response functions.
         rng: Random number generator.
         bootstrap_method: Method to compute the bootstrap confidence interval.
+        bootstrap_params: Additional parameters for the bootstrap method depending on
+            the bootstrap_method.
 
     Returns:
         DataFrame with the results of the simulation.
 
     """
+    if bootstrap_params is None:
+        bootstrap_params = {}
     _check_constraint_supported(constraint_mtr)
     _check_bootsrap_method_supported(bootstrap_method)
     _check_instrument_and_u_hi_consistent(u_hi, instrument)
     _check_complier_always_taker_consistent(local_ates, constraint_mtr)
+    _check_bootstrap_params_supplied(bootstrap_method, bootstrap_params)
 
     results = np.zeros((n_sims, 2))
 
@@ -53,6 +59,7 @@ def simulation_bootstrap(
         results[i] = _bootstrap_ci(
             n_boot=n_boot,
             bootstrap_method=bootstrap_method,
+            bootstrap_params=bootstrap_params,
             alpha=alpha,
             u_hi=u_hi,
             data=data,
@@ -74,6 +81,7 @@ def _bootstrap_ci(
     n_boot: int,
     constraint_mtr: str,
     rng: np.random.Generator,
+    bootstrap_params: dict[str, Callable] | None = None,
 ) -> tuple[ArrayLike, ...]:
     """Compute bootstrap confidence interval.
 
@@ -93,6 +101,8 @@ def _bootstrap_ci(
     # easy to organize. If it turns we out we spend a significant time on resampling
     # we might want to consider a more efficient implementation.
 
+    if bootstrap_params is None:
+        bootstrap_params = {}
     if bootstrap_method == "standard":
         return _ci_standard_bootstrap(
             n_boot=n_boot,
@@ -110,6 +120,7 @@ def _bootstrap_ci(
             u_hi=u_hi,
             constraint_mtr=constraint_mtr,
             rng=rng,
+            eps_fun=bootstrap_params["eps_fun"],
         )
     # In principle, this should not be needed because we check the supported methods
     # after input. However, mypy does not seem to recognize this. Or maybe this function
@@ -168,7 +179,7 @@ def _ci_numerical_delta_bootstrap(
     u_hi: float,
     constraint_mtr: str,
     rng: np.random.Generator,
-    step_size: Callable = np.log,
+    eps_fun: Callable = lambda n: n ** (-1 / 6),
 ) -> tuple[float, float]:
     """Compute the numerical delta bootstrap confidence interval.
 
@@ -180,7 +191,8 @@ def _ci_numerical_delta_bootstrap(
     """
     n_obs = data.shape[0]
 
-    eps = 1 / step_size(n_obs)
+    eps = eps_fun(n_obs)
+
     rn = np.sqrt(n_obs)
 
     late = _late(data)
@@ -362,5 +374,17 @@ def _check_complier_always_taker_consistent(local_ates, constraint_mtr):
         msg = (
             "Whenever late_complier < 0, the largest possible always-taker ATE is "
             "1 + later_complier < 1."
+        )
+        raise ValueError(msg)
+
+
+def _check_bootstrap_params_supplied(
+    bootstrap_method: str,
+    bootstrap_params: dict[str, Callable],
+) -> None:
+    if bootstrap_method == "numerical_delta" and "eps_fun" not in bootstrap_params:
+        msg = (
+            "Numerical delta bootstrap method requires the user to supply an epsilon "
+            "function via bootstrap_params under key 'eps_fun'."
         )
         raise ValueError(msg)

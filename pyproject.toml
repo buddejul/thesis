@@ -14,7 +14,7 @@ select = ["ALL"]
 fix = true
 # Might want to reduce this at some point, currently just the set to whatever number
 # is required.
-pylint.max-args = 12
+pylint.max-args = 13
 fix-only = false # No linting errors will be reported
 extend-ignore = [
     "S101",  # Use of `assert` detected.
