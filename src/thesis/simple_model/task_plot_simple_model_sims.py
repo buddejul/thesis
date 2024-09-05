@@ -17,7 +17,8 @@ from thesis.utilities import get_func_as_string
 
 # TODO(@buddejul): Put graphs below in a loop, currently there is a lot of copy/paste.
 # TODO(@buddejul): Include true parameters in plots.
-def task_plot_boostrap_sims(
+# TODO(@buddejul): Split tasks, function is too complex, see noqa below.
+def task_plot_boostrap_sims(  # noqa: C901
     id_to_kwargs: dict[str, _Arguments] = ID_TO_KWARGS,
     path_to_plot_coverage: Annotated[Path, Product] = Path(
         BLD / "boot" / "figures" / "coverage.png",
@@ -86,6 +87,15 @@ def task_plot_boostrap_sims(
         "numerical_delta": "red",
     }
 
+    color_by_eps_fun = {
+        "npow(-1div1)": "black",
+        "npow(-1div2)": "blue",
+        "npow(-1div3)": "red",
+        "npow(-1div4)": "green",
+        "npow(-1div5)": "orange",
+        "npow(-1div6)": "purple",
+    }
+
     line_type_by_n_obs = {
         250: "solid",
         1_000: "dash",
@@ -99,6 +109,7 @@ def task_plot_boostrap_sims(
                 data_sub = data[
                     (data.n_obs == n_obs) & (data.bootstrap_method == bootstrap_method)
                 ]
+                data_sub = data_sub[data_sub["eps_fun"] == "npow(-1div2)"]
                 fig.add_trace(
                     go.Scatter(
                         x=data_sub.late_complier,
@@ -176,20 +187,36 @@ def task_plot_boostrap_sims(
     fig = go.Figure()
 
     for eps_fun in data.eps_fun.unique():
-        data_sub = data[data.eps_fun == eps_fun]
-        fig.add_trace(
-            go.Scatter(
-                x=data_sub.late_complier,
-                y=data_sub.coverage,
-                name=f"eps_fun={eps_fun}",
-                line={"dash": "solid"},
-            ),
+        eps_fun_to_print = (
+            eps_fun.replace("npow", "n^")
+            .replace("div", "/")
+            .replace("(", "")
+            .replace(")", "")
         )
 
-    fig.update_layout(
-        title="Coverage by eps_fun",
-        xaxis_title="late_complier",
-        yaxis_title="Coverage",
-    )
+        for n_obs in data.n_obs.unique():
+            data_sub = data[data.eps_fun == eps_fun]
+            data_sub = data_sub[data_sub.n_obs == n_obs]
+            data_sub = data_sub[data_sub["bootstrap_method"] == "numerical_delta"]
+            fig.add_trace(
+                go.Scatter(
+                    x=data_sub.late_complier,
+                    y=data_sub.coverage,
+                    name=f"n_obs={n_obs}",
+                    legendgroup=f"{eps_fun}",
+                    legendgrouptitle_text=(f"eps(n) = {eps_fun_to_print}"),
+                    line={
+                        "dash": line_type_by_n_obs[int(n_obs)],
+                        "width": 2,
+                        "color": color_by_eps_fun[eps_fun],
+                    },
+                ),
+            )
+
+        fig.update_layout(
+            title="Coverage by eps_fun",
+            xaxis_title="late_complier",
+            yaxis_title="Coverage",
+        )
 
     fig.write_image(path_to_plot_coverage_by_eps_fun)
