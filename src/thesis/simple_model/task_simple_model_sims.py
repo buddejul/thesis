@@ -24,8 +24,8 @@ class _Arguments(NamedTuple):
     bootstrap_params: dict[str, Callable]
     pscore_hi: float = 0.6
     alpha: float = 0.05
-    n_boot: int = 2
-    n_sims: int = 2
+    n_boot: int = 250
+    n_sims: int = 250
     rng: np.random.Generator = RNG
 
 

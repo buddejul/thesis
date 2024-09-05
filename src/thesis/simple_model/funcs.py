@@ -150,14 +150,14 @@ def _ci_standard_bootstrap(
     n_obs = data.shape[0]
 
     for i in range(n_boot):
-        boot_data = data[rng.choice(n_obs, size=n_obs, replace=True)]
+        boot_data, pscores_boot = _draw_bootstrap_data(data=data, n_obs=n_obs, rng=rng)
 
         # TODO(@buddejul): This might be more efficiently implemented by vectorizing the
         # _idset call on the _late and _estimate_pscores bootstrap estimates.
         boot_lo[i], boot_hi[i] = _idset(
             b_late=_late(boot_data),
             u_hi=u_hi,
-            pscores_hat=_estimate_pscores(boot_data),
+            pscores_hat=pscores_boot,
             constraint_mtr=constraint_mtr,
         )
 
@@ -203,7 +203,8 @@ def _ci_numerical_delta_bootstrap(
 
     for i in range(n_boot):
         # Step 1: Draw Z_s from the bootstrap distribution.
-        boot_data = data[rng.choice(n_obs, size=n_obs, replace=True)]
+        boot_data, pscores_boot = _draw_bootstrap_data(data=data, n_obs=n_obs, rng=rng)
+
         z_s = rn * (_late(boot_data) - _late(data))
 
         # Step 2: Compute the numerical derivative.
@@ -212,7 +213,7 @@ def _ci_numerical_delta_bootstrap(
         _id_plus_eps_boot = _idset(
             b_late=late + eps * z_s,
             u_hi=u_hi,
-            pscores_hat=_estimate_pscores(boot_data),
+            pscores_hat=pscores_boot,
             constraint_mtr=constraint_mtr,
         )
 
@@ -290,6 +291,38 @@ def _draw_data(
     y = d * y1 + (1 - d) * y0 + rng.normal(scale=0.1, size=n_obs)
 
     return np.column_stack((y, d, z, u))
+
+
+def _draw_bootstrap_data(
+    data: np.ndarray,
+    n_obs: int,
+    rng: np.random.Generator,
+    max_iter: int = 100,
+) -> tuple[np.ndarray, tuple[float, float]]:
+    """Draw data for the bootstrap; redraw if propensity scores are equal."""
+    boot_data = data[rng.choice(n_obs, size=n_obs, replace=True)]
+
+    pscores_boot = _estimate_pscores(boot_data)
+
+    if pscores_boot[0] != pscores_boot[1]:
+        return boot_data, pscores_boot
+
+    # If the pscores are not the same we redraw the data. We set a maximum number of
+    # iterations to avoid infinite loops.
+    i = 0
+    while pscores_boot[0] == pscores_boot[1]:
+        boot_data = data[rng.choice(n_obs, size=n_obs, replace=True)]
+        pscores_boot = _estimate_pscores(boot_data)
+        i = i + 1
+
+        if i == max_iter:
+            msg = (
+                f"Bootstrap failed to generate different propensity scores"
+                f"({max_iter} draws)."
+            )
+            raise ValueError(msg)
+
+    return boot_data, pscores_boot
 
 
 def _m0(u: float | np.ndarray) -> float | np.ndarray:
