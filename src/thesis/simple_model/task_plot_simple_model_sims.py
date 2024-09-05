@@ -9,10 +9,13 @@ from pytask import Product
 
 from thesis.config import BLD
 from thesis.simple_model.task_simple_model_sims import (
+    EPS_FUNS_NUMERICAL_DELTA,
     ID_TO_KWARGS,
     _Arguments,
 )
 from thesis.utilities import get_func_as_string
+
+EPS_FUNS_STRINGS = [get_func_as_string(eps_fun) for eps_fun in EPS_FUNS_NUMERICAL_DELTA]
 
 
 # TODO(@buddejul): Put graphs below in a loop, currently there is a lot of copy/paste.
@@ -109,7 +112,10 @@ def task_plot_boostrap_sims(  # noqa: C901
                 data_sub = data[
                     (data.n_obs == n_obs) & (data.bootstrap_method == bootstrap_method)
                 ]
-                data_sub = data_sub[data_sub["eps_fun"] == "npow(-1div2)"]
+                data_sub = data_sub[
+                    (data_sub["bootstrap_method"] == "standard")
+                    | (data_sub["eps_fun"] == "npow(-1div2)")
+                ]
                 fig.add_trace(
                     go.Scatter(
                         x=data_sub.late_complier,
@@ -150,26 +156,37 @@ def task_plot_boostrap_sims(  # noqa: C901
             data_sub = data[
                 (data.n_obs == n_obs) & (data.bootstrap_method == bootstrap_method)
             ]
+            if bootstrap_method == "numerical_delta":
+                data_sub = data_sub[data_sub["eps_fun"] == "npow(-1div2)"]
             fig.add_trace(
                 go.Scatter(
                     x=data_sub.late_complier,
                     y=data_sub.ci_lo,
-                    name=f"Upper, n_obs={n_obs}, {bootstrap_method}",
+                    name=f"n_obs={n_obs}",
                     legendgroup=f"{bootstrap_method}",
                     legendgrouptitle_text=(
                         f"{bootstrap_method.replace('_', ' ').capitalize()} Bootstrap"
                     ),
+                    line={
+                        "color": color_by_bootstrap_method[bootstrap_method],
+                        "dash": line_type_by_n_obs[int(n_obs)],
+                    },
                 ),
             )
             fig.add_trace(
                 go.Scatter(
                     x=data_sub.late_complier,
                     y=data_sub.ci_hi,
-                    name=f"Lower, n_obs={n_obs}, {bootstrap_method}",
+                    name=f"Lower, N ={n_obs}, {bootstrap_method}",
                     legendgroup=f"{bootstrap_method}",
                     legendgrouptitle_text=(
                         f"{bootstrap_method.replace('_', ' ').capitalize()} Bootstrap"
                     ),
+                    line={
+                        "color": color_by_bootstrap_method[bootstrap_method],
+                        "dash": line_type_by_n_obs[int(n_obs)],
+                    },
+                    showlegend=False,
                 ),
             )
 
