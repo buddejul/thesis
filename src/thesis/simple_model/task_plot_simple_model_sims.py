@@ -16,12 +16,15 @@ from thesis.simple_model.task_simple_model_sims import (
 from thesis.utilities import get_func_as_string
 
 EPS_FUNS_STRINGS = [get_func_as_string(eps_fun) for eps_fun in EPS_FUNS_NUMERICAL_DELTA]
+KAPPA_FUNS_STRINGS = [
+    get_func_as_string(kappa_fun) for kappa_fun in EPS_FUNS_NUMERICAL_DELTA
+]
 
 
 # TODO(@buddejul): Put graphs below in a loop, currently there is a lot of copy/paste.
 # TODO(@buddejul): Include true parameters in plots.
 # TODO(@buddejul): Split tasks, function is too complex, see noqa below.
-def task_plot_boostrap_sims(  # noqa: C901
+def task_plot_boostrap_sims(  # noqa: C901, PLR0912, PLR0915
     id_to_kwargs: dict[str, _Arguments] = ID_TO_KWARGS,
     path_to_plot_coverage: Annotated[Path, Product] = Path(
         BLD / "boot" / "figures" / "coverage.png",
@@ -34,6 +37,9 @@ def task_plot_boostrap_sims(  # noqa: C901
     ),
     path_to_plot_coverage_by_eps_fun: Annotated[Path, Product] = Path(
         BLD / "boot" / "figures" / "coverage_eps_fun.png",
+    ),
+    path_to_plot_coverage_by_kappa_fun: Annotated[Path, Product] = Path(
+        BLD / "boot" / "figures" / "coverage_kappa_fun.png",
     ),
 ) -> None:
     """Plot the coverage probability of the confidence interval."""
@@ -55,6 +61,7 @@ def task_plot_boostrap_sims(  # noqa: C901
                 kwargs.local_ates.complier,
                 kwargs.bootstrap_method,
                 get_func_as_string(kwargs.bootstrap_params["eps_fun"]),
+                get_func_as_string(kwargs.bootstrap_params["kappa_fun"]),
                 kwargs.constraint_mtr,
                 res["true"].mean(),
                 res["ci_covers_true_param"].mean(),
@@ -70,6 +77,7 @@ def task_plot_boostrap_sims(  # noqa: C901
         "late_complier",
         "bootstrap_method",
         "eps_fun",
+        "kappa_fun",
         "constraint_mtr",
         "true",
         "coverage",
@@ -88,8 +96,26 @@ def task_plot_boostrap_sims(  # noqa: C901
     color_by_bootstrap_method = {
         "standard": "blue",
         "numerical_delta": "red",
+        "analytical_delta": "green",
     }
 
+    color_by_eps_fun = {
+        "npow(-1div1)": "black",
+        "npow(-1div2)": "blue",
+        "npow(-1div3)": "red",
+        "npow(-1div4)": "green",
+        "npow(-1div5)": "orange",
+        "npow(-1div6)": "purple",
+    }
+
+    color_by_kappa_fun = {
+        "npow(1div1)": "black",
+        "npow(1div2)": "blue",
+        "npow(1div3)": "red",
+        "npow(1div4)": "green",
+        "npow(1div5)": "orange",
+        "npow(1div6)": "purple",
+    }
     color_by_eps_fun = {
         "npow(-1div1)": "black",
         "npow(-1div2)": "blue",
@@ -108,7 +134,7 @@ def task_plot_boostrap_sims(  # noqa: C901
     for col_to_plot in ["coverage", "length"]:
         fig = go.Figure()
         for n_obs in data.n_obs.unique():
-            for bootstrap_method in ["standard", "numerical_delta"]:
+            for bootstrap_method in ["standard", "numerical_delta", "analytical_delta"]:
                 data_sub = data[
                     (data.n_obs == n_obs) & (data.bootstrap_method == bootstrap_method)
                 ]
@@ -152,12 +178,14 @@ def task_plot_boostrap_sims(  # noqa: C901
     # ==================================================================================
     fig = go.Figure()
     for n_obs in data.n_obs.unique():
-        for bootstrap_method in ["standard", "numerical_delta"]:
+        for bootstrap_method in ["standard", "numerical_delta", "analytical_delta"]:
             data_sub = data[
                 (data.n_obs == n_obs) & (data.bootstrap_method == bootstrap_method)
             ]
             if bootstrap_method == "numerical_delta":
                 data_sub = data_sub[data_sub["eps_fun"] == "npow(-1div2)"]
+            if bootstrap_method == "analytical_delta":
+                data_sub = data_sub[data_sub["kappa_fun"] == "npow(1div2)"]
             fig.add_trace(
                 go.Scatter(
                     x=data_sub.late_complier,
@@ -237,3 +265,43 @@ def task_plot_boostrap_sims(  # noqa: C901
         )
 
     fig.write_image(path_to_plot_coverage_by_eps_fun)
+
+    # ==================================================================================
+    # Plot coverage by kappa_fun
+    # ==================================================================================
+    fig = go.Figure()
+
+    for kappa_fun in data.kappa_fun.unique():
+        kappa_fun_to_print = (
+            kappa_fun.replace("npow", "n^")
+            .replace("div", "/")
+            .replace("(", "")
+            .replace(")", "")
+        )
+
+        for n_obs in data.n_obs.unique():
+            data_sub = data[data.kappa_fun == kappa_fun]
+            data_sub = data_sub[data_sub.n_obs == n_obs]
+            data_sub = data_sub[data_sub["bootstrap_method"] == "analytical_delta"]
+            fig.add_trace(
+                go.Scatter(
+                    x=data_sub.late_complier,
+                    y=data_sub.coverage,
+                    name=f"n_obs={n_obs}",
+                    legendgroup=f"{kappa_fun}",
+                    legendgrouptitle_text=(f"eps(n) = {kappa_fun_to_print}"),
+                    line={
+                        "dash": line_type_by_n_obs[int(n_obs)],
+                        "width": 2,
+                        "color": color_by_kappa_fun[kappa_fun],
+                    },
+                ),
+            )
+
+        fig.update_layout(
+            title="Coverage by kappa_fun",
+            xaxis_title="late_complier",
+            yaxis_title="Coverage",
+        )
+
+    fig.write_image(path_to_plot_coverage_by_kappa_fun)
