@@ -1,11 +1,14 @@
 """Functions for bootstrap sampling experiment."""
 
 from collections.abc import Callable
+from functools import partial
 from math import comb
 
 import numpy as np
 import pandas as pd  # type: ignore[import-untyped]
 from numpy.typing import ArrayLike
+from statsmodels.api import add_constant  # type: ignore[import-untyped]
+from statsmodels.sandbox.regression.gmm import IV2SLS  # type: ignore[import-untyped]
 
 from thesis.classes import Instrument, LocalATEs
 
@@ -122,6 +125,17 @@ def _bootstrap_ci(
             rng=rng,
             eps_fun=bootstrap_params["eps_fun"],
         )
+    if bootstrap_method == "analytical_delta":
+        return _ci_analytical_delta_bootstrap(
+            n_boot=n_boot,
+            data=data,
+            alpha=alpha,
+            u_hi=u_hi,
+            constraint_mtr=constraint_mtr,
+            rng=rng,
+            kappa_fun=bootstrap_params["kappa_fun"],
+        )
+
     # In principle, this should not be needed because we check the supported methods
     # after input. However, mypy does not seem to recognize this. Or maybe this function
     # is called from somewhere else.
@@ -185,8 +199,8 @@ def _ci_numerical_delta_bootstrap(
 
     Based on Hong and Li (2018), for details see p. 382.
 
-    The stepsize is set to log(n) by default, which is at least theoretically consistent
-    with eps -> zero and rn * eps -> infty, i.e. eps converges more slowly.
+    The stepsize is set to n^(-1/6) by default, which is at least theoretically
+    consistent with eps -> zero and rn * eps -> infty, i.e. eps converges more slowly.
 
     """
     n_obs = data.shape[0]
@@ -205,7 +219,7 @@ def _ci_numerical_delta_bootstrap(
         # Step 1: Draw Z_s from the bootstrap distribution.
         boot_data, pscores_boot = _draw_bootstrap_data(data=data, n_obs=n_obs, rng=rng)
 
-        z_s = rn * (_late(boot_data) - _late(data))
+        z_s = rn * (_late(boot_data) - late)
 
         # Step 2: Compute the numerical derivative.
         # Note that in our case we need to do this for both the lower and upper bound.
@@ -233,6 +247,70 @@ def _ci_numerical_delta_bootstrap(
     return ci_lo, ci_hi
 
 
+def _ci_analytical_delta_bootstrap(
+    n_boot: int,
+    data: np.ndarray,
+    alpha: float,
+    u_hi: float,
+    constraint_mtr: str,
+    rng: np.random.Generator,
+    kappa_fun: Callable = lambda n: n ** (-1 / 6),
+) -> tuple[float, float]:
+    """Compute the analytical delta bootstrap confidence interval.
+
+    Based on Fang and Santos (2017), adapted from Example 2.1 equation (26). kappa_fun
+    is the tuning parameter used for the pretest to estimate the derivative.
+
+    """
+    n_obs = data.shape[0]
+
+    kappa_n = kappa_fun(n_obs)
+
+    rn = np.sqrt(n_obs)
+
+    # Estimate late using 2SLS to get the standard error for estimating the derivative.
+    late, se_late = _late_2sls(data)
+
+    boot_late_scaled_and_centered = np.zeros(n_boot)
+
+    pscores = _estimate_pscores(data)
+
+    w = (pscores[1] - pscores[0]) / (u_hi + pscores[1] - pscores[0])
+
+    # Step 1: Bootstrap quantiles for the identified parameter beta_s.
+    for i in range(n_boot):
+        # Step 1: Draw Z_s from the bootstrap distribution of beta_s.
+        boot_data, _ = _draw_bootstrap_data(data=data, n_obs=n_obs, rng=rng)
+
+        boot_late_scaled_and_centered[i] = rn * (_late(boot_data) - late)
+
+    # Step 2: Estimate the derivative.
+    # We need two separate derivatives, since the upper and lower bound have different
+    # solutions.
+    _di_phi = partial(
+        _d_phi_kink,
+        beta_late=late,
+        se_late=se_late,
+        kappa_n=kappa_n,
+        rn=rn,
+    )
+    if constraint_mtr == "none":
+        d_phi_upper = partial(_di_phi, slope_left=1, slope_right=1)
+        d_phi_lower = d_phi_upper
+
+    elif constraint_mtr == "increasing":
+        d_phi_upper = partial(_di_phi, slope_left=1, slope_right=w)
+        d_phi_lower = partial(_di_phi, slope_left=w, slope_right=1)
+
+    # Step 3: Apply derivative to bootstrap quantiles to get the confidence interval.
+    # In our special case we know the function is monotonically increasing, hence we can
+    # compute the bootstrap percentile first and then apply the estimated derivative.
+    boot_late_lo = np.quantile(boot_late_scaled_and_centered, alpha / 2)
+    boot_late_hi = np.quantile(boot_late_scaled_and_centered, 1 - alpha / 2)
+
+    return d_phi_lower(boot_late_lo), d_phi_upper(boot_late_hi)
+
+
 def _idset(
     b_late: float,
     u_hi: float,
@@ -255,6 +333,7 @@ def _idset(
 
 
 def _late(data: np.ndarray) -> float:
+    """Estimate the LATE using the Wald estimator."""
     yz1 = data[data[:, 2] == 1, 0].mean()
     yz0 = data[data[:, 2] == 0, 0].mean()
 
@@ -262,6 +341,24 @@ def _late(data: np.ndarray) -> float:
     dz0 = data[data[:, 2] == 0, 1].mean()
 
     return (yz1 - yz0) / (dz1 - dz0)
+
+
+def _late_2sls(data: np.ndarray) -> tuple[float, float]:
+    """Estimate the LATE using 2SLS; also returns standard error."""
+    # Data order is y, d, z, u.
+
+    # In Statsmodels endog refers to the dependent variable, while exog refers to the
+    # explanatory variables, including all controls and the - endogenous - treatment
+    # variable.
+    model = IV2SLS(
+        endog=data[:, 0],
+        exog=add_constant(data[:, 1]),
+        instrument=add_constant(data[:, 2]),
+    )
+
+    res = model.fit()
+
+    return res.params[1], res.bse[1]
 
 
 def _draw_data(
@@ -362,10 +459,35 @@ def _phi_max(theta: float, cutoff: float = 0):
 def _phi_kink(
     theta: float,
     kink: float,
-    slope_left: float = 0.5,
-    slope_right: float = 1,
-):
+    slope_left: float,
+    slope_right: float,
+) -> float:
     return slope_left * theta * (theta < kink) + slope_right * theta * (theta >= kink)
+
+
+def _d_phi_kink(
+    h: float,
+    beta_late: float,
+    se_late: float,
+    kappa_n: float,
+    rn: float,
+    slope_left: float,
+    slope_right: float,
+    kink: float = 0,
+) -> float:
+    """Estimator for the derivative of the identified set."""
+    # TODO(@buddejul): Write more general version allowing for different kink point.
+    # Currently we do this for a kink at zero; this should show up in the pre-test.
+
+    cond_right = rn * (beta_late - kink) / se_late > kappa_n
+    cond_left = rn * (beta_late - kink) / se_late < -kappa_n
+    cond_mid = ~cond_right & ~cond_left
+
+    return (
+        cond_right * h * slope_right
+        + cond_left * h * slope_left
+        + cond_mid * np.max([h * slope_right, -h * slope_left])
+    )
 
 
 def _check_constraint_supported(constraint_mtr: str) -> None:
@@ -379,7 +501,7 @@ def _check_constraint_supported(constraint_mtr: str) -> None:
 
 
 def _check_bootsrap_method_supported(bootstrap_method: str) -> None:
-    supported = ["standard", "numerical_delta"]
+    supported = ["standard", "numerical_delta", "analytical_delta"]
     if bootstrap_method not in supported:
         msg = (
             f"Bootstrap method '{bootstrap_method}' not supported.\n"
@@ -419,5 +541,12 @@ def _check_bootstrap_params_supplied(
         msg = (
             "Numerical delta bootstrap method requires the user to supply an epsilon "
             "function via bootstrap_params under key 'eps_fun'."
+        )
+        raise ValueError(msg)
+
+    if bootstrap_method == "analytical_delta" and "kappa_fun" not in bootstrap_params:
+        msg = (
+            "Analytical delta bootstrap method requires the user to supply a kappa "
+            "function via bootstrap_params under key 'kappa_fun'."
         )
         raise ValueError(msg)

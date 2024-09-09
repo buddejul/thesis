@@ -12,6 +12,7 @@ from thesis.simple_model.funcs import (
     _estimate_pscores,
     _idset,
     _late,
+    _late_2sls,
     _true_late,
     simulation_bootstrap,
 )
@@ -126,10 +127,12 @@ def test_generate_late(instrument, local_ates_nonzero):
 
 
 def test_simulation_runs(local_ates_nonzero, instrument, sim_boot) -> None:
-    for boot_met in ["standard", "numerical_delta"]:
+    for boot_met in ["standard", "numerical_delta", "analytical_delta"]:
         for const_mtr in ["increasing", "none"]:
             if boot_met == "numerical_delta":
                 bootstrap_params = {"eps_fun": lambda n: n ** (-1 / 3)}
+            elif boot_met == "analytical_delta":
+                bootstrap_params = {"kappa_fun": lambda n: n ** (1 / 3)}
             else:
                 bootstrap_params = {}
 
@@ -279,3 +282,26 @@ def test_bootstrap_params_supplied(sim_boot, local_ates_nonzero, instrument) -> 
             bootstrap_method="numerical_delta",
             bootstrap_params={},
         )
+    with pytest.raises(ValueError, match="Analytical delta bootstrap method requires"):
+        sim_boot(
+            local_ates=local_ates_nonzero,
+            instrument=instrument,
+            constraint_mtr="increasing",
+            bootstrap_method="analytical_delta",
+            bootstrap_params={},
+        )
+
+
+def test_late_and_late_2sls_equivalent(local_ates_nonzero, instrument) -> None:
+    data = _draw_data(
+        n_obs=10_000,
+        local_ates=local_ates_nonzero,
+        instrument=instrument,
+        rng=RNG,
+    )
+
+    late = _late(data)
+
+    late_2sls, _ = _late_2sls(data)
+
+    assert late == pytest.approx(late_2sls)
