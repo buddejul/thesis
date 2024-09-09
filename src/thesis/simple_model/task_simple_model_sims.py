@@ -33,13 +33,17 @@ U_HI = [0.2]
 N_OBS = [250, 1_000, 10_000]
 PSCORES_LOW = [0.4]
 CONSTRAINTS_MTR = ["increasing"]
-BOOTSTRAP_METHODS = ["standard", "numerical_delta"]
+BOOTSTRAP_METHODS = ["standard", "numerical_delta", "analytical_delta"]
 LATES_COMPLIER = np.concat((np.linspace(-0.1, 0.1, num=10), np.zeros(1)))
 EPS_FUNS_NUMERICAL_DELTA = [
-    lambda n: n ** (-1 / 1),
     lambda n: n ** (-1 / 2),
     lambda n: n ** (-1 / 3),
     lambda n: n ** (-1 / 6),
+]
+KAPPA_FUNS_ANALYTICAL_DELTA = [
+    lambda n: n ** (1 / 2),
+    lambda n: n ** (1 / 3),
+    lambda n: n ** (1 / 6),
 ]
 
 
@@ -53,6 +57,7 @@ ID_TO_KWARGS = {
         f"_late_complier_{late_complier}_constraint_mtr_{constraint_mtr}"
         f"bootstrap_method_{bootstrap_method}"
         f"_eps_fun_{get_func_as_string(eps_fun)}"
+        f"_kappa_fun_{get_func_as_string(kappa_fun)}"
     ): _Arguments(
         u_hi=u_hi,
         n_obs=n_obs,
@@ -67,7 +72,7 @@ ID_TO_KWARGS = {
         ),
         constraint_mtr=constraint_mtr,
         bootstrap_method=bootstrap_method,
-        bootstrap_params={"eps_fun": eps_fun},
+        bootstrap_params={"eps_fun": eps_fun, "kappa_fun": kappa_fun},
         path_to_data=Path(
             BLD
             / "boot"
@@ -76,7 +81,8 @@ ID_TO_KWARGS = {
                 f"data_{u_hi}_n_obs_{n_obs}_pscore_low_{pscore_low}"
                 f"_late_complier_{late_complier}_constraint_mtr_{constraint_mtr}"
                 f"_bootstrap_method_{bootstrap_method}"
-                f"_eps_fun_{get_func_as_string(eps_fun)}.pkl"
+                f"_eps_fun_{get_func_as_string(eps_fun)}"
+                f"_kappa_fun_{get_func_as_string(kappa_fun)}.pkl"
             ),
         ),
     )
@@ -87,8 +93,26 @@ ID_TO_KWARGS = {
     for constraint_mtr in CONSTRAINTS_MTR
     for bootstrap_method in BOOTSTRAP_METHODS
     for eps_fun in EPS_FUNS_NUMERICAL_DELTA
+    for kappa_fun in KAPPA_FUNS_ANALYTICAL_DELTA
+    # For standard bootstrap, we only need to run the simulation once
     if not (
-        bootstrap_method == "standard" and eps_fun is not EPS_FUNS_NUMERICAL_DELTA[0]
+        bootstrap_method == "standard"
+        and (
+            eps_fun is not EPS_FUNS_NUMERICAL_DELTA[0]
+            or kappa_fun is not KAPPA_FUNS_ANALYTICAL_DELTA[0]
+        )
+    )
+    # For the analytical delta method, we only need to run the simulation once for each
+    # kappa_fun, but not for different eps_fun
+    if not (
+        bootstrap_method == "analytical_delta"
+        and eps_fun is not EPS_FUNS_NUMERICAL_DELTA[0]
+    )
+    # For the numerical delta method, we only need to run the simulation once for each
+    # eps_fun, but not for different kappa_fun
+    if not (
+        bootstrap_method == "numerical_delta"
+        and kappa_fun is not KAPPA_FUNS_ANALYTICAL_DELTA[0]
     )
 }
 
