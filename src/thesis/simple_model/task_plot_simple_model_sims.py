@@ -179,7 +179,7 @@ def task_plot_bootstrap_sims(  # noqa: C901, PLR0912, PLR0915
     # ==================================================================================
     fig = go.Figure()
     for n_obs in data.n_obs.unique():
-        for bootstrap_method in ["standard", "numerical_delta"]:
+        for bootstrap_method in ["standard", "numerical_delta", "analytical_delta"]:
             data_sub = data[
                 (data.n_obs == n_obs) & (data.bootstrap_method == bootstrap_method)
             ]
