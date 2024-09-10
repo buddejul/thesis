@@ -335,6 +335,30 @@ Using the simplification noted above, the estimator can be equivalently written 
 	.
 \end{equation}
 
+\section{Inference Approaches}
+
+The target is to make inference on the parameter $\beta^*$ which for the simulation purposes I set to $LATE(0.4, 0.6)$.
+\footnote{Inference for the interval-identified parameter $\beta^*$ and its identified set are not necessarily the same as pointed out by \cite{imbens2004confidence} in simple examples. I will return to this point below.}
+That means, we want to extrapolte the LATE for the instrument-complier subpopulation with $u\in[0.4, 0.6]$ to a broader sub-population.
+Inference is complicated by the fact that the optimal solution $\beta^* = \beta^*(\beta_s)$ exhibits a kink at $\beta_s=0$ and hence is not fully differentiable at that point.
+However, as pointed out by~\cite{fang2023inference} and~\cite{hong2018numerical}, a delta method can be used that only requires \textit{directional} differentiability of the functional.
+~\cite{fang2023inference} propose a method that combines a bootstrap approximation to the underlying parameter with an estimate of the directional derivative of the functional $\phi$ that exploits its analytical structure.
+~\cite{hong2018numerical} on the other hand propose to use a numerical approximation to the directional derivative.
+Henceforth, I will call these methods the \textit{analytical} and \textit{numerical} delta bootstrap, respectively.
+
+\subsection*{Notation}
+In the following I will use the notation of~\cite{fang2023inference}.
+Our goal is to perform inference on the real-valued parameter $\beta^*$, which is only set-identified.
+As shown above we can only set-identify this parameter, where the set is given by $[\underline{\beta^*}(\beta_s), \overline{\beta^*}]$.
+We want to construct a random interval $CI$ such that, as $n\to\infty$ and for a given $\alpha$ and $\beta^*$,
+\begin{equation*}
+	P(\beta^* \in CI) \to 1-\alpha.
+\end{equation*}
+To that end, we can construct
+
+
+Note that our setting is the same as Example 2.2 of~\cite{hong2018numerical}, which itself is a more general version of Example 2 in~\cite{fang2023inference}.
+
 \section{Simulation Results}
 
 \begin{figure}

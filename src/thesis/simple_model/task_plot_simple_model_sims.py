@@ -24,7 +24,7 @@ KAPPA_FUNS_STRINGS = [
 # TODO(@buddejul): Put graphs below in a loop, currently there is a lot of copy/paste.
 # TODO(@buddejul): Include true parameters in plots.
 # TODO(@buddejul): Split tasks, function is too complex, see noqa below.
-def task_plot_boostrap_sims(  # noqa: C901, PLR0912, PLR0915
+def task_plot_bootstrap_sims(  # noqa: C901, PLR0912, PLR0915
     id_to_kwargs: dict[str, _Arguments] = ID_TO_KWARGS,
     path_to_plot_coverage: Annotated[Path, Product] = Path(
         BLD / "boot" / "figures" / "coverage.png",
@@ -138,10 +138,11 @@ def task_plot_boostrap_sims(  # noqa: C901, PLR0912, PLR0915
                 data_sub = data[
                     (data.n_obs == n_obs) & (data.bootstrap_method == bootstrap_method)
                 ]
-                data_sub = data_sub[
-                    (data_sub["bootstrap_method"] == "standard")
-                    | (data_sub["eps_fun"] == "npow(-1div2)")
-                ]
+                if bootstrap_method == "numerical_delta":
+                    data_sub = data_sub[data_sub["eps_fun"] == "npow(-1div2)"]
+                if bootstrap_method == "analytical_delta":
+                    data_sub = data_sub[data_sub["kappa_fun"] == "npow(1div6)"]
+
                 fig.add_trace(
                     go.Scatter(
                         x=data_sub.late_complier,
