@@ -127,7 +127,7 @@ def test_generate_late(instrument, local_ates_nonzero):
 
 
 def test_simulation_runs(local_ates_nonzero, instrument, sim_boot) -> None:
-    for boot_met in ["standard", "numerical_delta", "analytical_delta"]:
+    for boot_met in ["analytical_delta", "standard", "numerical_delta"]:
         for const_mtr in ["increasing", "none"]:
             if boot_met == "numerical_delta":
                 bootstrap_params = {"eps_fun": lambda n: n ** (-1 / 3)}

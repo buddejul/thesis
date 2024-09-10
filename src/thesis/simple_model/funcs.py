@@ -254,7 +254,7 @@ def _ci_analytical_delta_bootstrap(
     u_hi: float,
     constraint_mtr: str,
     rng: np.random.Generator,
-    kappa_fun: Callable = lambda n: n ** (-1 / 6),
+    kappa_fun: Callable = lambda n: n ** (1 / 6),
 ) -> tuple[float, float]:
     """Compute the analytical delta bootstrap confidence interval.
 
@@ -271,9 +271,9 @@ def _ci_analytical_delta_bootstrap(
     # Estimate late using 2SLS to get the standard error for estimating the derivative.
     late, se_late = _late_2sls(data)
 
-    boot_late_scaled_and_centered = np.zeros(n_boot)
-
     pscores = _estimate_pscores(data)
+
+    boot_late_scaled_and_centered = np.zeros(n_boot)
 
     w = (pscores[1] - pscores[0]) / (u_hi + pscores[1] - pscores[0])
 
@@ -305,10 +305,22 @@ def _ci_analytical_delta_bootstrap(
     # Step 3: Apply derivative to bootstrap quantiles to get the confidence interval.
     # In our special case we know the function is monotonically increasing, hence we can
     # compute the bootstrap percentile first and then apply the estimated derivative.
-    boot_late_lo = np.quantile(boot_late_scaled_and_centered, alpha / 2)
-    boot_late_hi = np.quantile(boot_late_scaled_and_centered, 1 - alpha / 2)
+    id_lo, id_hi = _idset(
+        b_late=late,
+        u_hi=u_hi,
+        pscores_hat=pscores,
+        constraint_mtr=constraint_mtr,
+    )
 
-    return d_phi_lower(boot_late_lo), d_phi_upper(boot_late_hi)
+    _c_alpha_half = d_phi_lower(np.quantile(boot_late_scaled_and_centered, alpha / 2))
+    boot_ci_lo = id_lo - _c_alpha_half / rn
+
+    _c_1_minus_alpha_half = d_phi_upper(
+        np.quantile(boot_late_scaled_and_centered, 1 - alpha / 2),
+    )
+    boot_ci_hi = id_hi + _c_1_minus_alpha_half / rn
+
+    return boot_ci_lo, boot_ci_hi
 
 
 def _idset(
@@ -476,7 +488,7 @@ def _d_phi_kink(
     kink: float = 0,
 ) -> float:
     """Estimator for the derivative of the identified set."""
-    # TODO(@buddejul): Write more general version allowing for different kink point.
+    # TODO(@buddejul): Wrifte more general version allowing for different kink point.
     # Currently we do this for a kink at zero; this should show up in the pre-test.
 
     cond_right = rn * (beta_late - kink) / se_late > kappa_n
