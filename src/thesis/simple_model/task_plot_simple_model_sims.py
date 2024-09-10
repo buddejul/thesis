@@ -150,7 +150,7 @@ def task_plot_bootstrap_sims(  # noqa: C901, PLR0912, PLR0915
                         name=f"n_obs={n_obs}",
                         legendgroup=f"{bootstrap_method}",
                         legendgrouptitle_text=(
-                            f"{bootstrap_method.replace('_', ' ').capitalize()}"
+                            f"{bootstrap_method.replace('_', ' ').capitalize()} "
                             "Bootstrap"
                         ),
                         line={
@@ -179,7 +179,7 @@ def task_plot_bootstrap_sims(  # noqa: C901, PLR0912, PLR0915
     # ==================================================================================
     fig = go.Figure()
     for n_obs in data.n_obs.unique():
-        for bootstrap_method in ["standard", "numerical_delta", "analytical_delta"]:
+        for bootstrap_method in ["standard", "numerical_delta"]:
             data_sub = data[
                 (data.n_obs == n_obs) & (data.bootstrap_method == bootstrap_method)
             ]

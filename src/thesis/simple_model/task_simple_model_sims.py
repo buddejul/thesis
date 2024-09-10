@@ -29,8 +29,6 @@ class _Arguments(NamedTuple):
     rng: np.random.Generator = RNG
 
 
-# TODO(@buddejul): With U_HI = 0.2 we don't have a kink at beta = 0, since w = 0.5.
-# Hence, we should rerun this with a more "extreme" set of parameters, say 0.1 or 0.05.
 U_HI = [0.2]
 N_OBS = [250, 1_000, 10_000]
 PSCORES_LOW = [0.4]
