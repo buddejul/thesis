@@ -18,6 +18,11 @@ Title: Selection on Welfare Gains: Experimental Evidence from Electricity Plan C
 
 They don't seem to primarily use the MST method, but rather the parametric method of Brinch et al.
 
+
+### Shea WP
+
+https://jkcshea.github.io/
+
 # To Check
 
 - https://direct.mit.edu/rest/article-abstract/doi/10.1162/rest_a_01483/124131/The-Value-of-Piped-Water-and-Sewers-Evidence-from?redirectedFrom=fulltext

@@ -45,6 +45,26 @@ def local_ates_nonzero() -> LocalATEs:
     )
 
 
+# Setting where true parameter is at upper boundary of ID set and at kink of solution
+@pytest.fixture()
+def local_ates_boundary_hi() -> LocalATEs:
+    return LocalATEs(
+        never_taker=0,
+        complier=0,
+        always_taker=1,
+    )
+
+
+# Setting where true parameter is at lower boundary of ID set and at kink of solution
+@pytest.fixture()
+def local_ates_boundary_lo() -> LocalATEs:
+    return LocalATEs(
+        never_taker=0,
+        complier=0,
+        always_taker=-1,
+    )
+
+
 @pytest.fixture()
 def local_ates_complier_negative() -> LocalATEs:
     return LocalATEs(
@@ -126,7 +146,7 @@ def test_generate_late(instrument, local_ates_nonzero):
     assert actual == pytest.approx(expected, abs=2 / np.sqrt(10_000))
 
 
-def test_simulation_runs(local_ates_nonzero, instrument, sim_boot) -> None:
+def test_simulation_runs(local_ates_boundary_hi, instrument, sim_boot) -> None:
     for boot_met in ["analytical_delta", "standard", "numerical_delta"]:
         for const_mtr in ["increasing", "none"]:
             if boot_met == "numerical_delta":
@@ -137,7 +157,7 @@ def test_simulation_runs(local_ates_nonzero, instrument, sim_boot) -> None:
                 bootstrap_params = {}
 
             sim_boot(
-                local_ates=local_ates_nonzero,
+                local_ates=local_ates_boundary_hi,
                 instrument=instrument,
                 constraint_mtr=const_mtr,
                 bootstrap_method=boot_met,

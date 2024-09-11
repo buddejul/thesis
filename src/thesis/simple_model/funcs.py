@@ -271,6 +271,10 @@ def _ci_analytical_delta_bootstrap(
     # Estimate late using 2SLS to get the standard error for estimating the derivative.
     late, se_late = _late_2sls(data)
 
+    # Note se_late is the standard error of the LATE estimate, i.e. the estimate of the
+    # asymptotic variance divided by rn. Hence we rescale to the asymptotic variance.
+    sigma_hat = rn * se_late
+
     pscores = _estimate_pscores(data)
 
     boot_late_scaled_and_centered = np.zeros(n_boot)
@@ -290,12 +294,13 @@ def _ci_analytical_delta_bootstrap(
     _di_phi = partial(
         _d_phi_kink,
         beta_late=late,
-        se_late=se_late,
+        sigma_hat=sigma_hat,
         kappa_n=kappa_n,
         rn=rn,
     )
+
     if constraint_mtr == "none":
-        d_phi_upper = partial(_di_phi, slope_left=1, slope_right=1)
+        d_phi_upper = partial(_di_phi, slope_left=w, slope_right=w)
         d_phi_lower = d_phi_upper
 
     elif constraint_mtr == "increasing":
@@ -480,7 +485,7 @@ def _phi_kink(
 def _d_phi_kink(
     h: float,
     beta_late: float,
-    se_late: float,
+    sigma_hat: float,
     kappa_n: float,
     rn: float,
     slope_left: float,
@@ -491,10 +496,12 @@ def _d_phi_kink(
     # TODO(@buddejul): Wrifte more general version allowing for different kink point.
     # Currently we do this for a kink at zero; this should show up in the pre-test.
 
-    cond_right = rn * (beta_late - kink) / se_late > kappa_n
-    cond_left = rn * (beta_late - kink) / se_late < -kappa_n
+    cond_right = rn * (beta_late - kink) / sigma_hat > kappa_n
+    cond_left = rn * (beta_late - kink) / sigma_hat < -kappa_n
     cond_mid = ~cond_right & ~cond_left
 
+    # TODO(@buddejul): Check this returns the right thing. I think this is correct for
+    # our case, namely, slope_left > 0 and slope_right > 0.
     return (
         cond_right * h * slope_right
         + cond_left * h * slope_left
