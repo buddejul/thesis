@@ -505,7 +505,7 @@ def _d_phi_kink(
     return (
         cond_right * h * slope_right
         + cond_left * h * slope_left
-        + cond_mid * np.max([h * slope_right, -h * slope_left])
+        + cond_mid * ((h < 0) * h * slope_left + (h > 0) * h * slope_right)
     )
 
 
