@@ -24,8 +24,8 @@ class _Arguments(NamedTuple):
     bootstrap_params: dict[str, Callable]
     pscore_hi: float = 0.6
     alpha: float = 0.05
-    n_boot: int = 500
-    n_sims: int = 500
+    n_boot: int = 250
+    n_sims: int = 250
     rng: np.random.Generator = RNG
 
 
@@ -42,8 +42,9 @@ EPS_FUNS_NUMERICAL_DELTA = [
 ]
 KAPPA_FUNS_ANALYTICAL_DELTA = [
     lambda n: n ** (1 / 2),
-    lambda n: n ** (1 / 3),
     lambda n: n ** (1 / 6),
+    lambda n: np.log(n) ** (1 / 2),
+    lambda n: (2 * np.log(np.log(n))) ** (1 / 2),
 ]
 
 
