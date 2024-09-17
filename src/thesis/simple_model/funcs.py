@@ -317,12 +317,12 @@ def _ci_analytical_delta_bootstrap(
         constraint_mtr=constraint_mtr,
     )
 
-    _c_1_minus_alpha_half = d_phi_upper(
+    _c_1_minus_alpha_half = d_phi_lower(
         np.quantile(boot_late_scaled_and_centered, 1 - alpha / 2),
     )
     boot_ci_lo = id_lo - _c_1_minus_alpha_half / rn
 
-    _c_alpha_half = d_phi_lower(np.quantile(boot_late_scaled_and_centered, alpha / 2))
+    _c_alpha_half = d_phi_upper(np.quantile(boot_late_scaled_and_centered, alpha / 2))
     boot_ci_hi = id_hi - _c_alpha_half / rn
 
     return boot_ci_lo, boot_ci_hi
