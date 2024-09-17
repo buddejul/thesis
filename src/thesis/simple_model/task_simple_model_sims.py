@@ -78,6 +78,7 @@ ID_TO_KWARGS = {
             BLD
             / "boot"
             / "results"
+            / f"{bootstrap_method}"
             / (
                 f"data_{u_hi}_n_obs_{n_obs}_pscore_low_{pscore_low}"
                 f"_late_complier_{late_complier}_constraint_mtr_{constraint_mtr}"

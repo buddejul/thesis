@@ -498,7 +498,7 @@ def _d_phi_kink(
 
     cond_right = rn * (beta_late - kink) / sigma_hat > kappa_n
     cond_left = rn * (beta_late - kink) / sigma_hat < -kappa_n
-    cond_mid = ~cond_right & ~cond_left
+    cond_mid = (not cond_right) & (not cond_left)
 
     # TODO(@buddejul): Check this returns the right thing. I think this is correct for
     # our case, namely, slope_left > 0 and slope_right > 0.

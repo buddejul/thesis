@@ -109,20 +109,11 @@ def task_plot_bootstrap_sims(  # noqa: C901, PLR0912, PLR0915
     }
 
     color_by_kappa_fun = {
-        "npow(1div1)": "black",
         "npow(1div2)": "blue",
         "npow(1div3)": "red",
-        "npow(1div4)": "green",
-        "npow(1div5)": "orange",
         "npow(1div6)": "purple",
-    }
-    color_by_eps_fun = {
-        "npow(-1div1)": "black",
-        "npow(-1div2)": "blue",
-        "npow(-1div3)": "red",
-        "npow(-1div4)": "green",
-        "npow(-1div5)": "orange",
-        "npow(-1div6)": "purple",
+        "np.log(n)pow(1div2)": "green",
+        "(2xnp.log(np.log(n)))pow(1div2)": "orange",
     }
 
     line_type_by_n_obs = {

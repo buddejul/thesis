@@ -349,12 +349,29 @@ Henceforth, I will call these methods the \textit{analytical} and \textit{numeri
 \subsection*{Notation}
 In the following I will use the notation of~\cite{fang2023inference}.
 Our goal is to perform inference on the real-valued parameter $\beta^*$, which is only set-identified.
-As shown above we can only set-identify this parameter, where the set is given by $[\underline{\beta^*}(\beta_s), \overline{\beta^*}]$.
-We want to construct a random interval $CI$ such that, as $n\to\infty$ and for a given $\alpha$ and $\beta^*$,
+As shown above the set is given by $[\underline{\beta^*}(\beta_s), \overline{\beta^*}]$,
+with the following explicit solutions:
 \begin{equation*}
-	P(\beta^* \in CI) \to 1-\alpha.
+	\overline{\beta^*}(\beta_s)=
+	\begin{cases}
+		\omega \beta_s + (1 - \omega),& \quad \text{if } \beta_s \geq 0\\
+		\beta_s + (1 - \omega),              & \quad \text{if } \beta_s < 0,
+	\end{cases}
 \end{equation*}
-To that end, we can construct
+and
+\begin{equation*}
+	\underline{\beta^*}(\beta_s)=
+	\begin{cases}
+		\beta_s - (1 - \omega),& \quad \text{if } \beta_s \geq 0\\
+		\omega \beta_s - (1 - \omega),              & \quad \text{if } \beta_s < 0.
+	\end{cases}
+\end{equation*}
+In the notation of~\cite{fang2023inference} we have an underlying parameter $\theta_0 \equiv \beta_0^s$ which in our case is real-valued.
+The mapping $\phi: \mathbb{R} \to \mathbb{R}$ is the solution to the upper or lower bound, respectively.
+That is, we have $\overline{\phi} \equiv \overline{\beta^*}$ with the mapping given above.
+As is evident, this function has a kink at $\beta_s = 0$ and hence is only directionally differentiable at that point.
+
+If we can find a method to construct confidence intervals for $\overline{\phi}(\beta_0^s)$ and $\underline{\phi}(\beta_0^s)$, we can also construct a confidence interval.
 
 
 Note that our setting is the same as Example 2.2 of~\cite{hong2018numerical}, which itself is a more general version of Example 2 in~\cite{fang2023inference}.

@@ -37,5 +37,5 @@ def get_func_as_string(func: Callable) -> str:
     func_str = func_str.removesuffix(",\\n']")
     func_str = func_str.replace(" ", "")
     func_str = func_str.replace("**", "pow")
-    func_str = func_str.replace("**", "x")
+    func_str = func_str.replace("*", "x")
     return func_str.replace("/", "div")
