@@ -23,7 +23,7 @@ KAPPA_FUNS_STRINGS = [
 def task_combine_sim_results(
     id_to_kwargs: dict[str, _Arguments] = ID_TO_KWARGS,
     path_to_data: Annotated[Path, Product] = Path(
-        BLD / "boot" / "sim_results_combined.pkl",
+        BLD / "simple_model" / "sim_results_combined.pkl",
     ),
 ) -> None:
     """Combine all simulation results into single dataframe."""

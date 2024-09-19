@@ -10,22 +10,21 @@ from pytask import Product, task
 from thesis.classes import Instrument, LocalATEs
 from thesis.config import BLD, RNG
 from thesis.simple_model.funcs import simulation_bootstrap
-from thesis.utilities import get_func_as_string
 
 
 class _Arguments(NamedTuple):
     u_hi: float
-    path_to_data: Path
     pscore_low: float
     n_obs: int
     local_ates: LocalATEs
     constraint_mtr: str
     bootstrap_method: str
     bootstrap_params: dict[str, Callable]
+    path_to_data: Path | None = None
     pscore_hi: float = 0.6
     alpha: float = 0.05
-    n_boot: int = 250
-    n_sims: int = 250
+    n_boot: int = 2
+    n_sims: int = 2
     rng: np.random.Generator = RNG
 
 
@@ -34,7 +33,7 @@ N_OBS = [1_000, 10_000]
 PSCORES_LOW = [0.4]
 CONSTRAINTS_MTR = ["increasing"]
 BOOTSTRAP_METHODS = ["standard", "numerical_delta", "analytical_delta"]
-LATES_COMPLIER = np.concat((np.linspace(-0.1, 0.1, num=6), np.zeros(1)))
+LATES_COMPLIER = np.concat((np.linspace(-0.2, 0.2, num=8), np.zeros(1)))
 EPS_FUNS_NUMERICAL_DELTA = [
     lambda n: n ** (-1 / 2),
 ]
@@ -48,14 +47,8 @@ KAPPA_FUNS_ANALYTICAL_DELTA = [
 # non-meaningful name (e.g. simple_models_sims_`i`) and store all params in the dataset
 # or a separate dict (probably more efficient). We can then retrieve the params from the
 # dataset or dict after saving. We can then query the settings dict before merging.
-ID_TO_KWARGS = {
-    (
-        f"bootstrap_sims_{u_hi}_n_obs_{n_obs}_pscore_low_{pscore_low}"
-        f"_late_complier_{late_complier}_constraint_mtr_{constraint_mtr}"
-        f"bootstrap_method_{bootstrap_method}"
-        f"_eps_fun_{get_func_as_string(eps_fun)}"
-        f"_kappa_fun_{get_func_as_string(kappa_fun)}"
-    ): _Arguments(
+KWARGS = [
+    _Arguments(
         u_hi=u_hi,
         n_obs=n_obs,
         pscore_low=pscore_low,
@@ -70,19 +63,6 @@ ID_TO_KWARGS = {
         constraint_mtr=constraint_mtr,
         bootstrap_method=bootstrap_method,
         bootstrap_params={"eps_fun": eps_fun, "kappa_fun": kappa_fun},
-        path_to_data=Path(
-            BLD
-            / "boot"
-            / "results"
-            / f"{bootstrap_method}"
-            / (
-                f"data_{u_hi}_n_obs_{n_obs}_pscore_low_{pscore_low}"
-                f"_late_complier_{late_complier}_constraint_mtr_{constraint_mtr}"
-                f"_bootstrap_method_{bootstrap_method}"
-                f"_eps_fun_{get_func_as_string(eps_fun)}"
-                f"_kappa_fun_{get_func_as_string(kappa_fun)}.pkl"
-            ),
-        ),
     )
     for u_hi in U_HI
     for n_obs in N_OBS
@@ -112,8 +92,14 @@ ID_TO_KWARGS = {
         bootstrap_method == "numerical_delta"
         and kappa_fun is not KAPPA_FUNS_ANALYTICAL_DELTA[0]
     )
-}
+]
 
+ID_TO_KWARGS = {str(id_): kwargs for id_, kwargs in enumerate(KWARGS)}
+
+for id_, kwargs in ID_TO_KWARGS.items():
+    ID_TO_KWARGS[id_] = kwargs._replace(
+        path_to_data=BLD / "simple_model" / kwargs.bootstrap_method / f"{id_}.pkl",
+    )
 
 for id_, kwargs in ID_TO_KWARGS.items():
 

@@ -10,8 +10,6 @@ from pytask import Product
 from thesis.config import BLD
 from thesis.simple_model.task_simple_model_sims import (
     EPS_FUNS_NUMERICAL_DELTA,
-    ID_TO_KWARGS,
-    _Arguments,
 )
 from thesis.utilities import get_func_as_string
 
@@ -24,69 +22,26 @@ KAPPA_FUNS_STRINGS = [
 # TODO(@buddejul): Put graphs below in a loop, currently there is a lot of copy/paste.
 # TODO(@buddejul): Include true parameters in plots.
 # TODO(@buddejul): Split tasks, function is too complex, see noqa below.
-def task_plot_bootstrap_sims(  # noqa: C901, PLR0912, PLR0915
-    id_to_kwargs: dict[str, _Arguments] = ID_TO_KWARGS,
+def task_plot_simple_model_sims(  # noqa: C901, PLR0912
+    path_to_data: Path = BLD / "simple_model" / "sim_results_combined.pkl",
     path_to_plot_coverage: Annotated[Path, Product] = Path(
-        BLD / "boot" / "figures" / "coverage.png",
+        BLD / "simple_model" / "figures" / "coverage.png",
     ),
     path_to_plot_length: Annotated[Path, Product] = Path(
-        BLD / "boot" / "figures" / "length.png",
+        BLD / "simple_model" / "figures" / "length.png",
     ),
     path_to_plot_means: Annotated[Path, Product] = Path(
-        BLD / "boot" / "figures" / "means.png",
+        BLD / "simple_model" / "figures" / "means.png",
     ),
     path_to_plot_coverage_by_eps_fun: Annotated[Path, Product] = Path(
-        BLD / "boot" / "figures" / "coverage_eps_fun.png",
+        BLD / "simple_model" / "figures" / "coverage_eps_fun.png",
     ),
     path_to_plot_coverage_by_kappa_fun: Annotated[Path, Product] = Path(
-        BLD / "boot" / "figures" / "coverage_kappa_fun.png",
+        BLD / "simple_model" / "figures" / "coverage_kappa_fun.png",
     ),
 ) -> None:
     """Plot the coverage probability of the confidence interval."""
-    # Read all the bootstrap result and for each calculate the coverage probability
-    # of the confidence interval. Then plot against bootstrap_method and lates complier.
-    coverage = []
-
-    for kwargs in id_to_kwargs.values():
-        res = pd.read_pickle(kwargs.path_to_data)  # noqa: S301
-        # Note we compute coverage for the true parameter. Not coverage for the ID set.
-        res["ci_covers_true_param"] = (res["lo"] <= res["true"]) & (
-            res["hi"] >= res["true"]
-        )
-        res["ci_length"] = res["hi"] - res["lo"]
-        coverage.append(
-            (
-                kwargs.u_hi,
-                kwargs.n_obs,
-                kwargs.local_ates.complier,
-                kwargs.bootstrap_method,
-                get_func_as_string(kwargs.bootstrap_params["eps_fun"]),
-                get_func_as_string(kwargs.bootstrap_params["kappa_fun"]),
-                kwargs.constraint_mtr,
-                res["true"].mean(),
-                res["ci_covers_true_param"].mean(),
-                res["ci_length"].mean(),
-                res["lo"].mean(),
-                res["hi"].mean(),
-            ),
-        )
-
-    cols = [
-        "u_hi",
-        "n_obs",
-        "late_complier",
-        "bootstrap_method",
-        "eps_fun",
-        "kappa_fun",
-        "constraint_mtr",
-        "true",
-        "coverage",
-        "length",
-        "ci_lo",
-        "ci_hi",
-    ]
-
-    data = pd.DataFrame(coverage, columns=cols)
+    data = pd.read_pickle(path_to_data)  # noqa: S301
 
     # TODO(@buddejul): Do this properly and loop over mtr constraints.
     data = data[data.constraint_mtr == "increasing"]
