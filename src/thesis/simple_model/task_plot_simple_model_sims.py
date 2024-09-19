@@ -30,8 +30,11 @@ def task_plot_simple_model_sims(  # noqa: C901, PLR0912
     path_to_plot_length: Annotated[Path, Product] = Path(
         BLD / "simple_model" / "figures" / "length.png",
     ),
-    path_to_plot_means: Annotated[Path, Product] = Path(
-        BLD / "simple_model" / "figures" / "means.png",
+    path_to_plot_means_hi: Annotated[Path, Product] = Path(
+        BLD / "simple_model" / "figures" / "means_hi.png",
+    ),
+    path_to_plot_means_lo: Annotated[Path, Product] = Path(
+        BLD / "simple_model" / "figures" / "means_lo.png",
     ),
     path_to_plot_coverage_by_eps_fun: Annotated[Path, Product] = Path(
         BLD / "simple_model" / "figures" / "coverage_eps_fun.png",
@@ -123,55 +126,46 @@ def task_plot_simple_model_sims(  # noqa: C901, PLR0912
     # ==================================================================================
     # Plot Means
     # ==================================================================================
-    fig = go.Figure()
-    for n_obs in data.n_obs.unique():
-        for bootstrap_method in ["standard", "numerical_delta", "analytical_delta"]:
-            data_sub = data[
-                (data.n_obs == n_obs) & (data.bootstrap_method == bootstrap_method)
-            ]
-            if bootstrap_method == "numerical_delta":
-                data_sub = data_sub[data_sub["eps_fun"] == "npow(-1div2)"]
-            if bootstrap_method == "analytical_delta":
-                data_sub = data_sub[data_sub["kappa_fun"] == "npow(1div2)"]
-            fig.add_trace(
-                go.Scatter(
-                    x=data_sub.late_complier,
-                    y=data_sub.ci_lo,
-                    name=f"n_obs={n_obs}",
-                    legendgroup=f"{bootstrap_method}",
-                    legendgrouptitle_text=(
-                        f"{bootstrap_method.replace('_', ' ').capitalize()} Bootstrap"
-                    ),
-                    line={
-                        "color": color_by_bootstrap_method[bootstrap_method],
-                        "dash": line_type_by_n_obs[int(n_obs)],
-                    },
-                ),
-            )
-            fig.add_trace(
-                go.Scatter(
-                    x=data_sub.late_complier,
-                    y=data_sub.ci_hi,
-                    name=f"Lower, N ={n_obs}, {bootstrap_method}",
-                    legendgroup=f"{bootstrap_method}",
-                    legendgrouptitle_text=(
-                        f"{bootstrap_method.replace('_', ' ').capitalize()} Bootstrap"
-                    ),
-                    line={
-                        "color": color_by_bootstrap_method[bootstrap_method],
-                        "dash": line_type_by_n_obs[int(n_obs)],
-                    },
-                    showlegend=False,
-                ),
-            )
+    params_to_stat = {
+        "ci_lo": {"title": "Means of CI Lower Bounds", "path": path_to_plot_means_lo},
+        "ci_hi": {"title": "Means of CI Upper Bounds", "path": path_to_plot_means_hi},
+    }
 
-    fig.update_layout(
-        title="Means of CI Bounds",
-        xaxis_title="late_complier",
-        yaxis_title="Mean CI Bounds",
-    )
+    for stat in ["ci_hi", "ci_lo"]:
+        fig = go.Figure()
+        for n_obs in data.n_obs.unique():
+            for bootstrap_method in ["standard", "numerical_delta", "analytical_delta"]:
+                data_sub = data[
+                    (data.n_obs == n_obs) & (data.bootstrap_method == bootstrap_method)
+                ]
+                if bootstrap_method == "numerical_delta":
+                    data_sub = data_sub[data_sub["eps_fun"] == "npow(-1div2)"]
+                if bootstrap_method == "analytical_delta":
+                    data_sub = data_sub[data_sub["kappa_fun"] == "npow(1div2)"]
+                fig.add_trace(
+                    go.Scatter(
+                        x=data_sub.late_complier,
+                        y=data_sub[stat],
+                        name=f"n_obs={n_obs}",
+                        legendgroup=f"{bootstrap_method}",
+                        legendgrouptitle_text=(
+                            f"{bootstrap_method.replace('_', ' ').capitalize()}"
+                            "Bootstrap"
+                        ),
+                        line={
+                            "color": color_by_bootstrap_method[bootstrap_method],
+                            "dash": line_type_by_n_obs[int(n_obs)],
+                        },
+                    ),
+                )
 
-    fig.write_image(path_to_plot_means)
+        fig.update_layout(
+            title=params_to_stat[stat]["title"],
+            xaxis_title="late_complier",
+            yaxis_title="Mean CI Bounds",
+        )
+
+        fig.write_image(params_to_stat[stat]["path"])
 
     # ==================================================================================
     # Plot coverage by eps_fun

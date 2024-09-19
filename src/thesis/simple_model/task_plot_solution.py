@@ -27,7 +27,10 @@ ID_TO_KWARGS = {
     f"plot_constraint_mtr_{constraint_mtr}": _Arguments(
         constraint_mtr=constraint_mtr,
         path_to_plot=Path(
-            BLD / "boot" / "figures" / f"solution_constraint_mtr_{constraint_mtr}.png",
+            BLD
+            / "simple_model"
+            / "solutions"
+            / f"solution_constraint_mtr_{constraint_mtr}.png",
         ),
     )
     for constraint_mtr in constr_mtr_to_plot
