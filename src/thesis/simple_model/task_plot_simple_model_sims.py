@@ -132,7 +132,7 @@ def task_plot_bootstrap_sims(  # noqa: C901, PLR0912, PLR0915
                 if bootstrap_method == "numerical_delta":
                     data_sub = data_sub[data_sub["eps_fun"] == "npow(-1div2)"]
                 if bootstrap_method == "analytical_delta":
-                    data_sub = data_sub[data_sub["kappa_fun"] == "npow(1div6)"]
+                    data_sub = data_sub[data_sub["kappa_fun"] == "np.log(n)pow(1div2)"]
 
                 fig.add_trace(
                     go.Scatter(

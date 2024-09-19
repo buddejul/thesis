@@ -1,0 +1,110 @@
+"""Estimate asymptotic variances for some key estimators."""
+
+
+import numpy as np
+
+from thesis.classes import Instrument, LocalATEs
+from thesis.config import RNG
+from thesis.simple_model.funcs import (
+    _draw_data,
+    _estimate_pscores,
+    _late,
+)
+
+late_complier = 0.2
+local_ates = LocalATEs(
+    never_taker=0,
+    complier=late_complier,
+    always_taker=np.min((1, 1 + late_complier)),
+)
+
+instrument = Instrument(
+    support=np.array([0, 1]),
+    pmf=np.array([0.5, 0.5]),
+    pscores=np.array([0.4, 0.6]),
+)
+
+u_hi = 0.2
+
+true_w = (instrument.pscores[1] - instrument.pscores[0]) / (
+    instrument.pscores[1] + u_hi - instrument.pscores[0]
+)
+
+true_late = true_w * late_complier + (1 - true_w) * local_ates.always_taker
+
+n_obs = 100_000
+n_sim = 10_000
+
+rn = np.sqrt(n_obs)
+
+# --------------------------------------------------------------------------------------
+# Asymptotic variance of LATE
+# --------------------------------------------------------------------------------------
+
+sim_late = np.zeros(n_sim)
+
+for i in range(n_sim):
+    data = _draw_data(
+        n_obs=n_obs,
+        local_ates=local_ates,
+        instrument=instrument,
+        rng=RNG,
+    )
+    sim_late[i] = _late(data)
+
+avar_late = (rn * (sim_late - true_late)).var()
+
+# --------------------------------------------------------------------------------------
+# Asymptotic variance of true_w * LATE
+# --------------------------------------------------------------------------------------
+
+sim_late_true_w = np.zeros(n_sim)
+
+for i in range(n_sim):
+    data = _draw_data(
+        n_obs=n_obs,
+        local_ates=local_ates,
+        instrument=instrument,
+        rng=RNG,
+    )
+    sim_late_true_w[i] = _late(data) * true_w
+
+avar_late_true_w = (rn * (sim_late_true_w - true_late * true_w)).var()
+
+# --------------------------------------------------------------------------------------
+# Asymptotic variance of w_hat * LATE
+# --------------------------------------------------------------------------------------
+
+sim_late_hat_w = np.zeros(n_sim)
+
+for i in range(n_sim):
+    data = _draw_data(
+        n_obs=n_obs,
+        local_ates=local_ates,
+        instrument=instrument,
+        rng=RNG,
+    )
+    _pscores = _estimate_pscores(data)
+    hat_w = (_pscores[1] - _pscores[0]) / (_pscores[1] + u_hi - _pscores[0])
+    sim_late_hat_w[i] = _late(data) * hat_w
+
+avar_late_hat_w = (rn * (sim_late_hat_w - true_late * true_w)).var()
+
+# --------------------------------------------------------------------------------------
+# Asymptotic variance of w_hat * LATE + (1 - w_hat)
+# --------------------------------------------------------------------------------------
+
+sim_id_set = np.zeros(n_sim)
+
+for i in range(n_sim):
+    data = _draw_data(
+        n_obs=n_obs,
+        local_ates=local_ates,
+        instrument=instrument,
+        rng=RNG,
+    )
+    _pscores = _estimate_pscores(data)
+    hat_w = (_pscores[1] - _pscores[0]) / (_pscores[1] + u_hi - _pscores[0])
+    sim_id_set[i] = _late(data) * hat_w + (1 - hat_w)
+
+avar_id_set = (rn * (sim_id_set - (true_late * true_w + (1 - true_w)))).var()

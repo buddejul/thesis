@@ -56,8 +56,19 @@ def simulation_bootstrap(
 
     results = np.zeros((n_sims, 2))
 
+    # TODO(@buddejul): Remove after debugging.
+    beta_lo = np.zeros(n_sims)
+    beta_hi = np.zeros(n_sims)
+
     for i in range(n_sims):
         data = _draw_data(n_obs, local_ates=local_ates, instrument=instrument, rng=rng)
+
+        beta_lo[i], beta_hi[i] = _idset(
+            b_late=_late(data),
+            u_hi=u_hi,
+            pscores_hat=_estimate_pscores(data),
+            constraint_mtr=constraint_mtr,
+        )
 
         results[i] = _bootstrap_ci(
             n_boot=n_boot,
@@ -72,6 +83,8 @@ def simulation_bootstrap(
 
     out = pd.DataFrame(results, columns=["lo", "hi"])
     out["true"] = _true_late(u_hi, instrument=instrument, local_ates=local_ates)
+    out["beta_lo"] = beta_lo
+    out["beta_hi"] = beta_hi
 
     return out
 
@@ -278,6 +291,7 @@ def _ci_analytical_delta_bootstrap(
     pscores = _estimate_pscores(data)
 
     boot_late_scaled = np.zeros(n_boot)
+    boot_w_scaled = np.zeros(n_boot)
 
     w = (pscores[1] - pscores[0]) / (u_hi + pscores[1] - pscores[0])
 
@@ -286,29 +300,48 @@ def _ci_analytical_delta_bootstrap(
         # Step 1: Draw Z_s from the bootstrap distribution of beta_s.
         boot_data, _ = _draw_bootstrap_data(data=data, n_obs=n_obs, rng=rng)
 
+        boot_pscores = _estimate_pscores(boot_data)
+
         boot_late_scaled[i] = rn * (_late(boot_data) - late)
+        boot_w = (boot_pscores[1] - boot_pscores[0]) / (
+            u_hi + boot_pscores[1] - boot_pscores[0]
+        )
+
+        boot_w_scaled[i] = rn * (boot_w - w)
 
     # Step 2: Estimate the derivative.
-    # We need two separate derivatives, since the upper and lower bound have different
-    # solutions.
+    # We need two separate derivatives, since the upper and lower bound have
+    # different solutions.
+    # We apply the derivative also to the bootstrapped w, since this is a nuisance
+    # parameter. Otherwise, we understate the variance.
     _kwargs = {
+        "b": boot_late_scaled,
+        "w": boot_w_scaled,
         "beta_late": late,
         "sigma_hat": sigma_hat,
         "kappa_n": kappa_n,
         "rn": rn,
     }
 
+    _d_phi = partial(_d_phi_kink, **_kwargs)
+
     if constraint_mtr == "none":
-        d_phi_upper = partial(_d_phi_kink, slope_left=w, slope_right=w, **_kwargs)
-        d_phi_lower = d_phi_upper
+        boot_d_phi_upper = _d_phi(
+            slope_left=boot_w,
+            slope_right=boot_w,
+            slope_w=1,
+        )
+        boot_d_phi_lower = _d_phi(
+            slope_left=boot_w,
+            slope_right=boot_w,
+            slope_w=-1,
+        )
 
     elif constraint_mtr == "increasing":
-        d_phi_upper = partial(_d_phi_kink, slope_left=1, slope_right=w, **_kwargs)
-        d_phi_lower = partial(_d_phi_kink, slope_left=w, slope_right=1, **_kwargs)
+        boot_d_phi_upper = _d_phi(slope_left=1, slope_right=boot_w, slope_w=1)
+        boot_d_phi_lower = _d_phi(slope_left=boot_w, slope_right=1, slope_w=-1)
 
-    # Step 3: Apply derivative to bootstrap quantiles to get the confidence interval.
-    # In our special case we know the function is monotonically increasing, hence we can
-    # compute the bootstrap percentile first and then apply the estimated derivative.
+    # Step 3: Construct confidence intervals
     id_lo, id_hi = _idset(
         b_late=late,
         u_hi=u_hi,
@@ -316,12 +349,10 @@ def _ci_analytical_delta_bootstrap(
         constraint_mtr=constraint_mtr,
     )
 
-    _c_1_minus_alpha_half = d_phi_lower(
-        np.quantile(boot_late_scaled, 1 - alpha / 2),
-    )
+    _c_1_minus_alpha_half = np.quantile(boot_d_phi_lower, 1 - alpha / 2)
     boot_ci_lo = id_lo - _c_1_minus_alpha_half / rn
 
-    _c_alpha_half = d_phi_upper(np.quantile(boot_late_scaled, alpha / 2))
+    _c_alpha_half = np.quantile(boot_d_phi_upper, alpha / 2)
     boot_ci_hi = id_hi - _c_alpha_half / rn
 
     return boot_ci_lo, boot_ci_hi
@@ -342,8 +373,8 @@ def _idset(
     # Restricting the MTRs to be increasing changes the solution to have a kink when
     # viewed as a function of the identified parameter.
     elif constraint_mtr == "increasing":
-        hi = _phi_kink(theta=b_late, kink=0, slope_left=1, slope_right=w) + (1 - w)
         lo = _phi_kink(theta=b_late, kink=0, slope_left=w, slope_right=1) - (1 - w)
+        hi = _phi_kink(theta=b_late, kink=0, slope_left=1, slope_right=w) + (1 - w)
 
     return np.array([lo, hi])
 
@@ -482,13 +513,15 @@ def _phi_kink(
 
 
 def _d_phi_kink(
-    h: float,
+    b: float,
+    w: float,
     beta_late: float,
     sigma_hat: float,
     kappa_n: float,
     rn: float,
     slope_left: float,
     slope_right: float,
+    slope_w: float,
     kink: float = 0,
 ) -> float:
     """Estimator for the derivative of the identified set."""
@@ -499,12 +532,13 @@ def _d_phi_kink(
     cond_left = rn * (beta_late - kink) / sigma_hat < -kappa_n
     cond_mid = (not cond_right) & (not cond_left)
 
-    # TODO(@buddejul): Check this returns the right thing. I think this is correct for
-    # our case, namely, slope_left > 0 and slope_right > 0.
+    # Note we need to add the variability resulting from estimating the propensity score
+    # in the derivative of the function: w * b +- (1 - w)
     return (
-        cond_right * h * slope_right
-        + cond_left * h * slope_left
-        + cond_mid * ((h < 0) * h * slope_left + (h > 0) * h * slope_right)
+        cond_right * b * slope_right
+        + cond_left * b * slope_left
+        + cond_mid * ((b < 0) * b * slope_left + (b > 0) * b * slope_right)
+        + w * slope_w
     )
 
 
@@ -523,7 +557,7 @@ def _check_bootsrap_method_supported(bootstrap_method: str) -> None:
     if bootstrap_method not in supported:
         msg = (
             f"Bootstrap method '{bootstrap_method}' not supported.\n"
-            f"Supported constraints: {supported}"
+            f"Supported bootstrap methods: {supported}"
         )
         raise ValueError(msg)
 

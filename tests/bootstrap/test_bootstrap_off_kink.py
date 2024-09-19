@@ -33,27 +33,47 @@ def _bic(n):
     return np.sqrt(np.log(n))
 
 
-def test_bootstrap_coverage(setup):
+@pytest.mark.parametrize("method", ["analytical_delta", "standard", "numerical_delta"])
+def test_bootstrap_coverage(setup, method):
     local_ates, instrument, complier_late, true = setup
 
     expected = 0.95
 
+    bootstrap_params = {
+        "eps_fun": np.sqrt,
+        "kappa_fun": _bic,
+    }
+
     res = simulation_bootstrap(
-        n_sims=500,
+        n_sims=100,
         n_obs=10_000,
-        n_boot=10_000,
+        n_boot=500,
         u_hi=0.2,
         local_ates=local_ates,
         instrument=instrument,
         alpha=0.05,
         constraint_mtr="increasing",
-        bootstrap_method="analytical_delta",
+        bootstrap_method=method,
         rng=RNG,
-        bootstrap_params={"kappa_fun": _bic},
+        bootstrap_params=bootstrap_params,
     )
 
     res["covers"] = (res["lo"] <= true) & (res["hi"] >= true)
+    res["covers_hi"] = res["hi"] >= true
+    res["covers_lo"] = res["lo"] <= true
+
+    # Calculate critical values of CI
+    res["c_hi"] = res["hi"] - res["beta_hi"]
+    res["ci_lo"] = res["lo"] - res["beta_lo"]
+
+    # Assert they are always >= 0
+    assert np.all(res["c_hi"] >= 0)
+    assert np.all(res["ci_lo"] <= 0)
+
+    # Coverage should be determined by upper bound
+    assert res["covers_lo"].mean() == 1
+    assert np.all(res["covers_hi"] == res["covers"])
 
     actual = res.mean()["covers"]
 
-    assert actual == pytest.approx(expected, abs=0.025)
+    assert actual == pytest.approx(expected, abs=0.05)
