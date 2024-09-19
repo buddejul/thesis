@@ -25,7 +25,8 @@
 \setlength{\bibitemsep}{1.5ex}
 \addbibresource{refs.bib}
 
-\hypersetup{colorlinks=true, linkcolor=black, anchorcolor=black, citecolor=black, filecolor=black, menucolor=black, runcolor=black, urlcolor=black}
+\hypersetup{colorlinks=true, linkcolor=black, anchorcolor=black, citecolor=black,
+filecolor=black, menucolor=black, runcolor=black, urlcolor=black}
 
 \setbeamertemplate{footline}[frame number]
 \setbeamertemplate{navigation symbols}{}
@@ -38,11 +39,11 @@
 
 \title{Thesis}
 
-\author[Julian Budde]
-{
-{\bf Julian Budde}\\
-{\small University of Bonn}\\[1ex]
-}
+% \author[Julian Budde]
+% {
+% {\bf Julian Budde}\\
+% {\small University of Bonn}\\[1ex]
+% }
 
 
 \begin{frame}
@@ -177,13 +178,13 @@
 \begin{frame}
     \frametitle{Inference}
 
-    From~\cite{fang2023inference} we know the standard \textit{bootstrap fails} when $\phi(\theta)$ is not fully differentiable.
+    From~\cite{fang2019inference} we know the standard \textit{bootstrap fails} when $\phi(\theta)$ is not fully differentiable.
 
     \vspace{0.5cm}
 
     \textbf{Alternatives}: Based on \textit{directional} differentiability of $\phi$ we can use adjusted delta methods.
     \begin{itemize}
-        \item \textit{Analytical} delta method, e.g.~\cite{fang2023inference}.
+        \item \textit{Analytical} delta method, e.g.~\cite{fang2019inference}.
         \item \textit{Numerical} delta method, e.g.~\cite{hong2018numerical}.
     \end{itemize}
 

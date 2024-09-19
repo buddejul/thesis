@@ -254,7 +254,7 @@ def _ci_analytical_delta_bootstrap(
     u_hi: float,
     constraint_mtr: str,
     rng: np.random.Generator,
-    kappa_fun: Callable = lambda n: n ** (1 / 6),
+    kappa_fun: Callable,
 ) -> tuple[float, float]:
     """Compute the analytical delta bootstrap confidence interval.
 
@@ -277,7 +277,7 @@ def _ci_analytical_delta_bootstrap(
 
     pscores = _estimate_pscores(data)
 
-    boot_late_scaled_and_centered = np.zeros(n_boot)
+    boot_late_scaled = np.zeros(n_boot)
 
     w = (pscores[1] - pscores[0]) / (u_hi + pscores[1] - pscores[0])
 
@@ -286,26 +286,25 @@ def _ci_analytical_delta_bootstrap(
         # Step 1: Draw Z_s from the bootstrap distribution of beta_s.
         boot_data, _ = _draw_bootstrap_data(data=data, n_obs=n_obs, rng=rng)
 
-        boot_late_scaled_and_centered[i] = rn * (_late(boot_data) - late)
+        boot_late_scaled[i] = rn * (_late(boot_data) - late)
 
     # Step 2: Estimate the derivative.
     # We need two separate derivatives, since the upper and lower bound have different
     # solutions.
-    _di_phi = partial(
-        _d_phi_kink,
-        beta_late=late,
-        sigma_hat=sigma_hat,
-        kappa_n=kappa_n,
-        rn=rn,
-    )
+    _kwargs = {
+        "beta_late": late,
+        "sigma_hat": sigma_hat,
+        "kappa_n": kappa_n,
+        "rn": rn,
+    }
 
     if constraint_mtr == "none":
-        d_phi_upper = partial(_di_phi, slope_left=w, slope_right=w)
+        d_phi_upper = partial(_d_phi_kink, slope_left=w, slope_right=w, **_kwargs)
         d_phi_lower = d_phi_upper
 
     elif constraint_mtr == "increasing":
-        d_phi_upper = partial(_di_phi, slope_left=1, slope_right=w)
-        d_phi_lower = partial(_di_phi, slope_left=w, slope_right=1)
+        d_phi_upper = partial(_d_phi_kink, slope_left=1, slope_right=w, **_kwargs)
+        d_phi_lower = partial(_d_phi_kink, slope_left=w, slope_right=1, **_kwargs)
 
     # Step 3: Apply derivative to bootstrap quantiles to get the confidence interval.
     # In our special case we know the function is monotonically increasing, hence we can
@@ -318,11 +317,11 @@ def _ci_analytical_delta_bootstrap(
     )
 
     _c_1_minus_alpha_half = d_phi_lower(
-        np.quantile(boot_late_scaled_and_centered, 1 - alpha / 2),
+        np.quantile(boot_late_scaled, 1 - alpha / 2),
     )
     boot_ci_lo = id_lo - _c_1_minus_alpha_half / rn
 
-    _c_alpha_half = d_phi_upper(np.quantile(boot_late_scaled_and_centered, alpha / 2))
+    _c_alpha_half = d_phi_upper(np.quantile(boot_late_scaled, alpha / 2))
     boot_ci_hi = id_hi - _c_alpha_half / rn
 
     return boot_ci_lo, boot_ci_hi
