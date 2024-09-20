@@ -25,9 +25,9 @@ rn = np.sqrt(n_obs)
 # --------------------------------------------------------------------------------------
 
 local_ates = LocalATEs(
-    never_taker=0,
+    always_taker=0,
     complier=late_complier,
-    always_taker=np.min((1, 1 + late_complier)),
+    never_taker=np.min((1, 1 + late_complier)),
 )
 
 instrument = Instrument(

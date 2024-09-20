@@ -12,9 +12,9 @@ def setup():
     complier_late = 0.5
 
     local_ates = LocalATEs(
-        never_taker=0,
+        always_taker=0,
         complier=complier_late,
-        always_taker=np.min((1, 1 + complier_late)),
+        never_taker=np.min((1, 1 + complier_late)),
     )
 
     instrument = Instrument(

@@ -77,6 +77,6 @@ class MonteCarloSetup(NamedTuple):
 class LocalATEs(NamedTuple):
     """LATEs for subpopulations: never-taker, complier, always-taker."""
 
-    never_taker: float
-    complier: float
     always_taker: float
+    complier: float
+    never_taker: float

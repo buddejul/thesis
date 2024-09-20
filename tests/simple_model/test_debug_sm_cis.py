@@ -22,9 +22,9 @@ def test_debug_sm():
     )
 
     local_ates = LocalATEs(
-        never_taker=0,
+        always_taker=0,
         complier=-0.1,
-        always_taker=1,
+        never_taker=1,
     )
 
     simulation_bootstrap(

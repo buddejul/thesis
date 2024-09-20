@@ -3,9 +3,66 @@
 import numpy as np
 import pandas as pd  # type: ignore[import-untyped]
 import pytest
+from thesis.classes import Instrument, LocalATEs
 from thesis.config import RNG
 from thesis.simple_model.funcs import _late
 from thesis.utilities import draw_data
+
+
+@pytest.fixture()
+def instrument() -> Instrument:
+    return Instrument(
+        support=np.array([0, 1]),
+        pmf=np.array([0.5, 0.5]),
+        pscores=np.array([0.4, 0.6]),
+    )
+
+
+@pytest.fixture()
+def local_ates_zero() -> LocalATEs:
+    return LocalATEs(
+        always_taker=0,
+        complier=0,
+        never_taker=0,
+    )
+
+
+@pytest.fixture()
+def local_ates_nonzero() -> LocalATEs:
+    return LocalATEs(
+        always_taker=0,
+        complier=0.5,
+        never_taker=1,
+    )
+
+
+# Setting where true parameter is at upper boundary of ID set and at kink of solution
+@pytest.fixture()
+def local_ates_boundary_hi() -> LocalATEs:
+    return LocalATEs(
+        always_taker=0,
+        complier=0,
+        never_taker=1,
+    )
+
+
+# Setting where true parameter is at lower boundary of ID set and at kink of solution
+@pytest.fixture()
+def local_ates_boundary_lo() -> LocalATEs:
+    return LocalATEs(
+        always_taker=0,
+        complier=0,
+        never_taker=-1,
+    )
+
+
+@pytest.fixture()
+def local_ates_complier_negative() -> LocalATEs:
+    return LocalATEs(
+        always_taker=0,
+        complier=-0.5,
+        never_taker=1,
+    )
 
 
 def test_data_moments_boundary(instrument, local_ates_zero) -> None:
