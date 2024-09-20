@@ -326,21 +326,24 @@ def _ci_analytical_delta_bootstrap(
 
     _d_phi = partial(_d_phi_kink, **_kwargs)
 
+    # Note the solution for the upper bound has a "+(1-w)" and for the lower bound a
+    # "-(1-w)" term. Hence the slopes are -1 and 1, respectively.
+
     if constraint_mtr == "none":
         boot_d_phi_upper = _d_phi(
             slope_left=boot_w,
             slope_right=boot_w,
-            slope_w=1,
+            slope_w=-1,
         )
         boot_d_phi_lower = _d_phi(
             slope_left=boot_w,
             slope_right=boot_w,
-            slope_w=-1,
+            slope_w=1,
         )
 
     elif constraint_mtr == "increasing":
-        boot_d_phi_upper = _d_phi(slope_left=1, slope_right=boot_w, slope_w=1)
-        boot_d_phi_lower = _d_phi(slope_left=boot_w, slope_right=1, slope_w=-1)
+        boot_d_phi_upper = _d_phi(slope_left=1, slope_right=boot_w, slope_w=-1)
+        boot_d_phi_lower = _d_phi(slope_left=boot_w, slope_right=1, slope_w=1)
 
     # Step 3: Construct confidence intervals
     id_lo, id_hi = _idset(
@@ -506,11 +509,13 @@ def _d_phi_kink(
 
     # Note we need to add the variability resulting from estimating the propensity score
     # in the derivative of the function: w * b +- (1 - w)
+    # TODO(@buddejul): This should probably also include a product-rule term.
     return (
         cond_right * b * slope_right
         + cond_left * b * slope_left
-        + cond_mid * ((b < 0) * b * slope_left + (b > 0) * b * slope_right)
+        + cond_mid * ((b < 0) * b * slope_left + (b >= 0) * b * slope_right)
         + w * slope_w
+        + beta_late * w * (b >= 0)
     )
 
 

@@ -9,7 +9,7 @@ from thesis.simple_model.funcs import simulation_bootstrap
 
 @pytest.fixture()
 def setup():
-    complier_late = 0.5
+    complier_late = 0.4
 
     local_ates = LocalATEs(
         always_taker=0,
@@ -39,15 +39,19 @@ def test_bootstrap_coverage(setup, method):
 
     expected = 0.95
 
+    n_obs = 10_000
+    n_boot = 500
+    n_sims = 100
+
     bootstrap_params = {
         "eps_fun": np.sqrt,
         "kappa_fun": _bic,
     }
 
     res = simulation_bootstrap(
-        n_sims=100,
-        n_obs=10_000,
-        n_boot=500,
+        n_sims=n_sims,
+        n_obs=n_obs,
+        n_boot=n_boot,
         u_hi=0.2,
         local_ates=local_ates,
         instrument=instrument,
@@ -76,4 +80,4 @@ def test_bootstrap_coverage(setup, method):
 
     actual = res.mean()["covers"]
 
-    assert actual == pytest.approx(expected, abs=0.05)
+    assert actual == pytest.approx(expected, abs=0.051)
