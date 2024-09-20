@@ -5,7 +5,7 @@ import pandas as pd  # type: ignore[import-untyped]
 import pytest
 from thesis.classes import Instrument, LocalATEs
 from thesis.config import RNG
-from thesis.simple_model.funcs import _late
+from thesis.simple_model.funcs import _late, _true_late
 from thesis.utilities import draw_data
 
 
@@ -92,16 +92,28 @@ def test_data_moments_boundary(instrument, local_ates_zero) -> None:
     pd.testing.assert_frame_equal(actual, expected, atol=0.01)
 
 
-def test_generate_late(instrument, local_ates_nonzero):
-    expected = local_ates_nonzero.complier
+def test_generate_late(instrument):
+    n_obs = 1_000_000
 
-    data = draw_data(
-        n_obs=100_000,
-        local_ates=local_ates_nonzero,
-        instrument=instrument,
-        rng=RNG,
-    )
+    complier_lates = [-1, -0.75, -0.5, -0.25, 0, 0.25, 0.5, 0.75, 1]
 
-    actual = _late(data)
+    actual = np.zeros(len(complier_lates))
+    expected = np.zeros(len(complier_lates))
 
-    assert actual == pytest.approx(expected, abs=2 / np.sqrt(10_000))
+    for i, complier_late in enumerate(complier_lates):
+        local_ates = LocalATEs(
+            always_taker=0,
+            complier=complier_late,
+            never_taker=np.min((1, 1 + complier_late)),
+        )
+        data = draw_data(
+            n_obs=n_obs,
+            local_ates=local_ates,
+            instrument=instrument,
+            rng=RNG,
+        )
+
+        actual[i] = _late(data)
+        expected[i] = _true_late(u_hi=0, instrument=instrument, local_ates=local_ates)
+
+    assert actual == pytest.approx(expected, abs=20 / np.sqrt(n_obs))

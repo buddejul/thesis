@@ -41,7 +41,8 @@ true_w = (instrument.pscores[1] - instrument.pscores[0]) / (
     instrument.pscores[1] + u_hi - instrument.pscores[0]
 )
 
-true_late = true_w * late_complier + (1 - true_w) * local_ates.always_taker
+true_late = late_complier
+true_idset = true_w * late_complier + (1 - true_w) * local_ates.always_taker
 
 # --------------------------------------------------------------------------------------
 # Asymptotic variance of LATE, w * LATE, w_hat * LATE and id_set
