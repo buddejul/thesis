@@ -4,7 +4,10 @@ import inspect
 from collections.abc import Callable
 from pathlib import Path
 
+import numpy as np
 import yaml  # type: ignore[import-untyped]
+
+from thesis.classes import Instrument, LocalATEs
 
 
 def read_yaml(path):
@@ -39,3 +42,33 @@ def get_func_as_string(func: Callable) -> str:
     func_str = func_str.replace("**", "pow")
     func_str = func_str.replace("*", "x")
     return func_str.replace("/", "div")
+
+
+def draw_data(
+    n_obs: int,
+    local_ates: LocalATEs,
+    instrument: Instrument,
+    rng: np.random.Generator,
+) -> np.ndarray:
+    """Draw data for given local ates and instrument."""
+    z = rng.choice(instrument.support, size=n_obs, p=instrument.pmf)
+
+    u = rng.uniform(low=0, high=1, size=n_obs)
+
+    d = np.where(z == 1, u <= instrument.pscores[1], u <= instrument.pscores[0])
+
+    _never_takers = u <= instrument.pscores[0]
+    _compliers = (u > instrument.pscores[0]) & (u <= instrument.pscores[1])
+    _always_takers = u > instrument.pscores[1]
+
+    y0 = np.zeros(n_obs)
+
+    y1 = (
+        _never_takers * local_ates.never_taker
+        + _compliers * local_ates.complier
+        + _always_takers * local_ates.always_taker
+    )
+
+    y = d * y1 + (1 - d) * y0 + rng.normal(scale=0.1, size=n_obs)
+
+    return np.column_stack((y, d, z, u))

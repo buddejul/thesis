@@ -33,7 +33,7 @@ N_OBS = [1_000, 10_000]
 PSCORES_LOW = [0.4]
 CONSTRAINTS_MTR = ["increasing"]
 BOOTSTRAP_METHODS = ["standard", "numerical_delta", "analytical_delta"]
-LATES_COMPLIER = np.concat((np.linspace(-0.2, 0.2, num=8), np.zeros(1)))
+LATES_COMPLIER = np.concat((np.linspace(-0.4, 0.4, num=12), np.zeros(1)))
 EPS_FUNS_NUMERICAL_DELTA = [
     lambda n: n ** (-1 / 2),
 ]

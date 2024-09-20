@@ -9,7 +9,7 @@ from thesis.simple_model.funcs import simulation_bootstrap
 
 @pytest.fixture()
 def setup():
-    complier_late = 0.2
+    complier_late = 0.5
 
     local_ates = LocalATEs(
         never_taker=0,

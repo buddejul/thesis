@@ -3,12 +3,10 @@
 from functools import partial
 
 import numpy as np
-import pandas as pd  # type: ignore[import-untyped]
 import pytest
 from thesis.classes import Instrument, LocalATEs
 from thesis.config import RNG
 from thesis.simple_model.funcs import (
-    _draw_data,
     _estimate_pscores,
     _idset,
     _late,
@@ -16,6 +14,7 @@ from thesis.simple_model.funcs import (
     _true_late,
     simulation_bootstrap,
 )
+from thesis.utilities import draw_data
 
 
 @pytest.fixture()
@@ -87,37 +86,10 @@ def sim_boot():
     )
 
 
-def test_data_moments_boundary(instrument, local_ates_zero) -> None:
-    n_obs = 100_000
-
-    expected = pd.DataFrame(
-        {
-            "y_given_z": [0.0, 0.0],
-            "d_given_z": instrument.pscores,
-        },
-        index=[0, 1],
-    )
-
-    data = pd.DataFrame(
-        _draw_data(n_obs, rng=RNG, instrument=instrument, local_ates=local_ates_zero),
-        columns=["y", "d", "z", "u"],
-    )
-
-    actual = pd.DataFrame(
-        {
-            "y_given_z": data.groupby("z")["y"].mean(),
-            "d_given_z": data.groupby("z")["d"].mean(),
-        },
-        index=[0, 1],
-    )
-
-    pd.testing.assert_frame_equal(actual, expected, atol=0.01)
-
-
 def test_compute_pscores(instrument, local_ates_nonzero) -> None:
     n_obs = 1_000_000
 
-    data = _draw_data(
+    data = draw_data(
         n_obs,
         rng=RNG,
         instrument=instrument,
@@ -129,21 +101,6 @@ def test_compute_pscores(instrument, local_ates_nonzero) -> None:
     actual = _estimate_pscores(data)
 
     assert expected == pytest.approx(actual, abs=3 / np.sqrt(n_obs))
-
-
-def test_generate_late(instrument, local_ates_nonzero):
-    expected = local_ates_nonzero.complier
-
-    data = _draw_data(
-        n_obs=100_000,
-        local_ates=local_ates_nonzero,
-        instrument=instrument,
-        rng=RNG,
-    )
-
-    actual = _late(data)
-
-    assert actual == pytest.approx(expected, abs=2 / np.sqrt(10_000))
 
 
 def test_simulation_runs(local_ates_boundary_hi, instrument, sim_boot) -> None:
@@ -242,7 +199,7 @@ def test_id_set_consistent() -> None:
     res = np.zeros((n_sims, 2))
 
     for i in range(n_sims):
-        data = _draw_data(
+        data = draw_data(
             n_obs=n_obs,
             local_ates=local_ates,
             instrument=instrument,
@@ -313,7 +270,7 @@ def test_bootstrap_params_supplied(sim_boot, local_ates_nonzero, instrument) -> 
 
 
 def test_late_and_late_2sls_equivalent(local_ates_nonzero, instrument) -> None:
-    data = _draw_data(
+    data = draw_data(
         n_obs=10_000,
         local_ates=local_ates_nonzero,
         instrument=instrument,
