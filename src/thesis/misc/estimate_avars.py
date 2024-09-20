@@ -14,7 +14,7 @@ from thesis.utilities import draw_data
 # Parameters
 # --------------------------------------------------------------------------------------
 
-n_obs = 100_000
+n_obs = 1_000_000
 n_sim = 10_000
 late_complier = 0.5
 u_hi = 0.2
