@@ -4,11 +4,10 @@ from pathlib import Path
 from typing import Annotated, NamedTuple
 
 import numpy as np
-import pytask
 from pytask import Product, task
 
 from thesis.config import BLD, RNG
-from thesis.imbens_manski.im_funcs import simulation
+from thesis.imbens_manski.funcs import simulation
 
 
 class _Arguments(NamedTuple):
@@ -48,7 +47,6 @@ ID_TO_KWARGS = {
 
 for id_, kwargs in ID_TO_KWARGS.items():
 
-    @pytask.mark.skip()
     @task(id=id_, kwargs=kwargs)  # type: ignore[arg-type]
     def task_manski_imbens_sims(
         p: float,

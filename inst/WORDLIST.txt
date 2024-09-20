@@ -99,10 +99,6 @@ Koepke
 Kopka
 KopkaDaly
 Langtangen
-late
-lates
-LATE
-LATEs
 LeClere
 linux
 Loong
