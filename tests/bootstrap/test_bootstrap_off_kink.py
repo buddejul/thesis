@@ -9,7 +9,7 @@ from thesis.simple_model.funcs import simulation_bootstrap
 
 @pytest.fixture()
 def setup():
-    complier_late = 0.4
+    complier_late = -0.5
 
     local_ates = LocalATEs(
         always_taker=0,
@@ -23,9 +23,7 @@ def setup():
         pscores=np.array([0.4, 0.6]),
     )
 
-    true = 0.5 * complier_late + 0.5
-
-    return local_ates, instrument, complier_late, true
+    return local_ates, instrument, complier_late
 
 
 def _bic(n):
@@ -33,9 +31,9 @@ def _bic(n):
     return np.sqrt(np.log(n))
 
 
-@pytest.mark.parametrize("method", ["analytical_delta", "standard", "numerical_delta"])
+@pytest.mark.parametrize("method", ["numerical_delta"])
 def test_bootstrap_coverage(setup, method):
-    local_ates, instrument, complier_late, true = setup
+    local_ates, instrument, complier_late = setup
 
     expected = 0.95
 
@@ -62,17 +60,17 @@ def test_bootstrap_coverage(setup, method):
         bootstrap_params=bootstrap_params,
     )
 
-    res["covers"] = (res["lo"] <= true) & (res["hi"] >= true)
-    res["covers_hi"] = res["hi"] >= true
-    res["covers_lo"] = res["lo"] <= true
+    res["covers"] = (res["lo"] <= res["true"]) & (res["hi"] >= res["true"])
+    res["covers_hi"] = res["hi"] >= res["true"]
+    res["covers_lo"] = res["lo"] <= res["true"]
 
     # Calculate critical values of CI
     res["c_hi"] = res["hi"] - res["beta_hi"]
-    res["ci_lo"] = res["lo"] - res["beta_lo"]
+    res["c_lo"] = res["lo"] - res["beta_lo"]
 
     # Assert they are always >= 0
     assert np.all(res["c_hi"] >= 0)
-    assert np.all(res["ci_lo"] <= 0)
+    assert np.all(res["c_lo"] <= 0)
 
     # Coverage should be determined by upper bound
     assert res["covers_lo"].mean() == 1

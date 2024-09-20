@@ -16,7 +16,7 @@ from thesis.utilities import draw_data
 
 n_obs = 100_000
 n_sim = 10_000
-late_complier = 0.4
+late_complier = -0.5
 u_hi = 0.2
 rn = np.sqrt(n_obs)
 
@@ -53,6 +53,7 @@ sim_hat_w = np.zeros(n_sim)
 sim_late_true_w = np.zeros(n_sim)
 sim_late_hat_w = np.zeros(n_sim)
 sim_id_set = np.zeros(n_sim)
+sim_id_set_slope_1 = np.zeros(n_sim)
 
 for i in range(n_sim):
     data = draw_data(
@@ -69,11 +70,13 @@ for i in range(n_sim):
     sim_late_true_w[i] = _late(data) * true_w
     sim_late_hat_w[i] = _late(data) * hat_w
     sim_id_set[i] = _late(data) * hat_w + (1 - hat_w)
+    sim_id_set_slope_1[i] = _late(data) + (1 - hat_w)
 
 avar_late = (rn * (sim_late - true_late)).var()
 avar_late_true_w = (rn * (sim_late_true_w - true_late * true_w)).var()
 avar_late_hat_w = (rn * (sim_late_hat_w - true_late * true_w)).var()
 avar_id_set = (rn * (sim_id_set - (true_late * true_w + (1 - true_w)))).var()
+avar_id_set_slope_1 = (rn * (sim_id_set_slope_1)).var()
 
 avar_hat_w = (rn * sim_hat_w).var()
 

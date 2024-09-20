@@ -24,7 +24,7 @@ class _Arguments(NamedTuple):
     pscore_hi: float = 0.6
     alpha: float = 0.05
     n_boot: int = 250
-    n_sims: int = 250
+    n_sims: int = 1_000
     rng: np.random.Generator = RNG
 
 
@@ -33,12 +33,11 @@ N_OBS = [1_000, 10_000]
 PSCORES_LOW = [0.4]
 CONSTRAINTS_MTR = ["increasing"]
 BOOTSTRAP_METHODS = ["standard", "numerical_delta", "analytical_delta"]
-LATES_COMPLIER = np.concat((np.linspace(-0.4, 0.4, num=12), np.zeros(1)))
+LATES_COMPLIER = np.concat((np.linspace(-0.3, 0.3, num=14), np.zeros(1)))
 EPS_FUNS_NUMERICAL_DELTA = [
     lambda n: n ** (-1 / 2),
 ]
 KAPPA_FUNS_ANALYTICAL_DELTA = [
-    lambda n: n ** (1 / 2),
     lambda n: np.log(n) ** (1 / 2),
 ]
 
@@ -57,7 +56,7 @@ KWARGS = [
             complier=late_complier,
             # The following ensures that the model is always correctly specified under
             # increasing MTR functions: Whenever late_complier < 0, the largest possible
-            # always-taker ATE is 1 + later_complier < 1.
+            # never-taker ATE is 1 + later_complier < 1.
             never_taker=np.min((1, 1 + late_complier)),
         ),
         constraint_mtr=constraint_mtr,

@@ -162,9 +162,9 @@ def test_true_late():
 
     local_ates = [
         LocalATEs(
-            never_taker=0,
+            always_taker=0,
             complier=cp_late,
-            always_taker=1,
+            never_taker=1,
         )
         for cp_late in complier_lates
     ]
