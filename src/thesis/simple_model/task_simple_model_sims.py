@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Annotated, NamedTuple
 
 import numpy as np
+import pytask
 from pytask import Product, task
 
 from thesis.classes import Instrument, LocalATEs
@@ -102,6 +103,7 @@ for id_, kwargs in ID_TO_KWARGS.items():
 
 for id_, kwargs in ID_TO_KWARGS.items():
 
+    @pytask.mark.skip()
     @task(id=id_, kwargs=kwargs)  # type: ignore[arg-type]
     def task_bootstrap_sims(
         n_sims: int,
