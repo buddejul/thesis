@@ -6,6 +6,7 @@ from typing import Annotated, NamedTuple
 
 import numpy as np
 from pytask import Product, task
+import pytask
 
 from thesis.classes import Instrument, LocalATEs
 from thesis.config import BLD, RNG
@@ -101,7 +102,8 @@ for id_, kwargs in ID_TO_KWARGS.items():
     )
 
 for id_, kwargs in ID_TO_KWARGS.items():
-
+    
+    @pytask.mark.hpc()
     @task(id=id_, kwargs=kwargs)  # type: ignore[arg-type]
     def task_bootstrap_sims(
         n_sims: int,
