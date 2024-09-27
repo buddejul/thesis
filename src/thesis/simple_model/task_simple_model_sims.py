@@ -1,5 +1,6 @@
 """Task for running bootstrap simulations."""
 
+import inspect
 import pickle
 from collections.abc import Callable
 from pathlib import Path
@@ -141,6 +142,12 @@ for id_, kwargs in ID_TO_KWARGS.items():
             bootstrap_method=bootstrap_method,
             bootstrap_params=bootstrap_params,
         )
+
+        # If bootstrap_params has "kappa_fun" or "eps_fun", inspect the function
+        # and return the sourcelines to avoid pickling issues.
+        for key, value in bootstrap_params.items():
+            if isinstance(value, Callable):  # type: ignore[arg-type]
+                bootstrap_params[key] = str(inspect.getsourcelines(value)[0])  # type: ignore[assignment]
 
         settings = {
             "n_sims": n_sims,
