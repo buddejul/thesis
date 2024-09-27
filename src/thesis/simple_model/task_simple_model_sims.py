@@ -1,12 +1,13 @@
 """Task for running bootstrap simulations."""
 
+import pickle
 from collections.abc import Callable
 from pathlib import Path
 from typing import Annotated, NamedTuple
 
 import numpy as np
-from pytask import Product, task
 import pytask
+from pytask import Product, task
 
 from thesis.classes import Instrument, LocalATEs
 from thesis.config import BLD, RNG
@@ -24,8 +25,8 @@ class _Arguments(NamedTuple):
     path_to_data: Path | None = None
     pscore_hi: float = 0.6
     alpha: float = 0.05
-    n_boot: int = 250
-    n_sims: int = 1_000
+    n_boot: int = 2
+    n_sims: int = 2
     rng: np.random.Generator = RNG
 
 
@@ -34,7 +35,7 @@ N_OBS = [1_000, 10_000]
 PSCORES_LOW = [0.4]
 CONSTRAINTS_MTR = ["increasing"]
 BOOTSTRAP_METHODS = ["standard", "numerical_delta", "analytical_delta"]
-LATES_COMPLIER = np.concat((np.linspace(-0.3, 0.3, num=14), np.zeros(1)))
+LATES_COMPLIER = np.concat((np.linspace(-0.3, 0.3, num=0), np.zeros(1)))
 EPS_FUNS_NUMERICAL_DELTA = [
     lambda n: n ** (-1 / 2),
 ]
@@ -102,7 +103,7 @@ for id_, kwargs in ID_TO_KWARGS.items():
     )
 
 for id_, kwargs in ID_TO_KWARGS.items():
-    
+
     @pytask.mark.hpc()
     @task(id=id_, kwargs=kwargs)  # type: ignore[arg-type]
     def task_bootstrap_sims(
@@ -127,7 +128,7 @@ for id_, kwargs in ID_TO_KWARGS.items():
             pscores=np.array([pscore_low, pscore_hi]),
         )
 
-        res = simulation_bootstrap(
+        data = simulation_bootstrap(
             n_sims=n_sims,
             n_obs=n_obs,
             n_boot=n_boot,
@@ -141,4 +142,24 @@ for id_, kwargs in ID_TO_KWARGS.items():
             bootstrap_params=bootstrap_params,
         )
 
-        res.to_pickle(path_to_data)
+        settings = {
+            "n_sims": n_sims,
+            "n_obs": n_obs,
+            "n_boot": n_boot,
+            "u_hi": u_hi,
+            "local_ates": local_ates,
+            "alpha": alpha,
+            "instrument": instrument,
+            "constraint_mtr": constraint_mtr,
+            "rng": rng,
+            "bootstrap_method": bootstrap_method,
+            "bootstrap_params": bootstrap_params,
+        }
+
+        out = {
+            "data": data,
+            "settings": settings,
+        }
+
+        with Path.open(path_to_data, "wb") as handle:
+            pickle.dump(out, handle, protocol=pickle.HIGHEST_PROTOCOL)
