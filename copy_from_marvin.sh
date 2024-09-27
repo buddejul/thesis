@@ -14,7 +14,7 @@ USER=s93jbudd_hpc
 
 DATE=$(date +%d-%m-%Y" "%H:%M:%S)
 
-DIR_TARGET="./marvin/job_$JOBID"
+DIR_TARGET="./marvin/$JOBID"
 
 cd C:/Users/budde/projects/thesis || exit
 

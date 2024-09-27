@@ -25,6 +25,7 @@ extend-ignore = [
     "TD002", # to do hooks
     "TD003", # to do hooks
     "FIX002", # to do hooks
+    "SLF001", # private member
 ]
 
 [tool.ruff.per-file-ignores]
