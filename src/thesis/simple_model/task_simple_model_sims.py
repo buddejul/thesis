@@ -39,9 +39,11 @@ BOOTSTRAP_METHODS = ["standard", "numerical_delta", "analytical_delta"]
 LATES_COMPLIER = np.concat((np.linspace(-0.3, 0.3, num=0), np.zeros(1)))
 EPS_FUNS_NUMERICAL_DELTA = [
     lambda n: n ** (-1 / 2),
+    lambda n: n ** (-1 / 3),
+    lambda n: n ** (-1 / 6),
 ]
 KAPPA_FUNS_ANALYTICAL_DELTA = [
-    lambda n: np.log(n) ** (1 / 2),
+    lambda n: np.sqrt(np.log(n)),
 ]
 
 
