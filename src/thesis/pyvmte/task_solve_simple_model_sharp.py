@@ -14,7 +14,7 @@ from thesis.config import BLD
 # --------------------------------------------------------------------------------------
 # Preliminary parameters
 # --------------------------------------------------------------------------------------
-num_gridpoints = 100
+num_gridpoints = 25
 
 u_hi = 0.2
 
@@ -84,15 +84,14 @@ def _make_m1(y1_c):
 
 
 def task_solve_simple_model_sharp(
-    param_grid: np.ndarray | None,
+    num_gridpoints: int = num_gridpoints,
     path_to_data: Annotated[Path, Product] = BLD
     / "data"
     / "solutions_simple_model_sharp.pkl",
     shape_constraint: tuple[str, str] = ("decreasing", "decreasing"),
 ) -> None:
     """Solve the simple model for a range of parameter values."""
-    if param_grid is None:
-        param_grid = np.linspace(0, 1, num_gridpoints)
+    param_grid = np.linspace(0, 1, num_gridpoints)
 
     # Generate solution for a meshgrid of parameter values
     y1_c, y0_c = np.meshgrid(param_grid, param_grid)

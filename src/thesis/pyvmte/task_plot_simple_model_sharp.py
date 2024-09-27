@@ -106,7 +106,7 @@ for kwargs in ID_TO_KWARGS.values():
                 f"y0 at = {y0_at}, y1 nt = {y1_nt}, y0 nt = {y0_nt}<br><sup>"
             ),
             xaxis_title=f"{param_to_vary}",
-            yaxis_title="LATE",
+            yaxis_title="Bounds on Target",
         )
 
         fig.write_image(path_to_plot)
