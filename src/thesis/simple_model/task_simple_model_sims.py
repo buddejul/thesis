@@ -1,7 +1,10 @@
 """Task for running bootstrap simulations."""
 
+<<<<<<< HEAD
 import inspect
 import pickle
+=======
+>>>>>>> main
 from collections.abc import Callable
 from pathlib import Path
 from typing import Annotated, NamedTuple
@@ -26,8 +29,13 @@ class _Arguments(NamedTuple):
     path_to_data: Path | None = None
     pscore_hi: float = 0.6
     alpha: float = 0.05
+<<<<<<< HEAD
     n_boot: int = 2
     n_sims: int = 2
+=======
+    n_boot: int = 500
+    n_sims: int = 2_000
+>>>>>>> main
     rng: np.random.Generator = RNG
 
 
@@ -36,6 +44,7 @@ N_OBS = [1_000, 10_000]
 PSCORES_LOW = [0.4]
 CONSTRAINTS_MTR = ["increasing"]
 BOOTSTRAP_METHODS = ["standard", "numerical_delta", "analytical_delta"]
+<<<<<<< HEAD
 LATES_COMPLIER = np.concat((np.linspace(-0.3, 0.3, num=0), np.zeros(1)))
 EPS_FUNS_NUMERICAL_DELTA = [
     lambda n: n ** (-1 / 2),
@@ -44,6 +53,14 @@ EPS_FUNS_NUMERICAL_DELTA = [
 ]
 KAPPA_FUNS_ANALYTICAL_DELTA = [
     lambda n: np.sqrt(np.log(n)),
+=======
+LATES_COMPLIER = np.concat((np.linspace(-0.4, 0.4, num=20), np.zeros(1)))
+EPS_FUNS_NUMERICAL_DELTA = [
+    lambda n: n ** (-1 / 2),
+]
+KAPPA_FUNS_ANALYTICAL_DELTA = [
+    lambda n: np.log(n) ** (1 / 2),
+>>>>>>> main
 ]
 
 
@@ -107,7 +124,11 @@ for id_, kwargs in ID_TO_KWARGS.items():
 
 for id_, kwargs in ID_TO_KWARGS.items():
 
+<<<<<<< HEAD
     @pytask.mark.hpc()
+=======
+    @pytask.mark.skip()
+>>>>>>> main
     @task(id=id_, kwargs=kwargs)  # type: ignore[arg-type]
     def task_bootstrap_sims(
         n_sims: int,
@@ -131,7 +152,11 @@ for id_, kwargs in ID_TO_KWARGS.items():
             pscores=np.array([pscore_low, pscore_hi]),
         )
 
+<<<<<<< HEAD
         data = simulation_bootstrap(
+=======
+        res = simulation_bootstrap(
+>>>>>>> main
             n_sims=n_sims,
             n_obs=n_obs,
             n_boot=n_boot,
@@ -145,6 +170,7 @@ for id_, kwargs in ID_TO_KWARGS.items():
             bootstrap_params=bootstrap_params,
         )
 
+<<<<<<< HEAD
         # If bootstrap_params has "kappa_fun" or "eps_fun", inspect the function
         # and return the sourcelines to avoid pickling issues.
         for key, value in bootstrap_params.items():
@@ -172,3 +198,6 @@ for id_, kwargs in ID_TO_KWARGS.items():
 
         with Path.open(path_to_data, "wb") as handle:
             pickle.dump(out, handle, protocol=pickle.HIGHEST_PROTOCOL)
+=======
+        res.to_pickle(path_to_data)
+>>>>>>> main

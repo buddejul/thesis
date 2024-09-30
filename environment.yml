@@ -35,4 +35,10 @@ dependencies:
   # - r-forcats
 
   # Install project
-  - pip: [-e ., pdbp, kaleido, joblib]
+  - pip:
+    - -e .
+    - pdbp
+    - kaleido
+    - joblib
+    - git+https://github.com/buddejul/pyvmte@bernstein
+    - coptpy

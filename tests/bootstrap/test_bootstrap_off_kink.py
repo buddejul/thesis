@@ -5,7 +5,10 @@ import pytest
 from thesis.classes import Instrument, LocalATEs
 from thesis.config import RNG
 from thesis.simple_model.funcs import simulation_bootstrap
+<<<<<<< HEAD
 from thesis.utilities import bic
+=======
+>>>>>>> main
 
 
 @pytest.fixture()
@@ -27,6 +30,14 @@ def setup():
     return local_ates, instrument, complier_late
 
 
+<<<<<<< HEAD
+=======
+def _bic(n):
+    """BIC."""
+    return np.sqrt(np.log(n))
+
+
+>>>>>>> main
 @pytest.mark.parametrize("method", ["numerical_delta"])
 def test_bootstrap_coverage(setup, method):
     local_ates, instrument, complier_late = setup
@@ -39,7 +50,11 @@ def test_bootstrap_coverage(setup, method):
 
     bootstrap_params = {
         "eps_fun": np.sqrt,
+<<<<<<< HEAD
         "kappa_fun": bic,
+=======
+        "kappa_fun": _bic,
+>>>>>>> main
     }
 
     res = simulation_bootstrap(
