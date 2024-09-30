@@ -72,11 +72,8 @@ def draw_data(
     y = d * y1 + (1 - d) * y0 + rng.normal(scale=0.1, size=n_obs)
 
     return np.column_stack((y, d, z, u))
-<<<<<<< HEAD
 
 
 def bic(n: int) -> float:
     """Tuning parameter sequence based on BIC."""
     return np.sqrt(np.log(n))
-=======
->>>>>>> main

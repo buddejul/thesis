@@ -18,20 +18,13 @@ KAPPA_FUNS_STRINGS = [
     get_func_as_string(kappa_fun) for kappa_fun in EPS_FUNS_NUMERICAL_DELTA
 ]
 
-<<<<<<< HEAD
 KAPPA_TO_PLOT = "np.sqrt(np.log(n))"
 
-=======
->>>>>>> main
 
 # TODO(@buddejul): Put graphs below in a loop, currently there is a lot of copy/paste.
 # TODO(@buddejul): Include true parameters in plots.
 # TODO(@buddejul): Split tasks, function is too complex, see noqa below.
-<<<<<<< HEAD
 def task_plot_simple_model_sims(  # noqa: C901, PLR0912, PLR0915
-=======
-def task_plot_simple_model_sims(  # noqa: C901, PLR0912
->>>>>>> main
     path_to_data: Path = BLD / "simple_model" / "sim_results_combined.pkl",
     path_to_plot_coverage: Annotated[Path, Product] = Path(
         BLD / "simple_model" / "figures" / "coverage.png",
@@ -60,7 +53,6 @@ def task_plot_simple_model_sims(  # noqa: C901, PLR0912
 
     data = data.sort_values("late_complier")
 
-<<<<<<< HEAD
     # Check if n_boot and n_sims are unique; if so store else error.
     if len(data.n_boot.unique()) > 1:
         msg = "n_boot is not unique."
@@ -75,8 +67,6 @@ def task_plot_simple_model_sims(  # noqa: C901, PLR0912
         f"<br><sup>Simulations = {n_sims}, Bootstrap Repetitions = {n_boot}</sup>"
     )
 
-=======
->>>>>>> main
     color_by_bootstrap_method = {
         "standard": "blue",
         "numerical_delta": "red",
@@ -96,11 +86,7 @@ def task_plot_simple_model_sims(  # noqa: C901, PLR0912
         "npow(1div2)": "blue",
         "npow(1div3)": "red",
         "npow(1div6)": "purple",
-<<<<<<< HEAD
         "np.sqrt(np.log(n))": "green",
-=======
-        "np.log(n)pow(1div2)": "green",
->>>>>>> main
         "(2xnp.log(np.log(n)))pow(1div2)": "orange",
     }
 
@@ -120,11 +106,7 @@ def task_plot_simple_model_sims(  # noqa: C901, PLR0912
                 if bootstrap_method == "numerical_delta":
                     data_sub = data_sub[data_sub["eps_fun"] == "npow(-1div2)"]
                 if bootstrap_method == "analytical_delta":
-<<<<<<< HEAD
                     data_sub = data_sub[data_sub["kappa_fun"] == KAPPA_TO_PLOT]
-=======
-                    data_sub = data_sub[data_sub["kappa_fun"] == "np.log(n)pow(1div2)"]
->>>>>>> main
 
                 fig.add_trace(
                     go.Scatter(
@@ -145,11 +127,7 @@ def task_plot_simple_model_sims(  # noqa: C901, PLR0912
                 )
 
         fig.update_layout(
-<<<<<<< HEAD
             title=(f"{col_to_plot.capitalize()} of CI for true parameter" + subtitle),
-=======
-            title=f"{col_to_plot.capitalize()} of CI for true parameter",
->>>>>>> main
             xaxis_title="LATE Complier",
             yaxis_title=f"{col_to_plot.capitalize()}",
         )
@@ -165,19 +143,11 @@ def task_plot_simple_model_sims(  # noqa: C901, PLR0912
     # Plot Means
     # ==================================================================================
     params_to_stat = {
-<<<<<<< HEAD
         "lo": {"title": "Means of CI Lower Bounds", "path": path_to_plot_means_lo},
         "hi": {"title": "Means of CI Upper Bounds", "path": path_to_plot_means_hi},
     }
 
     for stat in ["hi", "lo"]:
-=======
-        "ci_lo": {"title": "Means of CI Lower Bounds", "path": path_to_plot_means_lo},
-        "ci_hi": {"title": "Means of CI Upper Bounds", "path": path_to_plot_means_hi},
-    }
-
-    for stat in ["ci_hi", "ci_lo"]:
->>>>>>> main
         fig = go.Figure()
         for n_obs in data.n_obs.unique():
             for bootstrap_method in ["standard", "numerical_delta", "analytical_delta"]:
@@ -187,11 +157,7 @@ def task_plot_simple_model_sims(  # noqa: C901, PLR0912
                 if bootstrap_method == "numerical_delta":
                     data_sub = data_sub[data_sub["eps_fun"] == "npow(-1div2)"]
                 if bootstrap_method == "analytical_delta":
-<<<<<<< HEAD
                     data_sub = data_sub[data_sub["kappa_fun"] == KAPPA_TO_PLOT]
-=======
-                    data_sub = data_sub[data_sub["kappa_fun"] == "npow(1div2)"]
->>>>>>> main
                 fig.add_trace(
                     go.Scatter(
                         x=data_sub.late_complier,
@@ -210,11 +176,7 @@ def task_plot_simple_model_sims(  # noqa: C901, PLR0912
                 )
 
         fig.update_layout(
-<<<<<<< HEAD
             title=(params_to_stat[stat]["title"] + subtitle),  # type: ignore[operator]
-=======
-            title=params_to_stat[stat]["title"],
->>>>>>> main
             xaxis_title="late_complier",
             yaxis_title="Mean CI Bounds",
         )
@@ -225,10 +187,6 @@ def task_plot_simple_model_sims(  # noqa: C901, PLR0912
     # Plot coverage by eps_fun
     # ==================================================================================
     fig = go.Figure()
-<<<<<<< HEAD
-=======
-
->>>>>>> main
     for eps_fun in data.eps_fun.unique():
         eps_fun_to_print = (
             eps_fun.replace("npow", "n^")
@@ -257,11 +215,7 @@ def task_plot_simple_model_sims(  # noqa: C901, PLR0912
             )
 
         fig.update_layout(
-<<<<<<< HEAD
             title="Coverage by eps_fun" + subtitle,
-=======
-            title="Coverage by eps_fun",
->>>>>>> main
             xaxis_title="late_complier",
             yaxis_title="Coverage",
         )
@@ -301,11 +255,7 @@ def task_plot_simple_model_sims(  # noqa: C901, PLR0912
             )
 
         fig.update_layout(
-<<<<<<< HEAD
             title="Coverage by kappa_fun" + subtitle,
-=======
-            title="Coverage by kappa_fun",
->>>>>>> main
             xaxis_title="late_complier",
             yaxis_title="Coverage",
         )
