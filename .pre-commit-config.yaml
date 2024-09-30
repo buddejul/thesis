@@ -5,10 +5,12 @@ repos:
       - id: check-useless-excludes
       # - id: check-hooks-apply  # Leave nbqa in here.
       # - id: identity  # Prints all files passed to pre-commits. Debugging.
-  - repo: https://github.com/lyz-code/yamlfix
-    rev: 1.13.0
-    hooks:
-      - id: yamlfix
+  # For some reason the yamlfix hook returns a ModuleNotFoundError:
+  # No module named 'maison.schema'. Deactivate it for now.
+  # - repo: https://github.com/lyz-code/yamlfix
+  #   rev: 1.13.0
+  #   hooks:
+  #     - id: yamlfix
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.4.0
     hooks:
@@ -36,7 +38,7 @@ repos:
     rev: 23.9.1
     hooks:
       - id: black
-        language_version: python3.11
+        language_version: python3.12
   - repo: https://github.com/asottile/blacken-docs
     rev: 1.16.0
     hooks:
@@ -91,7 +93,7 @@ repos:
     rev: v2.2.6
     hooks:
       - id: codespell
-        args: [--skip="**.ipynb"]
+        args: [-I, inst/WORDLIST.txt]
   - repo: https://github.com/asottile/setup-cfg-fmt
     rev: v2.2.0
     hooks:

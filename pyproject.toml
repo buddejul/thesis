@@ -12,10 +12,16 @@ pdbcls = "pdbp:Pdb"
 target-version = "py311"
 select = ["ALL"]
 fix = true
-fix-only = true # No linting errors will be reported
+# Might want to reduce this at some point, currently just the set to whatever number
+# is required.
+pylint.max-args = 13
+fix-only = false # No linting errors will be reported
 extend-ignore = [
     "S101",  # Use of `assert` detected.
     "ANN",  # Missing type annotations
+    "TD002", # to do hooks
+    "TD003", # to do hooks
+    "FIX002", # to do hooks
 ]
 
 [tool.ruff.per-file-ignores]
@@ -47,3 +53,6 @@ norecursedirs = ["docs"]
 [tool.yamlfix]
 line_length = 88
 none_representation = "null"
+
+[tool.codespell]
+skip = "*.ipynb,inst/WORDLIST"

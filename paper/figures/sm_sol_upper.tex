@@ -1,0 +1,26 @@
+\begin{tikzpicture}
+	\begin{axis}[
+		xmin=-1.1, xmax=1.1,
+		ymin=-1.1, ymax=1.1,
+		xlabel=$\beta_s$,
+		ylabel={$\overline{\beta^*}$},
+		xtick={-1, 0, 1}, % Specify the x-axis ticks here
+	    ytick={-1, 1},
+        extra y ticks={-0.3, 0.7}, % Specify the positions of the special x-axis ticks together
+        extra y tick style={yticklabel style={color=black}}, % Apply a style to all extra x ticks
+        extra y tick labels={$-\omega$, $1-\omega$}, % Customize the labels of the special x-axis ticks
+    ]
+
+    % Unconstrained solution
+	\addplot [domain=-1:1, color=black] {1-0.3 + 0.3*x};
+
+    % Solution with monotonicity constraint
+	\addplot [domain=-1:0, color=blue] {x + 0.7};
+	\addplot [domain=0:1, color=blue] {0.3*x + 0.7};
+
+    % Add text for each line
+    \node at (axis cs:-0.25, -0.5) [color=black, anchor=west] {\footnotesize No Constraint};
+    \node at (axis cs:-0.25, -0.75) [color=blue, anchor=west] {\footnotesize Increasing MTR Functions};
+
+	\end{axis}
+\end{tikzpicture}

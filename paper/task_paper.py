@@ -9,6 +9,7 @@ documents = ["thesis", "thesis_pres"]
 
 for document in documents:
 
+    @pytask.mark.skip()
     @pytask.mark.latex(
         script=PAPER_DIR / f"{document}.tex",
         document=BLD / "latex" / f"{document}.pdf",

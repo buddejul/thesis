@@ -24,3 +24,10 @@ bld/
 *.pdf
 *.run.xml
 *.synctex.gz
+*.synctex.gz.sum.synctex
+*.toc
+*.snm
+*.nav
+
+# Jupyter notebooks
+*.ipynb
