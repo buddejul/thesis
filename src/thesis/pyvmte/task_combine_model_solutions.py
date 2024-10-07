@@ -8,7 +8,7 @@ import pytask
 from pytask import Product
 
 from thesis.config import BLD
-from thesis.pyvmte.task_solve_simple_model_sharp import ID_TO_KWARGS
+from thesis.pyvmte.task_solve_simple_model import ID_TO_KWARGS
 
 paths_to_res = [ID_TO_KWARGS[key].path_to_data for key in ID_TO_KWARGS]
 
