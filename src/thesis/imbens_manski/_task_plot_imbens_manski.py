@@ -29,7 +29,7 @@ def task_plot_sim_results(
     # Combine all results
     datasets = []
     for res in id_to_kwargs.values():
-        _df = pd.read_pickle(res.path_to_results)  # noqa: S301
+        _df = pd.read_pickle(res.path_to_results)
         _df["p"] = res.p
         _df["n_obs"] = res.n_obs
         _df["ci_type"] = res.ci_type

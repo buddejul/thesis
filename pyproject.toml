@@ -18,6 +18,7 @@ pylint.max-args = 13
 fix-only = false # No linting errors will be reported
 extend-ignore = [
     "S101",  # Use of `assert` detected.
+    "S301", # pickle safety
     "ANN",  # Missing type annotations
     "TD002", # to do hooks
     "TD003", # to do hooks
