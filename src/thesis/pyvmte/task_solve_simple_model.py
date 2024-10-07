@@ -5,7 +5,6 @@ from typing import Annotated, NamedTuple
 
 import numpy as np
 import pandas as pd  # type: ignore[import-untyped]
-import pytask
 from pytask import Product, task
 from pyvmte.classes import Estimand  # type: ignore[import-untyped]
 from pyvmte.config import IV_SM  # type: ignore[import-untyped]
@@ -128,7 +127,6 @@ ID_TO_KWARGS = {
 for id_, kwargs in ID_TO_KWARGS.items():
 
     @task(id=id_, kwargs=kwargs)  # type: ignore[arg-type]
-    @pytask.mark.wip
     def task_solve_simple_model(
         num_gridpoints: int,
         path_to_data: Annotated[Path, Product],

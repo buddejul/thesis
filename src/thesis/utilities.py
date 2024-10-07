@@ -128,16 +128,16 @@ def simulate_data_from_mtrs_binary_iv(
     mtr1: Callable,
     num_obs: int,
     rng: np.random.Generator,
+    iv_support: np.ndarray,
+    iv_pmf: np.ndarray,
+    iv_pscores: np.ndarray,
     sigma: float = 0.1,
 ) -> dict[str, np.ndarray]:
     """Simulate data from MTRs for the binary-IV model."""
-    support = np.array([0, 1])
-    pmf = np.array([0.5, 0.5])
-    pscores = np.array([0.35, 0.6, 0.7])
+    # TODO: This is hard-coded, provide as argument.
+    choices = np.hstack([iv_support.reshape(-1, 1), iv_pscores.reshape(-1, 1)])
 
-    choices = np.hstack([support.reshape(-1, 1), pscores.reshape(-1, 1)])
-
-    idx = rng.choice(support, size=num_obs, p=pmf)
+    idx = rng.choice(iv_support, size=num_obs, p=iv_pmf)
 
     data = choices[idx]
 

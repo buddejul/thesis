@@ -4,7 +4,6 @@ from pathlib import Path
 from typing import Annotated
 
 import pandas as pd  # type: ignore[import-untyped]
-import pytask
 from pytask import Product
 
 from thesis.config import BLD
@@ -13,7 +12,6 @@ from thesis.pyvmte.task_solve_simple_model import ID_TO_KWARGS
 paths_to_res = [ID_TO_KWARGS[key].path_to_data for key in ID_TO_KWARGS]
 
 
-@pytask.mark.wip
 def task_combine_model_solutions_simple_model(
     path_to_combined: Annotated[Path, Product] = BLD
     / "data"

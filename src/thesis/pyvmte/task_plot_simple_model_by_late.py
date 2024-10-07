@@ -5,7 +5,6 @@ from typing import Annotated, NamedTuple
 
 import pandas as pd  # type: ignore[import-untyped]
 import plotly.graph_objects as go  # type: ignore[import-untyped]
-import pytask
 from pytask import Product, task
 
 from thesis.config import BLD
@@ -64,7 +63,6 @@ ID_TO_KWARGS = {
 
 for id_, kwargs in ID_TO_KWARGS.items():
 
-    @pytask.mark.wip
     @task(id=id_, kwargs=kwargs)  # type: ignore[arg-type]
     def task_plot_simple_model_by_late(
         idestimands: str,

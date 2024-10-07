@@ -54,6 +54,12 @@ def simulation_pyvmte(
 
         identified_for_est = [Estimand(esttype="late")]
 
+    if idestimands == "sharp":
+        identified_for_id = [
+            Estimand(esttype="cross", dz_cross=(d, z)) for d in [0, 1] for z in [0, 1]
+        ]
+        identified_for_est = identified_for_id
+
     u_partition_for_id = np.unique(
         np.array([0, pscore_lo, pscore_hi, pscore_hi + u_hi_extra, 1]),
     )
@@ -113,7 +119,7 @@ def simulation_pyvmte(
     )
 
     # Generate the DGP based on the MTR solutions for the upper bound in res_id
-    m0_for_sim, m1_for_sim = mtr_funcs_from_solution(res_id=res_id, bound="upper")
+    m0_for_sim, m1_for_sim = mtr_funcs_from_solution(res=res_id, bound="upper")
 
     # ----------------------------------------------------------------------------------
     # Perform simulation
@@ -131,6 +137,9 @@ def simulation_pyvmte(
             mtr1=m1_for_sim,
             num_obs=num_obs,
             rng=RNG,
+            iv_support=instrument.support,
+            iv_pmf=instrument.pmf,
+            iv_pscores=instrument.pscores,
         )
 
         # Perform estimation with confidence intervals
@@ -143,6 +152,7 @@ def simulation_pyvmte(
             d_data=_data["d"],
             confidence_interval=confidence_interval,
             confidence_interval_options=confidence_interval_options,
+            basis_func_options=bfunc_options,
             **constraints,
         )
 
@@ -171,8 +181,8 @@ def simulation_pyvmte(
     for key, val in constraints.items():
         df_res[key] = val
 
-    for key, val in confidence_interval_options.items():
-        df_res[key] = val
+    # TODO(@buddejul): Make this work for subsample size when callable.
+    # for key, val in confidence_interval_options.items():
 
     columns = ["y1_at", "y0_at", "y1_nt", "y0_nt", "y1_c", "y0_c"]
     variables = [y1_at, y0_at, y1_nt, y0_nt, y1_c, y0_c]

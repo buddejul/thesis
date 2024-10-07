@@ -17,15 +17,16 @@ from thesis.pyvmte.pyvmte_sims import simulation_pyvmte
 # --------------------------------------------------------------------------------------
 confidence_intervals = ["bootstrap", "rescaled_bootstrap", "subsampling"]
 
+alpha = 0.05
+
 confidence_interval_options = {
-    "n_boot": 2,
-    "n_subsamples": 2,
+    "n_boot": 100,
+    "n_subsamples": 100,
     "subsample_size": lambda n: 0.5 * n,
+    "alpha": alpha,
 }
 
 k_bernstein = 11
-
-alpha = 0.05
 
 shape_constraints = ("decreasing", "decreasing")
 mte_monotone = "decreasing"
