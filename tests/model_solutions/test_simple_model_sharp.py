@@ -151,19 +151,17 @@ def test_solve_simple_model_sharp_ate_decreasing() -> None:
         _m0 = _make_m0(y0_at=y0_at, y0_c=y0_c, y0_nt=y0_nt)
 
         # The identified set might be empty for some parameter value combinations.
-        try:
-            res = identification(
-                target=target,
-                identified_estimands=identified,
-                basis_funcs=bfuncs,
-                instrument=instrument,
-                u_partition=u_partition,
-                m0_dgp=_m0,
-                m1_dgp=_m1,
-                shape_constraints=shape_constraint,
-            )
-        except TypeError:
-            res = {"upper_bound": np.nan, "lower_bound": np.nan}
+        res = identification(
+            target=target,
+            identified_estimands=identified,
+            basis_funcs=bfuncs,
+            instrument=instrument,
+            u_partition=u_partition,
+            m0_dgp=_m0,
+            m1_dgp=_m1,
+            shape_constraints=shape_constraint,
+        )
+        res = {"upper_bound": res.upper_bound, "lower_bound": res.lower_bound}
 
         results.append(res)
 
@@ -254,19 +252,17 @@ def test_solve_simple_model_sharp_late_decreasing() -> None:
         _m0 = _make_m0(y0_at=y0_at, y0_c=y0_c, y0_nt=y0_nt)
 
         # The identified set might be empty for some parameter value combinations.
-        try:
-            res = identification(
-                target=target,
-                identified_estimands=identified,
-                basis_funcs=bfuncs,
-                instrument=instrument,
-                u_partition=u_partition,
-                m0_dgp=_m0,
-                m1_dgp=_m1,
-                shape_constraints=shape_constraint,
-            )
-        except TypeError:
-            res = {"upper_bound": np.nan, "lower_bound": np.nan}
+        res = identification(
+            target=target,
+            identified_estimands=identified,
+            basis_funcs=bfuncs,
+            instrument=instrument,
+            u_partition=u_partition,
+            m0_dgp=_m0,
+            m1_dgp=_m1,
+            shape_constraints=shape_constraint,
+        )
+        res = {"upper_bound": res.upper_bound, "lower_bound": res.lower_bound}
 
         results.append(res)
 
