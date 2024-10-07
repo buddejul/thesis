@@ -30,7 +30,7 @@ def task_combine_sim_results(
     coverage = []
 
     for kwargs in id_to_kwargs.values():
-        res = pd.read_pickle(kwargs.path_to_data)  # noqa: S301
+        res = pd.read_pickle(kwargs.path_to_data)
         res["ci_covers_true_param"] = (res["lo"] <= res["true"]) & (
             res["hi"] >= res["true"]
         )

@@ -5,6 +5,7 @@ from typing import Annotated, NamedTuple
 
 import numpy as np
 import pandas as pd  # type: ignore[import-untyped]
+import pytask
 from pytask import Product, task
 from pyvmte.classes import Estimand  # type: ignore[import-untyped]
 from pyvmte.config import IV_SM  # type: ignore[import-untyped]
@@ -17,11 +18,21 @@ from pyvmte.utilities import (  # type: ignore[import-untyped]
 from thesis.config import BLD
 
 # --------------------------------------------------------------------------------------
-# Preliminary parameters
+# Task parameters
 # --------------------------------------------------------------------------------------
+num_gridpoints = 1000
+
 k_bernstein = 11
 
 u_hi_extra = 0.2
+
+shape_constraints = ("decreasing", "decreasing")
+mte_monotone = "decreasing"
+monotone_response = "positive"
+
+# --------------------------------------------------------------------------------------
+# Construct inputs
+# --------------------------------------------------------------------------------------
 
 
 identified_sharp = [
@@ -90,12 +101,13 @@ class _Arguments(NamedTuple):
     constraint_type_to_arg: dict
     bfunc_type: str
     path_to_data: Annotated[Path, Product]
-    num_gridpoints: int = 25
+    num_gridpoints: int = num_gridpoints
 
 
-_shape_constr = {"shape_constraint": ("decreasing", "decreasing")}
-_mte_monotone = {"mte_monotone": "decreasing"}
-_monotone_response = {"monotone_response": "positive"}
+_none: dict = {}
+_shape_constr = {"shape_constraints": shape_constraints}
+_mte_monotone = {"mte_monotone": mte_monotone}
+_monotone_response = {"monotone_response": monotone_response}
 
 
 ID_TO_KWARGS = {
@@ -104,17 +116,19 @@ ID_TO_KWARGS = {
         bfunc_type=bfunc,
         path_to_data=BLD
         / "data"
+        / "solutions"
         / f"solution_simple_model_{bfunc}_{idestimands}_{constraint}",
         constraint_type_to_arg=constraint,  # type: ignore[arg-type]
     )
     for bfunc in ["constant", "bernstein"]
     for idestimands in ["late", "sharp"]
-    for constraint in [_shape_constr, _mte_monotone, _monotone_response]
+    for constraint in [_none, _shape_constr, _mte_monotone, _monotone_response]
 }
 
 for id_, kwargs in ID_TO_KWARGS.items():
 
     @task(id=id_, kwargs=kwargs)  # type: ignore[arg-type]
+    @pytask.mark.wip
     def task_solve_simple_model(
         num_gridpoints: int,
         path_to_data: Annotated[Path, Product],
@@ -123,14 +137,12 @@ for id_, kwargs in ID_TO_KWARGS.items():
         idestimands: str,
     ) -> None:
         """Solve the simple model for a range of parameter values."""
-        param_grid = np.linspace(0, 1, num_gridpoints)
+        beta_late = np.linspace(-1, 1, num_gridpoints)
 
-        # Generate solution for a meshgrid of parameter values
-        y1_c, y0_c = np.meshgrid(param_grid, param_grid)
-
-        # Flatten the meshgrid
-        y1_c_flat = y1_c.flatten()
-        y0_c_flat = y0_c.flatten()
+        # Construct y1_c and y0_c such that beta_late = y1_c - y0_c but both are between
+        # 0 and 1
+        y1_c = beta_late / 2 + 0.5
+        y0_c = -beta_late / 2 + 0.5
 
         # Get inputs
         bfuncs = bfuncs_const_spline if bfunc_type == "constant" else bfuncs_bernstein
@@ -138,7 +150,7 @@ for id_, kwargs in ID_TO_KWARGS.items():
 
         results = []
 
-        for y1_c_val, y0_c_val in zip(y1_c_flat, y0_c_flat, strict=True):
+        for y1_c_val, y0_c_val in zip(y1_c, y0_c, strict=True):
             _m1 = _make_m1(y1_c_val)
             _m0 = _make_m0(y0_c_val)
 
@@ -153,19 +165,26 @@ for id_, kwargs in ID_TO_KWARGS.items():
                 m1_dgp=_m1,
                 **constraint_type_to_arg,
             )
-            res = {"upper_bound": np.nan, "lower_bound": np.nan}
+            res = {"upper_bound": res.upper_bound, "lower_bound": res.lower_bound}
 
             results.append(res)
 
         # Put into pandas DataFrame and save to disk
 
-        constraint_type = constraint_type_to_arg.keys()
-        constraint_val = constraint_type_to_arg.values()
+        if constraint_type_to_arg == {}:
+            constraint_type = "none"
+            constraint_val = "none"
+        else:
+            constraint_type = next(iter(constraint_type_to_arg.keys()))
+            constraint_val = next(iter(constraint_type_to_arg.values()))
+
+        if isinstance(constraint_val, tuple):
+            constraint_val = "_".join(constraint_val)
 
         df_res = pd.DataFrame(
             {
-                "y1_c": y1_c_flat,
-                "y0_c": y0_c_flat,
+                "y1_c": y1_c,
+                "y0_c": y0_c,
                 "upper_bound": [r["upper_bound"] for r in results],
                 "lower_bound": [r["lower_bound"] for r in results],
                 "y1_at": y1_at,
@@ -179,5 +198,7 @@ for id_, kwargs in ID_TO_KWARGS.items():
         df_res["idestimands"] = idestimands
         df_res["constraint_type"] = constraint_type
         df_res["constraint_val"] = constraint_val
+        df_res["k_bernstein"] = k_bernstein if bfunc_type == "bernstein" else np.nan
+        df_res["num_gridpoints"] = num_gridpoints
 
         df_res.to_pickle(path_to_data)

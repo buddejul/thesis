@@ -44,7 +44,7 @@ def task_plot_simple_model_sims(  # noqa: C901, PLR0912
     ),
 ) -> None:
     """Plot the coverage probability of the confidence interval."""
-    data = pd.read_pickle(path_to_data)  # noqa: S301
+    data = pd.read_pickle(path_to_data)
 
     # TODO(@buddejul): Do this properly and loop over mtr constraints.
     data = data[data.constraint_mtr == "increasing"]

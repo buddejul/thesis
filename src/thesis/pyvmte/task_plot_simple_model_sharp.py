@@ -43,7 +43,7 @@ for kwargs in ID_TO_KWARGS.values():
         """Plot solution to the simple model over a grid of parameter values."""
         # Solve the program for a range of y1_c values from 0 to 1
 
-        results = pd.read_pickle(path_to_data)  # noqa: S301
+        results = pd.read_pickle(path_to_data)
 
         results = results[results["shape_constraint"] == shape_constraint]
 
@@ -127,7 +127,7 @@ def task_plot_simple_model_solution_sharp_both(
     path_to_data: Path = BLD / "data" / "solutions_simple_model_sharp.pkl",
 ) -> None:
     """Plot solution to the simple model over a meshgrid of parameter values."""
-    results = pd.read_pickle(path_to_data)  # noqa: S301
+    results = pd.read_pickle(path_to_data)
 
     y1_at = results["y1_at"][0]
     y0_at = results["y0_at"][0]
