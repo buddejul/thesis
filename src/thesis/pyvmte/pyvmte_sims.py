@@ -2,6 +2,8 @@
 
 # from pyvmte.utilities import
 
+import warnings
+
 import numpy as np
 import pandas as pd  # type: ignore[import-untyped]
 from pyvmte.classes import Estimand, Instrument  # type: ignore[import-untyped]
@@ -18,7 +20,7 @@ from thesis.pyvmte.pyvmte_sims_config import Y0_AT, Y0_NT, Y1_AT, Y1_NT
 from thesis.utilities import make_mtr_binary_iv, simulate_data_from_mtrs_binary_iv
 
 
-def simulation_pyvmte(
+def simulation_pyvmte(  # noqa: C901, PLR0915
     num_sims: int,
     num_obs: int,
     instrument: Instrument,
@@ -118,6 +120,31 @@ def simulation_pyvmte(
         **constraints,
     )
 
+    if not all(res_id.success):
+        warnings.warn(
+            f"Identification failed. Return status: {res_id.success}",
+            stacklevel=2,
+        )
+        # return dataframe with inputs arguments and success status
+        return pd.DataFrame(
+            {
+                "success": res_id.success,
+                "bfunc_type": bfunc_type,
+                "idestimands": idestimands,
+                "num_sims": num_sims,
+                "num_obs": num_obs,
+                "u_hi_extra": u_hi_extra,
+                **constraints,
+                **confidence_interval_options,
+                "y1_at": y1_at,
+                "y0_at": y0_at,
+                "y1_nt": y1_nt,
+                "y0_nt": y0_nt,
+                "y1_c": y1_c,
+                "y0_c": y0_c,
+            },
+        )
+
     # Generate the DGP based on the MTR solutions for the upper bound in res_id
     m0_for_sim, m1_for_sim = mtr_funcs_from_solution(res=res_id, bound="upper")
 
@@ -182,12 +209,18 @@ def simulation_pyvmte(
         df_res[key] = val
 
     # TODO(@buddejul): Make this work for subsample size when callable.
-    # for key, val in confidence_interval_options.items():
+    for key, val in confidence_interval_options.items():
+        if not callable(val):
+            df_res[key] = val
+        else:
+            df_res[key] = val(num_obs)
 
     columns = ["y1_at", "y0_at", "y1_nt", "y0_nt", "y1_c", "y0_c"]
     variables = [y1_at, y0_at, y1_nt, y0_nt, y1_c, y0_c]
 
     for col, var in zip(columns, variables, strict=True):
         df_res[col] = var
+
+    df_res["success"] = res_id.success
 
     return df_res
