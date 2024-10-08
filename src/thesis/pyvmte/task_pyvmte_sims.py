@@ -23,7 +23,7 @@ num_grid_points_complier_late = 1
 
 complier_late_for_sim = 0.5
 
-confidence_intervals_to_sim = ["bootstrap"]
+confidence_intervals_to_sim = ["bootstrap", "subsampling"]
 
 num_obs_to_sim = [10_000]
 bfuncs_to_sim = [
