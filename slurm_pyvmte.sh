@@ -4,7 +4,7 @@
 #SBATCH --time=0:45:00
 #SBATCH --ntasks=2
 #SBATCH --cpus-per-task=1
-#SBATCH --mem=1G
+#SBATCH --mem-per-cpu=1G
 
 # --------------------------------------------------------------------------------------
 # Notes
@@ -26,6 +26,8 @@
 # I think in the end we can just increase the cpus-per-task as desired?
 # And set ntasks to 1? I think the CPUs don't need to be on a single node.
 # Note: Checked ntasks=2 and cpus-per-task=1 which works fine with pytask parallel.
+
+# 60 Reps with two tasks in parallel: 25 minutes, 402 MB Ram
 
 # --------------------------------------------------------------------------------------
 # Start script
