@@ -40,7 +40,7 @@ def task_combine_sim_results(
     sr_to_combine = []
 
     for file in sim_results:
-        _res = pd.read_pickle(file)  # noqa: S301
+        _res = pd.read_pickle(file)
         _settings = _res["settings"]
         _data = _res["data"]
 

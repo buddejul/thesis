@@ -40,5 +40,5 @@ dependencies:
     - pdbp
     - kaleido
     - joblib
-    - git+https://github.com/buddejul/pyvmte@bernstein
+    - git+https://github.com/buddejul/pyvmte
     - coptpy
