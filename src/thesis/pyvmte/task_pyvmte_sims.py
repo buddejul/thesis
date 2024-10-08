@@ -15,11 +15,11 @@ from thesis.utilities import constraint_dict_to_string
 # --------------------------------------------------------------------------------------
 # Task parameters
 # --------------------------------------------------------------------------------------
-num_sims = 60
+num_sims = 1_000
 
 u_hi_extra = 0.2
 
-num_grid_points_complier_late = 20
+num_grid_points_complier_late = 5
 
 lo_grid = 0
 hi_grid = 1
