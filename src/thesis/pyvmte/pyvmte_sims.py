@@ -14,13 +14,14 @@ from pyvmte.utilities import (  # type: ignore[import-untyped]
     generate_constant_splines_basis_funcs,
     mtr_funcs_from_solution,
 )
+from scipy import integrate  # type: ignore[import-untyped]
 
 from thesis.config import RNG
 from thesis.pyvmte.pyvmte_sims_config import Y0_AT, Y0_NT, Y1_AT, Y1_NT
 from thesis.utilities import make_mtr_binary_iv, simulate_data_from_mtrs_binary_iv
 
 
-def simulation_pyvmte(  # noqa: C901, PLR0915
+def simulation_pyvmte(  # noqa: C901, PLR0915, PLR0912
     num_sims: int,
     num_obs: int,
     instrument: Instrument,
@@ -126,7 +127,7 @@ def simulation_pyvmte(  # noqa: C901, PLR0915
             stacklevel=2,
         )
         # return dataframe with inputs arguments and success status
-        return pd.DataFrame(
+        out = pd.DataFrame(
             {
                 "success": res_id.success,
                 "bfunc_type": bfunc_type,
@@ -134,8 +135,6 @@ def simulation_pyvmte(  # noqa: C901, PLR0915
                 "num_sims": num_sims,
                 "num_obs": num_obs,
                 "u_hi_extra": u_hi_extra,
-                **constraints,
-                **confidence_interval_options,
                 "y1_at": y1_at,
                 "y0_at": y0_at,
                 "y1_nt": y1_nt,
@@ -144,9 +143,41 @@ def simulation_pyvmte(  # noqa: C901, PLR0915
                 "y0_c": y0_c,
             },
         )
+        for key, val in constraints.items():
+            out[key] = val
+
+        for key, val in confidence_interval_options.items():
+            if not callable(val):
+                out[key] = val
+            else:
+                out[key] = val(num_obs)
+
+        columns = ["y1_at", "y0_at", "y1_nt", "y0_nt", "y1_c", "y0_c"]
+        variables = [y1_at, y0_at, y1_nt, y0_nt, y1_c, y0_c]
+
+        for col, var in zip(columns, variables, strict=True):
+            out[col] = var
+
+        return out
 
     # Generate the DGP based on the MTR solutions for the upper bound in res_id
     m0_for_sim, m1_for_sim = mtr_funcs_from_solution(res=res_id, bound="upper")
+
+    # Compute implied target parameter and check it is indeed the upper bound
+    def _mte(u):
+        return m1_for_sim(u) - m0_for_sim(u)
+
+    _hi = target_for_id.u_hi + u_hi_extra
+    _lo = target_for_id.u_lo
+    _weight = 1 / (_hi - _lo)
+    true_parameter = integrate.quad(_mte, _lo, _hi)[0] * _weight
+
+    if not np.isclose(true_parameter, res_id.upper_bound):
+        warnings.warn(
+            f"True parameter is not equal to the upper bound. True: {true_parameter}, "
+            f"Upper bound: {res_id.upper_bound}",
+            stacklevel=2,
+        )
 
     # ----------------------------------------------------------------------------------
     # Perform simulation
@@ -221,6 +252,8 @@ def simulation_pyvmte(  # noqa: C901, PLR0915
     for col, var in zip(columns, variables, strict=True):
         df_res[col] = var
 
-    df_res["success"] = res_id.success
+    df_res["success_lower"], df_res["success_upper"] = res_id.success
+
+    df_res["true"] = true_parameter
 
     return df_res

@@ -3,6 +3,7 @@
 from pathlib import Path
 from typing import Annotated, NamedTuple
 
+import numpy as np
 import pytask
 from pytask import Product, task
 from pyvmte.config import IV_SM  # type: ignore[import-untyped]
@@ -13,14 +14,24 @@ from thesis.pyvmte.pyvmte_sims import simulation_pyvmte
 # --------------------------------------------------------------------------------------
 # Task parameters
 # --------------------------------------------------------------------------------------
-confidence_intervals = ["bootstrap", "rescaled_bootstrap", "subsampling"]
+num_sims = 20
+
+u_hi_extra = 0.2
+
+num_grid_points_complier_late = 100
+
+confidence_intervals_to_sim = ["bootstrap", "rescaled_bootstrap", "subsampling"]
+
+num_obs_to_sim = [1000, 10_000]
+bfuncs_to_sim = ["constant", "bernstein"]
+id_estimands_to_sim = ["late", "sharp"]
 
 alpha = 0.05
 
 confidence_interval_options = {
-    "n_boot": 100,
-    "n_subsamples": 100,
-    "subsample_size": lambda n: 0.5 * n,
+    "n_boot": 1_000,
+    "n_subsamples": 1_000,
+    "subsample_size": lambda n: 0.1 * n,
     "alpha": alpha,
 }
 
@@ -30,24 +41,16 @@ shape_constraints = ("decreasing", "decreasing")
 mte_monotone = "decreasing"
 monotone_response = "positive"
 
-constraints = {
-    "shape_constraints": shape_constraints,
+constraints_to_sim = {
     "mte_monotone": mte_monotone,
-    "monotone_response": monotone_response,
 }
-
-# TODO(@buddejul): Think about a way to do this better. The nt/at parameters are cur-
-# rently hard-coded in the simulation function.
-complier_late = 0.5
-
-# --------------------------------------------------------------------------------------
-# Construct inputs
-# --------------------------------------------------------------------------------------
-
 
 instrument = IV_SM
 
 
+# --------------------------------------------------------------------------------------
+# Construct inputs
+# --------------------------------------------------------------------------------------
 class _Arguments(NamedTuple):
     confidence_interval: str
     num_obs: int
@@ -55,39 +58,45 @@ class _Arguments(NamedTuple):
     constraints: dict
     bfunc_type: str
     path_to_data: Annotated[Path, Product]
-    num_sims: int = 2
-    u_hi_extra: float = 0.2
-    complier_late: float = complier_late
+    complier_late: float
+    num_sims: int = num_sims
+    u_hi_extra: float = u_hi_extra
     confidence_interval_options: dict = confidence_interval_options
 
 
 ID_TO_KWARGS = {
-    f"{bfunc}_{idestimands}_{constraint}_{confidence_interval}": _Arguments(
+    (
+        f"{bfunc}_{idestimands}_{constraint}_{confidence_interval}"
+        f"_complier_late_{complier_late}"
+    ): _Arguments(
         num_obs=num_obs,
         idestimands=idestimands,
         bfunc_type=bfunc,
         path_to_data=BLD
         / "data"
-        / "solutions"
+        / "pyvmte_simulations"
         / (
-            "solution_simple_model_"
+            "res_"
             f"{bfunc}_{idestimands}_{constraint}_{confidence_interval}"
+            f"_complier_late_{complier_late}.pkl"
         ),
-        constraints={k: constraints[k] for k in [constraint]},
+        constraints={k: constraints_to_sim[k] for k in [constraint]},
         confidence_interval=confidence_interval,
+        complier_late=complier_late,
     )
-    for num_obs in [1000, 10_000]
-    for bfunc in ["constant", "bernstein"]
-    for idestimands in ["late", "sharp"]
-    for constraint in constraints
-    for confidence_interval in confidence_intervals
+    for num_obs in num_obs_to_sim
+    for bfunc in bfuncs_to_sim
+    for idestimands in id_estimands_to_sim
+    for constraint in constraints_to_sim
+    for confidence_interval in confidence_intervals_to_sim
+    for complier_late in np.linspace(0, 1, num_grid_points_complier_late)
 }
 
 for id_, kwargs in ID_TO_KWARGS.items():
 
     @task(id=id_, kwargs=kwargs)  # type: ignore[arg-type]
     @pytask.mark.wip
-    def task_solve_simple_model(
+    def task_pyvmte_simulations(
         num_sims: int,
         num_obs: int,
         path_to_data: Annotated[Path, Product],
