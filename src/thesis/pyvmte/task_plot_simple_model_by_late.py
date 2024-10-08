@@ -5,6 +5,7 @@ from typing import Annotated, NamedTuple
 
 import pandas as pd  # type: ignore[import-untyped]
 import plotly.graph_objects as go  # type: ignore[import-untyped]
+import pytask
 from pytask import Product, task
 
 from thesis.config import BLD
@@ -12,7 +13,6 @@ from thesis.config import BLD
 
 class _Arguments(NamedTuple):
     idestimands: str
-    bfunc_type: str
     constraint: str
     path_to_plot: Annotated[Path, Product]
 
@@ -47,26 +47,24 @@ constraints_to_plot = [None, "shape_constraints", "mte_monotone", "monotone_resp
 
 
 ID_TO_KWARGS = {
-    f"{idestimands}_{bfunc_type}_{constraint}": _Arguments(
+    f"{idestimands}_{constraint}": _Arguments(
         idestimands=idestimands,
-        bfunc_type=bfunc_type,
         constraint=constraint,  # type: ignore[arg-type]
         path_to_plot=BLD
         / "figures"
         / "solutions"
-        / f"simple_model_by_late_{idestimands}_{bfunc_type}_{constraint}.png",
+        / f"simple_model_by_late_{idestimands}_{constraint}.png",
     )
     for idestimands in idestimands_to_plot
-    for bfunc_type in bfunc_types_to_plot
     for constraint in constraints_to_plot
 }
 
 for id_, kwargs in ID_TO_KWARGS.items():
 
+    @pytask.mark.plot
     @task(id=id_, kwargs=kwargs)  # type: ignore[arg-type]
     def task_plot_simple_model_by_late(
         idestimands: str,
-        bfunc_type: str,
         constraint: str,
         path_to_plot: Annotated[Path, Product],
         path_to_combined: Path = BLD
