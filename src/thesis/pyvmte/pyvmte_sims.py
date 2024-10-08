@@ -32,7 +32,8 @@ def simulation_pyvmte(  # noqa: C901, PLR0915, PLR0912
     complier_late: float,
     confidence_interval: str,
     confidence_interval_options: dict,
-    u_hi_extra: float = 0.2,
+    tolerance_est: float,
+    u_hi_extra: float,
 ) -> pd.DataFrame:
     """Perform simulation on the binary IV model using the pyvmte package."""
     # ----------------------------------------------------------------------------------
@@ -211,6 +212,7 @@ def simulation_pyvmte(  # noqa: C901, PLR0915, PLR0912
             confidence_interval=confidence_interval,
             confidence_interval_options=confidence_interval_options,
             basis_func_options=bfunc_options,
+            tolerance=tolerance_est,
             **constraints,
         )
 
