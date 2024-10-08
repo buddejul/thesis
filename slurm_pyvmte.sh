@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --account=ag_ifs_freyberger
-#SBATCH --partition=intelsr_debug
+#SBATCH --partition=intelsr_devel
 #SBATCH --time=0:15:00
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
