@@ -20,17 +20,20 @@ u_hi_extra = 0.2
 
 num_grid_points_complier_late = 100
 
-confidence_intervals_to_sim = ["bootstrap", "rescaled_bootstrap", "subsampling"]
+confidence_intervals_to_sim = ["bootstrap", "subsampling"]
 
-num_obs_to_sim = [1000, 10_000]
-bfuncs_to_sim = ["constant", "bernstein"]
-id_estimands_to_sim = ["late", "sharp"]
+num_obs_to_sim = [1_000, 10_000]
+bfuncs_to_sim = [
+    # "constant",
+    "bernstein",
+]
+id_estimands_to_sim = ["sharp"]
 
 alpha = 0.05
 
 confidence_interval_options = {
-    "n_boot": 1_000,
-    "n_subsamples": 1_000,
+    "n_boot": 2_000,
+    "n_subsamples": 2_000,
     "subsample_size": lambda n: 0.1 * n,
     "alpha": alpha,
 }
@@ -43,6 +46,7 @@ monotone_response = "positive"
 
 constraints_to_sim = {
     "mte_monotone": mte_monotone,
+    "monotone_response": monotone_response,
 }
 
 instrument = IV_SM
@@ -67,7 +71,7 @@ class _Arguments(NamedTuple):
 ID_TO_KWARGS = {
     (
         f"{bfunc}_{idestimands}_{constraint}_{confidence_interval}"
-        f"_complier_late_{complier_late}"
+        f"_complier_late_{complier_late}_num_obs_{num_obs}"
     ): _Arguments(
         num_obs=num_obs,
         idestimands=idestimands,
@@ -78,7 +82,7 @@ ID_TO_KWARGS = {
         / (
             "res_"
             f"{bfunc}_{idestimands}_{constraint}_{confidence_interval}"
-            f"_complier_late_{complier_late}.pkl"
+            f"_complier_late_{complier_late}_num_obs_{num_obs}.pkl"
         ),
         constraints={k: constraints_to_sim[k] for k in [constraint]},
         confidence_interval=confidence_interval,
