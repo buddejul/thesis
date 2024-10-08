@@ -116,7 +116,7 @@ ID_TO_KWARGS = {
 for id_, kwargs in ID_TO_KWARGS.items():
 
     @task(id=id_, kwargs=kwargs)  # type: ignore[arg-type]
-    @pytask.mark.wip
+    @pytask.mark.hpc_pyvmte
     def task_pyvmte_simulations(
         num_sims: int,
         num_obs: int,
