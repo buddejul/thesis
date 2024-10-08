@@ -19,13 +19,16 @@ num_sims = 20
 
 u_hi_extra = 0.2
 
-num_grid_points_complier_late = 1
+num_grid_points_complier_late = 20
 
-complier_late_for_sim = 0.5
+lo_grid = 0
+hi_grid = 1
+
+grid_late_complier = np.linspace(lo_grid, hi_grid, num_grid_points_complier_late)
 
 confidence_intervals_to_sim = ["bootstrap", "subsampling"]
 
-num_obs_to_sim = [10_000]
+num_obs_to_sim = [1_000, 10_000]
 bfuncs_to_sim = [
     # "constant",
     "bernstein",
@@ -47,7 +50,7 @@ shape_constraints = ("decreasing", "decreasing")
 mte_monotone = "decreasing"
 monotone_response = "positive"
 
-_constraints_to_sim: list[dict] = [
+constraints_to_sim: list[dict] = [
     {
         "shape_constraints": None,
         "mte_monotone": None,
@@ -65,13 +68,6 @@ _constraints_to_sim: list[dict] = [
     },
 ]
 
-constraints_to_sim = [
-    {
-        "shape_constraints": None,
-        "mte_monotone": mte_monotone,
-        "monotone_response": None,
-    },
-]
 
 instrument = IV_SM
 
@@ -121,7 +117,7 @@ ID_TO_KWARGS = {
     for constraint_dict in constraints_to_sim
     for confidence_interval in confidence_intervals_to_sim
     # TODO(@buddejul): Change back.
-    for complier_late in [complier_late_for_sim]
+    for complier_late in grid_late_complier
 }
 
 for id_, kwargs in ID_TO_KWARGS.items():

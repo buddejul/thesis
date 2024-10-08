@@ -1,10 +1,10 @@
 #!/bin/bash
 #SBATCH --account=ag_ifs_freyberger
 #SBATCH --partition=intelsr_devel
-#SBATCH --time=0:15:00
+#SBATCH --time=0:45:00
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
-#SBATCH --mem=2G
+#SBATCH --mem=1G
 
 # --------------------------------------------------------------------------------------
 # Notes
@@ -17,6 +17,15 @@
 # Based on the solution regions, at least 1/3 of runs should exit early, so these are
 # upper bounds.
 #
+# Memory usage was 447MB for 20 runs on a single core. Hence, 1GB or 2GB per core
+# should be sufficient.
+
+# Info on --ntasks and --cpus-per-task:
+# https://stackoverflow.com/questions/51139711/hpc-cluster-select-the-number-of-cpus-and-threads-in-slurm-sbatch
+
+# I think in the end we can just increase the cpus-per-task as desired?
+# And set ntasks to 1? I think the CPUs don't need to be on a single node.
+# Note: Checked ntasks=2 and cpus-per-task=1 which works fine with pytask parallel.
 
 # --------------------------------------------------------------------------------------
 # Start script
