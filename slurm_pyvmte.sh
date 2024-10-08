@@ -2,7 +2,7 @@
 #SBATCH --account=ag_ifs_freyberger
 #SBATCH --partition=intelsr_devel
 #SBATCH --time=0:45:00
-#SBATCH --ntasks=1
+#SBATCH --ntasks=2
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=1G
 
