@@ -113,10 +113,9 @@ for id_, kwargs in ID_TO_KWARGS.items():
         confidence_interval: str,
         confidence_interval_options: dict,
         true_param_pos: str,
+        tolerance_est: float = 0.05,
     ) -> None:
         """Perform simulations for the simple model using pyvmte."""
-        # TODO(@buddejul): For now do this for a fixed set of parameters.
-
         tolerance_est = 5 / np.sqrt(num_obs)
 
         res = simulation_pyvmte(
