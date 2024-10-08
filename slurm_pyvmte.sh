@@ -38,4 +38,4 @@ conda activate thesis
 
 # Use the dask backend for parallelization
 # https://pytask-parallel.readthedocs.io/en/stable/quickstart.html
-pytask --parallel-backend loky -n 2 -m hpc_pyvmte
+pytask --parallel-backend loky -n 60 -m hpc_pyvmte
