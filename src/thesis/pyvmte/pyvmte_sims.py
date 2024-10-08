@@ -13,8 +13,8 @@ from pyvmte.utilities import (  # type: ignore[import-untyped]
     mtr_funcs_from_solution,
 )
 
-from thesis.classes import LocalATEs
 from thesis.config import RNG
+from thesis.pyvmte.pyvmte_sims_config import Y0_AT, Y0_NT, Y1_AT, Y1_NT
 from thesis.utilities import make_mtr_binary_iv, simulate_data_from_mtrs_binary_iv
 
 
@@ -26,7 +26,7 @@ def simulation_pyvmte(
     bfunc_type: str,
     bfunc_options: dict,
     constraints: dict,
-    local_ates: LocalATEs,
+    complier_late: float,
     confidence_interval: str,
     confidence_interval_options: dict,
     u_hi_extra: float = 0.2,
@@ -83,14 +83,14 @@ def simulation_pyvmte(
     # that generate the upper bound.
 
     # Fix these for now
-    y1_at = 0.75
-    y0_at = 0.25
+    y1_at = Y1_AT
+    y0_at = Y0_AT
 
-    y1_nt = 0.75
-    y0_nt = 0.6
+    y1_nt = Y1_NT
+    y0_nt = Y0_NT
 
-    y1_c = local_ates.complier / 2 + 0.5
-    y0_c = -local_ates.complier / 2 + 0.5
+    y1_c = complier_late / 2 + 0.5
+    y0_c = -complier_late / 2 + 0.5
 
     m1_for_id = make_mtr_binary_iv(
         yd_c=y1_c,

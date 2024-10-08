@@ -3,12 +3,10 @@
 from pathlib import Path
 from typing import Annotated, NamedTuple
 
-import numpy as np
 import pytask
 from pytask import Product, task
 from pyvmte.config import IV_SM  # type: ignore[import-untyped]
 
-from thesis.classes import LocalATEs
 from thesis.config import BLD
 from thesis.pyvmte.pyvmte_sims import simulation_pyvmte
 
@@ -40,11 +38,7 @@ constraints = {
 
 # TODO(@buddejul): Think about a way to do this better. The nt/at parameters are cur-
 # rently hard-coded in the simulation function.
-local_ates = LocalATEs(
-    complier=0.5,
-    always_taker=np.nan,
-    never_taker=np.nan,
-)
+complier_late = 0.5
 
 # --------------------------------------------------------------------------------------
 # Construct inputs
@@ -63,7 +57,7 @@ class _Arguments(NamedTuple):
     path_to_data: Annotated[Path, Product]
     num_sims: int = 2
     u_hi_extra: float = 0.2
-    local_ates: LocalATEs = local_ates
+    complier_late: float = complier_late
     confidence_interval_options: dict = confidence_interval_options
 
 
@@ -100,7 +94,7 @@ for id_, kwargs in ID_TO_KWARGS.items():
         constraints: dict,
         bfunc_type: str,
         idestimands: str,
-        local_ates: LocalATEs,
+        complier_late: float,
         u_hi_extra: float,
         confidence_interval: str,
         confidence_interval_options: dict,
@@ -116,7 +110,7 @@ for id_, kwargs in ID_TO_KWARGS.items():
             bfunc_type=bfunc_type,
             bfunc_options={"k_degree": k_bernstein},
             constraints=constraints,
-            local_ates=local_ates,
+            complier_late=complier_late,
             u_hi_extra=u_hi_extra,
             confidence_interval=confidence_interval,
             confidence_interval_options=confidence_interval_options,

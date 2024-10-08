@@ -15,6 +15,7 @@ from pyvmte.utilities import (  # type: ignore[import-untyped]
 )
 
 from thesis.config import BLD
+from thesis.pyvmte.pyvmte_sims_config import Y0_AT, Y0_NT, Y1_AT, Y1_NT
 
 # --------------------------------------------------------------------------------------
 # Task parameters
@@ -72,11 +73,11 @@ def _nt(u: float) -> bool:
 # The following MTR functions are decreasing and imply a decreasing MTE function.
 # TODO: Think about what solution region this implies. Maybe loop over a couple of
 # values.
-y1_at = 0.75
-y0_at = 0.25
+y1_at = Y1_AT
+y0_at = Y0_AT
 
-y1_nt = 0.75
-y0_nt = 0.6
+y1_nt = Y1_NT
+y0_nt = Y0_NT
 
 
 # Define function factories to avoid late binding
