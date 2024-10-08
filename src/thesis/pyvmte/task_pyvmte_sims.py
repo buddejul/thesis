@@ -15,15 +15,15 @@ from thesis.utilities import constraint_dict_to_string
 # --------------------------------------------------------------------------------------
 # Task parameters
 # --------------------------------------------------------------------------------------
-num_sims = 4
+num_sims = 20
 
 u_hi_extra = 0.2
 
-num_grid_points_complier_late = 10
+num_grid_points_complier_late = 1
 
-confidence_intervals_to_sim = ["bootstrap", "subsampling"]
+confidence_intervals_to_sim = ["bootstrap"]
 
-num_obs_to_sim = [1_000, 10_000]
+num_obs_to_sim = [10_000]
 bfuncs_to_sim = [
     # "constant",
     "bernstein",
@@ -33,8 +33,8 @@ id_estimands_to_sim = ["sharp"]
 alpha = 0.05
 
 confidence_interval_options = {
-    "n_boot": 20,
-    "n_subsamples": 20,
+    "n_boot": 2_000,
+    "n_subsamples": 2_000,
     "subsample_size": lambda n: 0.1 * n,
     "alpha": alpha,
 }
@@ -45,7 +45,7 @@ shape_constraints = ("decreasing", "decreasing")
 mte_monotone = "decreasing"
 monotone_response = "positive"
 
-constraints_to_sim: list[dict] = [
+_constraints_to_sim: list[dict] = [
     {
         "shape_constraints": None,
         "mte_monotone": None,
@@ -60,6 +60,14 @@ constraints_to_sim: list[dict] = [
         "shape_constraints": None,
         "mte_monotone": None,
         "monotone_response": monotone_response,
+    },
+]
+
+constraints_to_sim = [
+    {
+        "shape_constraints": None,
+        "mte_monotone": mte_monotone,
+        "monotone_response": None,
     },
 ]
 
