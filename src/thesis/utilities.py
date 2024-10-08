@@ -175,3 +175,8 @@ def constraint_dict_to_string(d: dict) -> str:
         return "none"
 
     return "; ".join(parts)
+
+
+def bic(n: int) -> float:
+    """Tuning parameter sequence based on BIC."""
+    return np.sqrt(np.log(n))

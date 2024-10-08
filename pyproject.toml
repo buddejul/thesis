@@ -12,6 +12,7 @@ pdbcls = "pdbp:Pdb"
 wip = "A marker for tasks which are work-in-progress."
 plot = "A marker for tasks plotting binary IV model solutions."
 hpc_pyvmte = "A marker for pyvmte simulations on HPC."
+hpc = "A marker for high-performance computing tasks."
 
 [tool.ruff]
 target-version = "py311"
@@ -28,6 +29,7 @@ extend-ignore = [
     "TD002", # to do hooks
     "TD003", # to do hooks
     "FIX002", # to do hooks
+    "SLF001", # private member
 ]
 
 [tool.ruff.per-file-ignores]

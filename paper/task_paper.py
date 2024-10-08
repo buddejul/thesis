@@ -5,7 +5,7 @@ import pytask
 from pytask_latex import compilation_steps as cs
 from thesis.config import BLD, PAPER_DIR
 
-documents = ["thesis", "thesis_pres"]
+documents = []
 
 for document in documents:
 
