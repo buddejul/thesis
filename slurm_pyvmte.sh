@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --account=ag_ifs_freyberger
 #SBATCH --partition=intelsr_short
-#SBATCH --time=0:08:00
+#SBATCH --time=08:00:00
 #SBATCH --ntasks=64
 #SBATCH --cpus-per-task=1
 #SBATCH --mem-per-cpu=1G
