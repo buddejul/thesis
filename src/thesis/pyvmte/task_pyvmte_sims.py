@@ -21,6 +21,8 @@ u_hi_extra = 0.2
 
 num_grid_points_complier_late = 1
 
+complier_late_for_sim = 0.5
+
 confidence_intervals_to_sim = ["bootstrap"]
 
 num_obs_to_sim = [10_000]
@@ -118,7 +120,8 @@ ID_TO_KWARGS = {
     for idestimands in id_estimands_to_sim
     for constraint_dict in constraints_to_sim
     for confidence_interval in confidence_intervals_to_sim
-    for complier_late in np.linspace(-1, 1, num_grid_points_complier_late)
+    # TODO(@buddejul): Change back.
+    for complier_late in [complier_late_for_sim]
 }
 
 for id_, kwargs in ID_TO_KWARGS.items():
