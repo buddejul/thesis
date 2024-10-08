@@ -10,6 +10,7 @@ from pyvmte.config import IV_SM  # type: ignore[import-untyped]
 
 from thesis.config import BLD
 from thesis.pyvmte.pyvmte_sims import simulation_pyvmte
+from thesis.utilities import constraint_dict_to_string
 
 # --------------------------------------------------------------------------------------
 # Task parameters
@@ -18,7 +19,7 @@ num_sims = 2
 
 u_hi_extra = 0.2
 
-num_grid_points_complier_late = 4
+num_grid_points_complier_late = 2
 
 confidence_intervals_to_sim = ["bootstrap", "subsampling"]
 
@@ -32,8 +33,8 @@ id_estimands_to_sim = ["sharp"]
 alpha = 0.05
 
 confidence_interval_options = {
-    "n_boot": 100,
-    "n_subsamples": 100,
+    "n_boot": 30,
+    "n_subsamples": 30,
     "subsample_size": lambda n: 0.1 * n,
     "alpha": alpha,
 }
@@ -44,10 +45,23 @@ shape_constraints = ("decreasing", "decreasing")
 mte_monotone = "decreasing"
 monotone_response = "positive"
 
-constraints_to_sim = {
-    "mte_monotone": mte_monotone,
-    "monotone_response": monotone_response,
-}
+constraints_to_sim: list[dict] = [
+    {
+        "shape_constraints": None,
+        "mte_monotone": None,
+        "monotone_response": None,
+    },
+    {
+        "shape_constraints": None,
+        "mte_monotone": mte_monotone,
+        "monotone_response": None,
+    },
+    {
+        "shape_constraints": None,
+        "mte_monotone": None,
+        "monotone_response": monotone_response,
+    },
+]
 
 instrument = IV_SM
 
@@ -71,7 +85,7 @@ class _Arguments(NamedTuple):
 
 ID_TO_KWARGS = {
     (
-        f"{bfunc}_{idestimands}_{constraint}_{confidence_interval}"
+        f"{bfunc}_{idestimands}_{constraint_dict_to_string(constraint_dict)}_{confidence_interval}"
         f"_complier_late_{complier_late}_num_obs_{num_obs}"
     ): _Arguments(
         num_obs=num_obs,
@@ -82,17 +96,19 @@ ID_TO_KWARGS = {
         / "pyvmte_simulations"
         / (
             "res_"
-            f"{bfunc}_{idestimands}_{constraint}_{confidence_interval}"
+            f"{bfunc}_{idestimands}_"
+            f"{constraint_dict_to_string(constraint_dict)}_"
+            f"_{confidence_interval}"
             f"_complier_late_{complier_late}_num_obs_{num_obs}.pkl"
         ),
-        constraints={k: constraints_to_sim[k] for k in [constraint]},
+        constraints=constraint_dict,
         confidence_interval=confidence_interval,
         complier_late=complier_late,
     )
     for num_obs in num_obs_to_sim
     for bfunc in bfuncs_to_sim
     for idestimands in id_estimands_to_sim
-    for constraint in constraints_to_sim
+    for constraint_dict in constraints_to_sim
     for confidence_interval in confidence_intervals_to_sim
     for complier_late in np.linspace(0, 1, num_grid_points_complier_late)
 }
@@ -133,5 +149,7 @@ for id_, kwargs in ID_TO_KWARGS.items():
             tolerance_est=tolerance_est,
             true_param_pos=true_param_pos,
         )
+
+        res["k_bernstein"] = k_bernstein
 
         res.to_pickle(path_to_data)

@@ -137,7 +137,7 @@ def simulation_pyvmte(  # noqa: C901, PLR0915, PLR0912
             f"Identification failed. Return status: {res_id.success}",
             stacklevel=2,
         )
-        # return dataframe with inputs arguments and success status
+
         out = pd.DataFrame(
             {
                 "success": res_id.success,
@@ -152,10 +152,20 @@ def simulation_pyvmte(  # noqa: C901, PLR0915, PLR0912
                 "y0_nt": y0_nt,
                 "y1_c": y1_c,
                 "y0_c": y0_c,
+                "true_param": complier_late,
+                "true_lower_bound": res_id.lower_bound,
+                "true_upper_bound": res_id.upper_bound,
+                "true_param_pos": true_param_pos,
+                "alpha": confidence_interval_options["alpha"],
+                "confidence_interval": confidence_interval,
+                "sim_ci_lower": np.nan,
+                "sim_ci_upper": np.nan,
+                "sim_lower_bound": np.nan,
+                "sim_upper_bound": np.nan,
+                "success_lower": res_id.success[0],
+                "success_upper": res_id.success[1],
             },
         )
-        for key, val in constraints.items():
-            out[key] = val
 
         for key, val in confidence_interval_options.items():
             if not callable(val):
@@ -168,6 +178,9 @@ def simulation_pyvmte(  # noqa: C901, PLR0915, PLR0912
 
         for col, var in zip(columns, variables, strict=True):
             out[col] = var
+
+        for key, val in constraints.items():
+            out[key] = val if val is not None else "none"
 
         return out
 
@@ -250,6 +263,7 @@ def simulation_pyvmte(  # noqa: C901, PLR0915, PLR0912
         },
     )
 
+    df_res["confidence_interval"] = confidence_interval
     df_res["bfunc_type"] = bfunc_type
     df_res["idestimands"] = idestimands
     df_res["num_sims"] = num_sims
@@ -257,14 +271,15 @@ def simulation_pyvmte(  # noqa: C901, PLR0915, PLR0912
     df_res["u_hi_extra"] = u_hi_extra
 
     for key, val in constraints.items():
-        df_res[key] = val
+        df_res[key] = val if val is not None else "none"
 
-    # TODO(@buddejul): Make this work for subsample size when callable.
-    for key, val in confidence_interval_options.items():
-        if not callable(val):
-            df_res[key] = val
+    for ci_option in ["n_boot", "alpha", "n_subsamples", "subsample_size"]:
+        _val = confidence_interval_options.get(ci_option, "none")
+
+        if callable(_val):
+            df_res[ci_option] = _val(num_obs)
         else:
-            df_res[key] = val(num_obs)
+            df_res[ci_option] = confidence_interval_options.get(ci_option, "none")
 
     columns = ["y1_at", "y0_at", "y1_nt", "y0_nt", "y1_c", "y0_c"]
     variables = [y1_at, y0_at, y1_nt, y0_nt, y1_c, y0_c]
@@ -275,6 +290,8 @@ def simulation_pyvmte(  # noqa: C901, PLR0915, PLR0912
     df_res["success_lower"], df_res["success_upper"] = res_id.success
 
     df_res["true_param"] = true_param
+    df_res["true_lower_bound"] = res_id.lower_bound
+    df_res["true_upper_bound"] = res_id.upper_bound
     df_res["true_param_pos"] = true_param_pos
 
     return df_res

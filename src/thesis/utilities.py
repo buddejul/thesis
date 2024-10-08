@@ -155,3 +155,23 @@ def simulate_data_from_mtrs_binary_iv(
     y[~idx_d0] = mtr1(u[~idx_d0]) + rng.normal(scale=sigma, size=np.sum(~idx_d0))
 
     return {"z": z, "d": d, "y": y, "u": u}
+
+
+def constraint_dict_to_string(d: dict) -> str:
+    """Convert dictionary with shape constraints to string for tasks."""
+    parts = []
+    for key, value in d.items():
+        if value is None:
+            continue
+        if isinstance(value, tuple):
+            value_str = ", ".join(value)
+        elif value is None:
+            value_str = "None"
+        else:
+            value_str = value
+        parts.append(f"{key}: {value_str}")
+
+    if not parts:
+        return "none"
+
+    return "; ".join(parts)

@@ -42,8 +42,8 @@ _constr_subtitle = {
 }
 
 bfunc_types_to_plot = ["constant", "bernstein"]
-idestimands_to_plot = ["late", "sharp"]
-constraints_to_plot = [None, "shape_constraints", "mte_monotone", "monotone_response"]
+idestimands_to_plot = ["sharp"]
+constraints_to_plot = [None, "mte_monotone", "monotone_response"]
 
 
 ID_TO_KWARGS = {
@@ -61,7 +61,7 @@ ID_TO_KWARGS = {
 
 for id_, kwargs in ID_TO_KWARGS.items():
 
-    @pytask.mark.plot
+    @pytask.mark.wip
     @task(id=id_, kwargs=kwargs)  # type: ignore[arg-type]
     def task_plot_pyvmte_sims_by_late(
         idestimands: str,
@@ -84,45 +84,55 @@ for id_, kwargs in ID_TO_KWARGS.items():
 
         fig = go.Figure()
 
-        bfunc_type_to_color = {"constant": "blue", "bernstein": "red"}
+        confidence_interval_to_color = {"bootstrap": "blue", "subsampling": "red"}
+        num_of_obs_to_dash = {1_000: "solid", 10_000: "dash"}
 
-        for bfunc_type in ["constant", "bernstein"]:
-            df_plot = df_combined[df_combined["bfunc_type"] == bfunc_type]
+        for confidence_interval in ["bootstrap", "subsampling"]:
+            df_plot = df_combined[
+                df_combined["confidence_interval"] == confidence_interval
+            ]
 
             if constraint is not None:
-                df_plot = df_plot[df_plot["constraint_type"] == constraint]
-                df_plot = df_plot[df_plot["constraint_val"] == _constr_vals[constraint]]
+                df_plot = df_plot[df_plot[constraint] == _constr_vals[constraint]]
             else:
-                df_plot = df_plot[df_plot["constraint_type"] == "none"]
+                # Select columns where all three constraints are None
+                df_plot = df_plot[
+                    (df_plot["shape_constraints"] == "none")
+                    & (df_plot["mte_monotone"] == "none")
+                    & (df_plot["monotone_response"] == "none")
+                ]
 
             df_plot = df_plot[df_plot["idestimands"] == idestimands]
 
             _k_bernstein = df_plot["k_bernstein"].unique()
-
             assert len(_k_bernstein) == 1
 
-            _legend_title_by_bfunc = {
-                "constant": "Constant",
-                "bernstein": (
-                    f"Bernstein, Degree {int(_k_bernstein[0])}"
-                    if bfunc_type == "bernstein"
-                    else None
-                ),
+            _legend_title_by_confidence_interval = {
+                "bootstrap": "Bootstrap",
+                "subsampling": "Subsampling",
             }
 
-            fig.add_trace(
-                go.Scatter(
-                    x=df_plot["b_late"],
-                    y=df_plot["covers_true"],
-                    mode="lines",
-                    name="Coverage of True Parameter",
-                    legendgroup=bfunc_type,
-                    legendgrouptitle={"text": _legend_title_by_bfunc[bfunc_type]},
-                    line={
-                        "color": bfunc_type_to_color[bfunc_type],
-                    },
-                ),
-            )
+            for num_obs in df_plot["num_obs"].unique():
+                df_plot_num_obs = df_plot[df_plot["num_obs"] == num_obs]
+
+                fig.add_trace(
+                    go.Scatter(
+                        x=df_plot_num_obs["late_complier"],
+                        y=df_plot_num_obs["covers_true_param"],
+                        mode="lines",
+                        name=f"N = {num_obs}",
+                        legendgroup=confidence_interval,
+                        legendgrouptitle={
+                            "text": _legend_title_by_confidence_interval[
+                                confidence_interval
+                            ],
+                        },
+                        line={
+                            "color": confidence_interval_to_color[confidence_interval],
+                            "dash": num_of_obs_to_dash[num_obs],
+                        },
+                    ),
+                )
 
         _subtitle = (
             f" <br><sup> Identified Estimands: {idestimands.capitalize()},"
@@ -136,18 +146,38 @@ for id_, kwargs in ID_TO_KWARGS.items():
             yaxis_title="Bounds",
         )
 
-        # Add note with num_gridpoints
-        _num_gridpoints = df_plot["num_gridpoints"].unique()
-        assert len(_num_gridpoints) == 1
-        _num_gridpoints = _num_gridpoints[0]
+        # Add note with num_simulations
+        num_sims = df_plot["num_sims"].unique()
+        assert len(num_sims) == 1
+        num_sims = num_sims[0]
+
+        num_boot = df_plot["n_boot"].unique()
+        assert len(num_boot) == 1
+        num_boot = num_boot[0]
+
+        num_subsamples = df_plot["n_subsamples"].unique()
+        assert len(num_subsamples) == 1
+        num_subsamples = num_subsamples[0]
+
+        if confidence_interval == "bootstrap":
+            subsample_size = None
+        else:
+            subsample_size = df_plot["subsample_size"].unique()
 
         fig.add_annotation(
-            text=f"Number of gridpoints: {_num_gridpoints}",
+            text=(
+                f"N Simulations: {int(num_sims)}<br>"
+                f"Subsample size: {subsample_size}<br>"
+                f"N Bootstrap Samples/Subsamples: {num_boot}/{num_subsamples}"
+            ),
+            font={"size": 10},
             showarrow=False,
             xref="paper",
             yref="paper",
-            x=0.99,
-            y=0.01,
+            x=1,
+            y=-0.21,
+            # Right aligned
+            align="right",
         )
 
         fig.write_image(path_to_plot)
