@@ -34,8 +34,18 @@ def simulation_pyvmte(  # noqa: C901, PLR0915, PLR0912
     confidence_interval_options: dict,
     tolerance_est: float,
     u_hi_extra: float,
+    true_param_pos: str,
 ) -> pd.DataFrame:
     """Perform simulation on the binary IV model using the pyvmte package."""
+    _allowed_true_param_pos = ["lower", "upper"]
+    if true_param_pos not in _allowed_true_param_pos:
+        msg = (
+            f"true_param_pos was {true_param_pos} but must be in"
+            f"{_allowed_true_param_pos}."
+        )
+
+        raise ValueError(msg)
+
     # ----------------------------------------------------------------------------------
     # Preliminary computations
     # ----------------------------------------------------------------------------------
@@ -162,7 +172,7 @@ def simulation_pyvmte(  # noqa: C901, PLR0915, PLR0912
         return out
 
     # Generate the DGP based on the MTR solutions for the upper bound in res_id
-    m0_for_sim, m1_for_sim = mtr_funcs_from_solution(res=res_id, bound="upper")
+    m0_for_sim, m1_for_sim = mtr_funcs_from_solution(res=res_id, bound=true_param_pos)
 
     # Compute implied target parameter and check it is indeed the upper bound
     def _mte(u):
@@ -171,12 +181,20 @@ def simulation_pyvmte(  # noqa: C901, PLR0915, PLR0912
     _hi = target_for_id.u_hi + u_hi_extra
     _lo = target_for_id.u_lo
     _weight = 1 / (_hi - _lo)
-    true_parameter = integrate.quad(_mte, _lo, _hi)[0] * _weight
+    true_param = integrate.quad(_mte, _lo, _hi)[0] * _weight
 
-    if not np.isclose(true_parameter, res_id.upper_bound):
+    if true_param_pos == "upper" and not np.isclose(true_param, res_id.upper_bound):
         warnings.warn(
-            f"True parameter is not equal to the upper bound. True: {true_parameter}, "
+            f"True parameter implied by generated MTRs for simulation is not equal to"
+            f" the upper bound. True: {true_param}, "
             f"Upper bound: {res_id.upper_bound}",
+            stacklevel=2,
+        )
+    if true_param_pos == "lower" and not np.isclose(true_param, res_id.lower_bound):
+        warnings.warn(
+            f"True parameter implied by generated MTRs for simulation is not equal to"
+            f" the lower bound. True: {true_param}, "
+            f"Lower bound: {res_id.lower_bound}",
             stacklevel=2,
         )
 
@@ -256,6 +274,7 @@ def simulation_pyvmte(  # noqa: C901, PLR0915, PLR0912
 
     df_res["success_lower"], df_res["success_upper"] = res_id.success
 
-    df_res["true"] = true_parameter
+    df_res["true_param"] = true_param
+    df_res["true_param_pos"] = true_param_pos
 
     return df_res

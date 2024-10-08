@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Annotated
 
 import pandas as pd  # type: ignore[import-untyped]
+import pytask
 from pytask import Product
 
 from thesis.config import BLD
@@ -30,6 +31,7 @@ if HPC is False:
 
 
 # Skip for now: Combining only works with copied files else we have a cycles in the DAG.
+@pytask.mark.wip
 def task_combine_pyvmte_sims(
     res_files: list[Path] = RES_FILES,
     path_to_combined: Annotated[Path, Product] = (

@@ -14,11 +14,11 @@ from thesis.pyvmte.pyvmte_sims import simulation_pyvmte
 # --------------------------------------------------------------------------------------
 # Task parameters
 # --------------------------------------------------------------------------------------
-num_sims = 20
+num_sims = 2
 
 u_hi_extra = 0.2
 
-num_grid_points_complier_late = 20
+num_grid_points_complier_late = 4
 
 confidence_intervals_to_sim = ["bootstrap", "subsampling"]
 
@@ -32,8 +32,8 @@ id_estimands_to_sim = ["sharp"]
 alpha = 0.05
 
 confidence_interval_options = {
-    "n_boot": 2_000,
-    "n_subsamples": 2_000,
+    "n_boot": 100,
+    "n_subsamples": 100,
     "subsample_size": lambda n: 0.1 * n,
     "alpha": alpha,
 }
@@ -66,6 +66,7 @@ class _Arguments(NamedTuple):
     num_sims: int = num_sims
     u_hi_extra: float = u_hi_extra
     confidence_interval_options: dict = confidence_interval_options
+    true_param_pos: str = "lower"
 
 
 ID_TO_KWARGS = {
@@ -111,6 +112,7 @@ for id_, kwargs in ID_TO_KWARGS.items():
         u_hi_extra: float,
         confidence_interval: str,
         confidence_interval_options: dict,
+        true_param_pos: str,
     ) -> None:
         """Perform simulations for the simple model using pyvmte."""
         # TODO(@buddejul): For now do this for a fixed set of parameters.
@@ -130,6 +132,7 @@ for id_, kwargs in ID_TO_KWARGS.items():
             confidence_interval=confidence_interval,
             confidence_interval_options=confidence_interval_options,
             tolerance_est=tolerance_est,
+            true_param_pos=true_param_pos,
         )
 
         res.to_pickle(path_to_data)

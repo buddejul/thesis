@@ -117,7 +117,7 @@ ID_TO_KWARGS = {
         path_to_data=BLD
         / "data"
         / "solutions"
-        / f"solution_simple_model_{bfunc}_{idestimands}_{constraint}",
+        / f"solution_simple_model_{bfunc}_{idestimands}_{constraint}.pkl",
         constraint_type_to_arg=constraint,  # type: ignore[arg-type]
     )
     for bfunc in ["constant", "bernstein"]
