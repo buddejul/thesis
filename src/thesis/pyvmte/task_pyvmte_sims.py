@@ -15,7 +15,7 @@ from thesis.utilities import constraint_dict_to_string
 # --------------------------------------------------------------------------------------
 # Task parameters
 # --------------------------------------------------------------------------------------
-num_sims = 2
+num_sims = 100
 
 u_hi_extra = 0.2
 
@@ -33,8 +33,8 @@ id_estimands_to_sim = ["sharp"]
 alpha = 0.05
 
 confidence_interval_options = {
-    "n_boot": 30,
-    "n_subsamples": 30,
+    "n_boot": 100,
+    "n_subsamples": 100,
     "subsample_size": lambda n: 0.1 * n,
     "alpha": alpha,
 }
