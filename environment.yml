@@ -38,7 +38,7 @@ dependencies:
   - pip:
     - -e .
     - pdbp
-    - kaleido==0.1.0.post1
+    - kaleido
     - joblib
     - git+https://github.com/buddejul/pyvmte
     - coptpy

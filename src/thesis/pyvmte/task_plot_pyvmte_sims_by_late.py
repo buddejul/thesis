@@ -53,7 +53,7 @@ ID_TO_KWARGS = {
         path_to_plot=BLD
         / "figures"
         / "pyvmte_sims"
-        / f"sims_simple_model_by_late_{idestimands}_{constraint}.png",
+        / f"sims_simple_model_by_late_{idestimands}_{constraint}.html",
     )
     for idestimands in idestimands_to_plot
     for constraint in constraints_to_plot
@@ -180,4 +180,4 @@ for id_, kwargs in ID_TO_KWARGS.items():
             align="right",
         )
 
-        fig.write_image(path_to_plot)
+        fig.write_html(path_to_plot)
