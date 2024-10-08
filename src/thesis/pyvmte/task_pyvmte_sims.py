@@ -18,7 +18,7 @@ num_sims = 20
 
 u_hi_extra = 0.2
 
-num_grid_points_complier_late = 100
+num_grid_points_complier_late = 20
 
 confidence_intervals_to_sim = ["bootstrap", "subsampling"]
 
