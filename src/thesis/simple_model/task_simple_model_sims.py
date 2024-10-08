@@ -25,9 +25,9 @@ class _Arguments(NamedTuple):
     bootstrap_params: dict[str, Callable]
     path_to_data: Path | None = None
     pscore_hi: float = 0.6
-    alpha: float = 0.05
-    n_boot: int = 2
-    n_sims: int = 2
+    alpha: float = 0.10
+    n_boot: int = 2000
+    n_sims: int = 2000
     rng: np.random.Generator = RNG
 
 
@@ -36,10 +36,9 @@ N_OBS = [1_000, 10_000]
 PSCORES_LOW = [0.4]
 CONSTRAINTS_MTR = ["increasing"]
 BOOTSTRAP_METHODS = ["standard", "numerical_delta", "analytical_delta"]
-LATES_COMPLIER = np.concat((np.linspace(-0.3, 0.3, num=0), np.zeros(1)))
+LATES_COMPLIER = np.concat((np.linspace(-0.4, 0.4, num=14), np.zeros(1)))
 EPS_FUNS_NUMERICAL_DELTA = [
     lambda n: n ** (-1 / 2),
-    lambda n: n ** (-1 / 3),
     lambda n: n ** (-1 / 6),
 ]
 KAPPA_FUNS_ANALYTICAL_DELTA = [
