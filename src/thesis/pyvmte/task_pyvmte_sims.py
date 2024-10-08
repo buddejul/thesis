@@ -15,11 +15,11 @@ from thesis.utilities import constraint_dict_to_string
 # --------------------------------------------------------------------------------------
 # Task parameters
 # --------------------------------------------------------------------------------------
-num_sims = 100
+num_sims = 4
 
 u_hi_extra = 0.2
 
-num_grid_points_complier_late = 2
+num_grid_points_complier_late = 10
 
 confidence_intervals_to_sim = ["bootstrap", "subsampling"]
 
@@ -33,8 +33,8 @@ id_estimands_to_sim = ["sharp"]
 alpha = 0.05
 
 confidence_interval_options = {
-    "n_boot": 100,
-    "n_subsamples": 100,
+    "n_boot": 20,
+    "n_subsamples": 20,
     "subsample_size": lambda n: 0.1 * n,
     "alpha": alpha,
 }
@@ -110,7 +110,7 @@ ID_TO_KWARGS = {
     for idestimands in id_estimands_to_sim
     for constraint_dict in constraints_to_sim
     for confidence_interval in confidence_intervals_to_sim
-    for complier_late in np.linspace(0, 1, num_grid_points_complier_late)
+    for complier_late in np.linspace(-1, 1, num_grid_points_complier_late)
 }
 
 for id_, kwargs in ID_TO_KWARGS.items():
