@@ -91,7 +91,7 @@ class _Arguments(NamedTuple):
     confidence_interval_options: dict = confidence_interval_options
     true_param_pos: str = "lower"
     tolerance_est: float | None = None
-    rng: np.random.Generator = RNG
+    rng: np.random.Generator | None = None
 
 
 ID_TO_KWARGS = {
@@ -125,6 +125,20 @@ ID_TO_KWARGS = {
     for iteration in np.arange(num_iterations)
 }
 
+# --------------------------------------------------------------------------------------
+# Set RNGs for each task
+# --------------------------------------------------------------------------------------
+# Avoid pitfalls with parallel processing by creating a separate RNG per task
+# https://blog.scientific-python.org/numpy/numpy-rng/#parallel-processing
+n_tasks = len(ID_TO_KWARGS)
+child_rngs = RNG.spawn(n_tasks)
+
+for (id_, kwargs), rng in zip(ID_TO_KWARGS.items(), child_rngs, strict=True):
+    ID_TO_KWARGS[id_] = kwargs._replace(rng=rng)
+
+# --------------------------------------------------------------------------------------
+# Define tasks
+# --------------------------------------------------------------------------------------
 for id_, kwargs in ID_TO_KWARGS.items():
 
     @task(id=id_, kwargs=kwargs)  # type: ignore[arg-type]
@@ -142,7 +156,7 @@ for id_, kwargs in ID_TO_KWARGS.items():
         confidence_interval_options: dict,
         true_param_pos: str,
         tolerance_est: float,
-        rng: np.random.Generator = RNG,
+        rng: np.random.Generator,
     ) -> None:
         """Perform simulations for the simple model using pyvmte."""
         if tolerance_est is None:
