@@ -18,7 +18,7 @@ from thesis.pyvmte.task_pyvmte_sims import ID_TO_KWARGS
 
 HPC = True
 
-JOBS = [17162646, 17162699]
+JOBS = [17162646, 17162699, 17174486]
 
 if HPC is True:
     RES_DIRS = [

@@ -206,7 +206,7 @@ for id_, kwargs in ID_TO_KWARGS_COVERAGE.items():
 
         _subtitle = (
             f" <br><sup> Identified Estimands: {idestimands.capitalize()},"
-            f" alpha = {alpha} </sup>"
+            f" Nominal Coverage = {1- alpha} </sup>"
             f" <br><sup> Shape constraints: {_constr_subtitle[constraint]} </sup>"
         )
 
@@ -455,7 +455,7 @@ for id_, kwargs in ID_TO_KWARGS_MEANS.items():
 
         _subtitle = (
             f" <br><sup> Identified Estimands: {idestimands.capitalize()},"
-            f" alpha = {alpha} </sup>"
+            f" Nominal Coverage = {1 - alpha} </sup>"
             f" <br><sup> Shape constraints: {_constr_subtitle[constraint]} </sup>"
         )
 
