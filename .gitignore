@@ -28,6 +28,7 @@
 *.toc
 *.snm
 *.nav
+*(busy)
 
 # Jupyter notebooks
 *.ipynb

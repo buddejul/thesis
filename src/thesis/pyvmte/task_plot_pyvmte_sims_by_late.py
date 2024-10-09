@@ -8,6 +8,7 @@ import numpy as np
 import pandas as pd  # type: ignore[import-untyped]
 import plotly.graph_objects as go  # type: ignore[import-untyped]
 import pytask
+from plotly.io import write_image  # type: ignore[import-untyped]
 from pytask import Product, task
 
 from thesis.config import BLD
@@ -87,6 +88,7 @@ for id_, kwargs in ID_TO_KWARGS_COVERAGE.items():
         df_sols_combined = pd.read_pickle(path_to_sols_combined)
 
         alpha = 0.05
+        nominal_coverage = 1 - alpha
 
         # ------------------------------------------------------------------------------
         # Plot simulation results
@@ -206,7 +208,7 @@ for id_, kwargs in ID_TO_KWARGS_COVERAGE.items():
 
         _subtitle = (
             f" <br><sup> Identified Estimands: {idestimands.capitalize()},"
-            f" alpha = {alpha} </sup>"
+            f" Nominal Coverage = {nominal_coverage} </sup>"
             f" <br><sup> Shape constraints: {_constr_subtitle[constraint]} </sup>"
         )
 
@@ -244,7 +246,7 @@ for id_, kwargs in ID_TO_KWARGS_COVERAGE.items():
             text=(
                 f"N Simulations: {int(num_sims)}<br>"
                 f"Subsample size: {subsample_size}<br>"
-                f"N Bootstrap Samples/Subsamples: {num_boot}/{num_subsamples}"
+                f"N Bootstrap Samples/Subsamples: {int(num_boot)}/{int(num_subsamples)}"
             ),
             font={"size": 10},
             showarrow=False,
@@ -266,7 +268,10 @@ for id_, kwargs in ID_TO_KWARGS_COVERAGE.items():
             line={"color": "rgba(0, 0, 0, 0.2)", "width": 2},
         )
 
-        fig.write_image(path_to_plot)
+        # Make x-axis from 0 to 1
+        fig.update_xaxes(range=[-0.1, 1])
+
+        write_image(fig, path_to_plot, scale=2)
 
 
 # --------------------------------------------------------------------------------------
@@ -488,6 +493,6 @@ for id_, kwargs in ID_TO_KWARGS_MEANS.items():
         )
 
         # Make x-axis from 0 to 1
-        fig.update_xaxes(range=[0, 1])
+        fig.update_xaxes(range=[-0.1, 1])
 
-        fig.write_image(path_to_plot)
+        write_image(fig, path_to_plot, scale=2)
