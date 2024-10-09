@@ -2,7 +2,9 @@
 
 from pathlib import Path
 from typing import Annotated, NamedTuple
+from warnings import warn
 
+import numpy as np
 import pandas as pd  # type: ignore[import-untyped]
 import plotly.graph_objects as go  # type: ignore[import-untyped]
 import pytask
@@ -148,8 +150,13 @@ for id_, kwargs in ID_TO_KWARGS.items():
 
         # Add note with num_simulations
         num_sims = df_plot["num_sims"].unique()
-        assert len(num_sims) == 1
-        num_sims = num_sims[0]
+
+        if len(num_sims) != 1:
+            # Get counts of num_sims
+            counts = df_plot["num_sims"].value_counts()
+            warning = f"num_sims is not unique, got {counts}."
+            warn(warning, stacklevel=2)
+        num_sims = np.max(num_sims)
 
         num_boot = df_plot["n_boot"].unique()
         assert len(num_boot) == 1
