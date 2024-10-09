@@ -15,7 +15,10 @@ from thesis.utilities import constraint_dict_to_string
 # --------------------------------------------------------------------------------------
 # Task parameters
 # --------------------------------------------------------------------------------------
-num_sims = 1_000
+# We perform num_sims * num_iterations simulations.
+# The reason is to make tasks smaller to avoid long-running tasks on the cluster.
+num_sims = 100
+num_iterations = 2
 
 u_hi_extra = 0.2
 
@@ -92,7 +95,7 @@ class _Arguments(NamedTuple):
 ID_TO_KWARGS = {
     (
         f"{bfunc}_{idestimands}_{constraint_dict_to_string(constraint_dict)}_{confidence_interval}"
-        f"_complier_late_{complier_late}_num_obs_{num_obs}"
+        f"_complier_late_{complier_late}_num_obs_{num_obs}_iteration_{iteration}"
     ): _Arguments(
         num_obs=num_obs,
         idestimands=idestimands,
@@ -105,7 +108,7 @@ ID_TO_KWARGS = {
             f"{bfunc}_{idestimands}_"
             f"{constraint_dict_to_string(constraint_dict)}_"
             f"_{confidence_interval}"
-            f"_complier_late_{complier_late}_num_obs_{num_obs}.pkl"
+            f"_complier_late_{complier_late}_num_obs_{num_obs}_iteration_{iteration}.pkl"
         ),
         constraints=constraint_dict,
         confidence_interval=confidence_interval,
@@ -116,8 +119,8 @@ ID_TO_KWARGS = {
     for idestimands in id_estimands_to_sim
     for constraint_dict in constraints_to_sim
     for confidence_interval in confidence_intervals_to_sim
-    # TODO(@buddejul): Change back.
     for complier_late in grid_late_complier
+    for iteration in np.arange(num_iterations)
 }
 
 for id_, kwargs in ID_TO_KWARGS.items():
