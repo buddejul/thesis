@@ -148,14 +148,28 @@ def task_combine_pyvmte_sims(
         # For each column in _cols_to_average compute the mean over iteraitons weighted
         # by num_sims. Compute total number of sims within each group
         # TODO(@buddejul): Something here is off.
+
         df_combined["total_sims"] = df_combined.groupby(_cols_unique)[
             "num_sims"
         ].transform("sum")
+
+        # TODO: Might want to check at this point that coverage rates vary by iterations
 
         for c in _cols_to_average:
             df_combined[c] = (df_combined[c] * df_combined["num_sims"]) / df_combined[
                 "total_sims"
             ]
+
+            df_combined[c] = df_combined.groupby(_cols_unique)[c].transform("sum")
+            # TODO(@buddejul): In some cases the simulated upper bounds might be
+            # slightly greater than 1.
+            _eps = 1e-2
+            assert (df_combined[c] <= 1 + _eps).all()
+
+            if "covers" in c:
+                assert (df_combined[c] >= 0 - _eps).all()
+            else:
+                assert (df_combined[c] >= -1 - _eps).all()
 
         df_combined["num_sims"] = df_combined["total_sims"]
 

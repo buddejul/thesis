@@ -8,7 +8,7 @@ import pytask
 from pytask import Product, task
 from pyvmte.config import IV_SM  # type: ignore[import-untyped]
 
-from thesis.config import BLD
+from thesis.config import BLD, RNG
 from thesis.pyvmte.pyvmte_sims import simulation_pyvmte
 from thesis.utilities import constraint_dict_to_string
 
@@ -91,6 +91,7 @@ class _Arguments(NamedTuple):
     confidence_interval_options: dict = confidence_interval_options
     true_param_pos: str = "lower"
     tolerance_est: float | None = None
+    rng: np.random.Generator = RNG
 
 
 ID_TO_KWARGS = {
@@ -141,6 +142,7 @@ for id_, kwargs in ID_TO_KWARGS.items():
         confidence_interval_options: dict,
         true_param_pos: str,
         tolerance_est: float,
+        rng: np.random.Generator = RNG,
     ) -> None:
         """Perform simulations for the simple model using pyvmte."""
         if tolerance_est is None:
@@ -160,6 +162,7 @@ for id_, kwargs in ID_TO_KWARGS.items():
             confidence_interval_options=confidence_interval_options,
             tolerance_est=tolerance_est,
             true_param_pos=true_param_pos,
+            rng=rng,
         )
 
         res["k_bernstein"] = k_bernstein

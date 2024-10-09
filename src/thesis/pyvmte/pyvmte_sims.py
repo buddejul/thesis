@@ -16,12 +16,11 @@ from pyvmte.utilities import (  # type: ignore[import-untyped]
 )
 from scipy import integrate  # type: ignore[import-untyped]
 
-from thesis.config import RNG
 from thesis.pyvmte.pyvmte_sims_config import Y0_AT, Y0_NT, Y1_AT, Y1_NT
 from thesis.utilities import make_mtr_binary_iv, simulate_data_from_mtrs_binary_iv
 
 
-def simulation_pyvmte(  # noqa: C901, PLR0915, PLR0912
+def simulation_pyvmte(  # noqa: C901, PLR0915, PLR0912, PLR0913
     num_sims: int,
     num_obs: int,
     instrument: Instrument,
@@ -35,6 +34,7 @@ def simulation_pyvmte(  # noqa: C901, PLR0915, PLR0912
     tolerance_est: float,
     u_hi_extra: float,
     true_param_pos: str,
+    rng: np.random.Generator,
 ) -> pd.DataFrame:
     """Perform simulation on the binary IV model using the pyvmte package."""
     _allowed_true_param_pos = ["lower", "upper"]
@@ -226,7 +226,7 @@ def simulation_pyvmte(  # noqa: C901, PLR0915, PLR0912
             mtr0=m0_for_sim,
             mtr1=m1_for_sim,
             num_obs=num_obs,
-            rng=RNG,
+            rng=rng,
             iv_support=instrument.support,
             iv_pmf=instrument.pmf,
             iv_pscores=instrument.pscores,
