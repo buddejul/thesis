@@ -2,8 +2,8 @@
 #SBATCH --account=ag_ifs_freyberger
 #SBATCH --partition=intelsr_short
 #SBATCH --time=2:00:00
-#SBATCH --ntasks=60
-#SBATCH --cpus-per-task=1
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=60
 #SBATCH --mem-per-cpu=1G
 
 # --------------------------------------------------------------------------------------
