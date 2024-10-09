@@ -139,10 +139,10 @@ for id_, kwargs in ID_TO_KWARGS.items():
         confidence_interval: str,
         confidence_interval_options: dict,
         true_param_pos: str,
-        tolerance_est: float = 0.05,
+        tolerance_est: float,
     ) -> None:
         """Perform simulations for the simple model using pyvmte."""
-        tolerance_est = 5 / np.sqrt(num_obs)
+        tolerance_est = 1 / num_obs
 
         res = simulation_pyvmte(
             num_sims=num_sims,
