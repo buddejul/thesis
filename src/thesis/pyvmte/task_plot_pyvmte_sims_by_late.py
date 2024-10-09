@@ -68,14 +68,23 @@ for id_, kwargs in ID_TO_KWARGS_COVERAGE.items():
 
     @pytask.mark.wip
     @task(id=id_, kwargs=kwargs)  # type: ignore[arg-type]
-    def task_plot_pyvmte_sims_by_late_coverage(
+    def task_plot_pyvmte_sims_by_late_coverage(  # noqa: PLR0915
         idestimands: str,
         constraint: str,
         path_to_plot: Annotated[Path, Product],
-        path_to_combined: Path = BLD / "data" / "pyvmte_simulations" / "combined.pkl",
+        path_to_sims_combined: Path = BLD
+        / "data"
+        / "pyvmte_simulations"
+        / "combined.pkl",
+        path_to_sols_combined: Path = BLD
+        / "data"
+        / "solutions"
+        / "solutions_simple_model_combined.pkl",
+        bfunc_type: str = "bernstein",
     ) -> None:
         """Plot simple model by LATE for different restrictions: coverage."""
-        df_combined = pd.read_pickle(path_to_combined)
+        df_sims_combined = pd.read_pickle(path_to_sims_combined)
+        df_sols_combined = pd.read_pickle(path_to_sols_combined)
 
         alpha = 0.05
 
@@ -85,12 +94,24 @@ for id_, kwargs in ID_TO_KWARGS_COVERAGE.items():
 
         fig = go.Figure()
 
-        confidence_interval_to_color = {"bootstrap": "blue", "subsampling": "red"}
+        # RGB colors with alpha = 0.5
+        opacity = 0.25
+        confidence_interval_to_color_line = {
+            "bootstrap": f"rgba(0, 128, 0, {opacity})",
+            "subsampling": f"rgba(0, 0, 255, {opacity})",
+        }
+
+        # make markers the same colors but set alpha to 1
+        confidence_interval_to_color_marker = {
+            key: val[:-4] + "1)"
+            for key, val in confidence_interval_to_color_line.items()
+        }
+
         num_of_obs_to_dash = {1_000: "solid", 10_000: "dash"}
 
         for confidence_interval in ["bootstrap", "subsampling"]:
-            df_plot = df_combined[
-                df_combined["confidence_interval"] == confidence_interval
+            df_plot = df_sims_combined[
+                df_sims_combined["confidence_interval"] == confidence_interval
             ]
 
             if constraint is not None:
@@ -113,6 +134,9 @@ for id_, kwargs in ID_TO_KWARGS_COVERAGE.items():
                 "subsampling": "Subsampling",
             }
 
+            # Drop all rows where true_lower_bound and true_upper_bound are NaN
+            df_plot = df_plot.dropna(subset=["true_lower_bound", "true_upper_bound"])
+
             for num_obs in df_plot["num_obs"].unique():
                 df_plot_num_obs = df_plot[df_plot["num_obs"] == num_obs]
 
@@ -120,7 +144,6 @@ for id_, kwargs in ID_TO_KWARGS_COVERAGE.items():
                     go.Scatter(
                         x=df_plot_num_obs["late_complier"],
                         y=df_plot_num_obs["covers_true_param"],
-                        mode="lines",
                         name=f"N = {num_obs}",
                         legendgroup=confidence_interval,
                         legendgrouptitle={
@@ -129,11 +152,57 @@ for id_, kwargs in ID_TO_KWARGS_COVERAGE.items():
                             ],
                         },
                         line={
-                            "color": confidence_interval_to_color[confidence_interval],
+                            "color": confidence_interval_to_color_line[
+                                confidence_interval
+                            ],
                             "dash": num_of_obs_to_dash[num_obs],
+                        },
+                        marker={
+                            "color": confidence_interval_to_color_marker[
+                                confidence_interval
+                            ],
+                            "size": 10,
                         },
                     ),
                 )
+
+        # ------------------------------------------------------------------------------
+        # Add true bounds
+        # ------------------------------------------------------------------------------
+
+        df_plot_sol = df_sols_combined[df_sols_combined["bfunc_type"] == bfunc_type]
+
+        if constraint is not None:
+            df_plot_sol = df_plot_sol[df_plot_sol["constraint_type"] == constraint]
+            df_plot_sol = df_plot_sol[
+                df_plot_sol["constraint_val"] == _constr_vals[constraint]
+            ]
+        else:
+            df_plot_sol = df_plot_sol[df_plot_sol["constraint_type"] == "none"]
+
+        df_plot_sol = df_plot_sol[df_plot_sol["idestimands"] == idestimands]
+
+        _k_bernstein = df_plot_sol["k_bernstein"].unique()
+
+        assert len(_k_bernstein) == 1
+
+        legend_title = "True Bound"
+
+        for bound in ["lower_bound"]:
+            fig.add_trace(
+                go.Scatter(
+                    x=df_plot_sol["b_late"],
+                    y=df_plot_sol[bound],
+                    mode="lines",
+                    name=f"{bound.split('_')[0].capitalize()} Bound",
+                    legendgroup=bfunc_type,
+                    legendgrouptitle={"text": legend_title},
+                    line={
+                        "color": "rgba(255, 0, 0, 0.2)",
+                    },
+                    yaxis="y2",
+                ),
+            )
 
         _subtitle = (
             f" <br><sup> Identified Estimands: {idestimands.capitalize()},"
@@ -144,7 +213,8 @@ for id_, kwargs in ID_TO_KWARGS_COVERAGE.items():
         fig.update_layout(
             title="Coverage for Target LATE(0.4, 0.8) for Binary-IV Model" + _subtitle,
             xaxis_title="Identified LATE",
-            yaxis_title="Bounds",
+            yaxis_title="Mean Coverage",
+            yaxis2={"title": "", "overlaying": "y", "side": "right"},
         )
 
         # Add note with num_simulations
@@ -184,6 +254,16 @@ for id_, kwargs in ID_TO_KWARGS_COVERAGE.items():
             y=-0.21,
             # Right aligned
             align="right",
+        )
+
+        # Draw horizontal line at 1 - alpha
+        fig.add_shape(
+            type="line",
+            x0=0,
+            y0=1 - alpha,
+            x1=1,
+            y1=1 - alpha,
+            line={"color": "rgba(0, 0, 0, 0.2)", "width": 2},
         )
 
         fig.write_html(path_to_plot)
@@ -226,7 +306,7 @@ for id_, kwargs in ID_TO_KWARGS_MEANS.items():
     ) -> None:
         """Plot simple model by LATE for different restrictions: means."""
         df_sims_combined = pd.read_pickle(path_to_sims_combined)
-        df_solutions_combined = pd.read_pickle(path_to_solutions_combined)
+        df_sols_combined = pd.read_pickle(path_to_solutions_combined)
 
         alpha = 0.05
 
@@ -339,9 +419,7 @@ for id_, kwargs in ID_TO_KWARGS_MEANS.items():
         # ------------------------------------------------------------------------------
         bound_to_dash = {"upper_bound": "solid", "lower_bound": "solid"}
 
-        df_plot_sol = df_solutions_combined[
-            df_solutions_combined["bfunc_type"] == bfunc_type
-        ]
+        df_plot_sol = df_sols_combined[df_sols_combined["bfunc_type"] == bfunc_type]
 
         if constraint is not None:
             df_plot_sol = df_plot_sol[df_plot_sol["constraint_type"] == constraint]
@@ -384,7 +462,7 @@ for id_, kwargs in ID_TO_KWARGS_MEANS.items():
         fig.update_layout(
             title="Coverage for Target LATE(0.4, 0.8) for Binary-IV Model" + _subtitle,
             xaxis_title="Identified LATE",
-            yaxis_title="Bounds",
+            yaxis_title="Means",
         )
 
         # Add note with num_simulations
