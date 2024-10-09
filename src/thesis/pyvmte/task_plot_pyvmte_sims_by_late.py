@@ -214,10 +214,19 @@ for id_, kwargs in ID_TO_KWARGS_MEANS.items():
         idestimands: str,
         constraint: str,
         path_to_plot: Annotated[Path, Product],
-        path_to_combined: Path = BLD / "data" / "pyvmte_simulations" / "combined.pkl",
+        path_to_sims_combined: Path = BLD
+        / "data"
+        / "pyvmte_simulations"
+        / "combined.pkl",
+        path_to_solutions_combined: Path = BLD
+        / "data"
+        / "solutions"
+        / "solutions_simple_model_combined.pkl",
+        bfunc_type="bernstein",
     ) -> None:
         """Plot simple model by LATE for different restrictions: means."""
-        df_combined = pd.read_pickle(path_to_combined)
+        df_sims_combined = pd.read_pickle(path_to_sims_combined)
+        df_solutions_combined = pd.read_pickle(path_to_solutions_combined)
 
         alpha = 0.05
 
@@ -230,8 +239,8 @@ for id_, kwargs in ID_TO_KWARGS_MEANS.items():
             "sim_ci_upper",
             "sim_lower_bound",
             "sim_upper_bound",
-            "true_lower_bound",
-            "true_upper_bound",
+            # "true_lower_bound",
+            # "true_upper_bound",
         ]
 
         col_to_legend_group = {
@@ -277,7 +286,9 @@ for id_, kwargs in ID_TO_KWARGS_MEANS.items():
 
         num_of_obs_to_dash = {1_000: "solid", 10_000: "dash"}
 
-        df_plot = df_combined[df_combined["confidence_interval"] == "bootstrap"]
+        df_plot = df_sims_combined[
+            df_sims_combined["confidence_interval"] == "bootstrap"
+        ]
 
         if constraint is not None:
             df_plot = df_plot[df_plot[constraint] == _constr_vals[constraint]]
@@ -322,6 +333,47 @@ for id_, kwargs in ID_TO_KWARGS_MEANS.items():
                         showlegend=col_to_show_legend[col],
                     ),
                 )
+
+        # ------------------------------------------------------------------------------
+        # Add true bounds
+        # ------------------------------------------------------------------------------
+        bound_to_dash = {"upper_bound": "solid", "lower_bound": "solid"}
+
+        df_plot_sol = df_solutions_combined[
+            df_solutions_combined["bfunc_type"] == bfunc_type
+        ]
+
+        if constraint is not None:
+            df_plot_sol = df_plot_sol[df_plot_sol["constraint_type"] == constraint]
+            df_plot_sol = df_plot_sol[
+                df_plot_sol["constraint_val"] == _constr_vals[constraint]
+            ]
+        else:
+            df_plot_sol = df_plot_sol[df_plot_sol["constraint_type"] == "none"]
+
+        df_plot_sol = df_plot_sol[df_plot_sol["idestimands"] == idestimands]
+
+        _k_bernstein = df_plot_sol["k_bernstein"].unique()
+
+        assert len(_k_bernstein) == 1
+
+        legend_title = "True Bounds"
+
+        for bound in ["upper_bound", "lower_bound"]:
+            fig.add_trace(
+                go.Scatter(
+                    x=df_plot_sol["b_late"],
+                    y=df_plot_sol[bound],
+                    mode="lines",
+                    name=f"{bound.split('_')[0].capitalize()} Bound",
+                    legendgroup=bfunc_type,
+                    legendgrouptitle={"text": legend_title},
+                    line={
+                        "color": "red",
+                        "dash": bound_to_dash[bound],
+                    },
+                ),
+            )
 
         _subtitle = (
             f" <br><sup> Identified Estimands: {idestimands.capitalize()},"
