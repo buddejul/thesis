@@ -18,7 +18,7 @@ from thesis.pyvmte.task_pyvmte_sims import ID_TO_KWARGS
 
 HPC = True
 
-JOBS = [17155022]
+JOBS = [17162646, 17162699]
 
 if HPC is True:
     RES_DIRS = [
@@ -53,6 +53,10 @@ def task_combine_pyvmte_sims(
         # Get iteration from file name f, after _iteration_
         iteration = int(f.name.split("_iteration_")[1].split(".")[0])
 
+        # Extract jobid from path, comes after "/marvin/"
+        jobid = int(f.parts[f.parts.index("marvin") + 1])
+
+        _df["jobid"] = jobid
         _df["iteration"] = iteration
 
         _df["covers_true_param"] = (_df["sim_ci_lower"] <= _df["true_param"]) & (
@@ -79,7 +83,6 @@ def task_combine_pyvmte_sims(
             "shape_constraints",
             "mte_monotone",
             "monotone_response",
-            "iteration",
         ]
 
         _cols_to_collapse = [
@@ -102,6 +105,8 @@ def task_combine_pyvmte_sims(
             "n_boot",
             "n_subsamples",
             "subsample_size",
+            "iteration",
+            "jobid",
         ]
 
         _df = _df[_cols_to_collapse + _to_collapse_by]
@@ -130,8 +135,8 @@ def task_combine_pyvmte_sims(
         "monotone_response",
         "late_complier",
     ]
-    if df_combined.groupby([*_cols_unique, "iteration"]).size().max() != 1:
-        msg = "Not unique when 'iterations' included."
+    if df_combined.groupby([*_cols_unique, "iteration", "jobid"]).size().max() != 1:
+        msg = "Not unique when 'iteration' and 'jobid' included."
         raise ValueError(msg)
 
     if df_combined.groupby(_cols_unique).size().max() != 1:
