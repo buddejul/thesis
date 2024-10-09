@@ -90,6 +90,7 @@ class _Arguments(NamedTuple):
     u_hi_extra: float = u_hi_extra
     confidence_interval_options: dict = confidence_interval_options
     true_param_pos: str = "lower"
+    tolerance_est: float | None = None
 
 
 ID_TO_KWARGS = {
@@ -142,7 +143,8 @@ for id_, kwargs in ID_TO_KWARGS.items():
         tolerance_est: float,
     ) -> None:
         """Perform simulations for the simple model using pyvmte."""
-        tolerance_est = 1 / num_obs
+        if tolerance_est is None:
+            tolerance_est = 1 / num_obs
 
         res = simulation_pyvmte(
             num_sims=num_sims,
