@@ -58,7 +58,7 @@ ID_TO_KWARGS_COVERAGE = {
         path_to_plot=BLD
         / "figures"
         / "pyvmte_sims"
-        / f"sims_simple_model_by_late_{idestimands}_{constraint}_coverage.html",
+        / f"sims_simple_model_by_late_{idestimands}_{constraint}_coverage.png",
     )
     for idestimands in idestimands_to_plot
     for constraint in constraints_to_plot
@@ -266,7 +266,7 @@ for id_, kwargs in ID_TO_KWARGS_COVERAGE.items():
             line={"color": "rgba(0, 0, 0, 0.2)", "width": 2},
         )
 
-        fig.write_html(path_to_plot)
+        fig.write_image(path_to_plot)
 
 
 # --------------------------------------------------------------------------------------
@@ -280,7 +280,7 @@ ID_TO_KWARGS_MEANS = {
         path_to_plot=BLD
         / "figures"
         / "pyvmte_sims"
-        / f"sims_simple_model_by_late_{idestimands}_{constraint}_means.html",
+        / f"sims_simple_model_by_late_{idestimands}_{constraint}_means.png",
     )
     for idestimands in idestimands_to_plot
     for constraint in constraints_to_plot
@@ -490,4 +490,4 @@ for id_, kwargs in ID_TO_KWARGS_MEANS.items():
         # Make x-axis from 0 to 1
         fig.update_xaxes(range=[0, 1])
 
-        fig.write_html(path_to_plot)
+        fig.write_image(path_to_plot)

@@ -338,7 +338,7 @@ Using the simplification noted above, the estimator can be equivalently written 
 \section{Inference Approaches}
 
 The target is to make inference on the parameter $\beta^*$ which for the simulation purposes I set to $LATE(0.4, 0.6)$.
-\footnote{Inference for the interval-identified parameter $\beta^*$ and its identified set are not necessarily the same as pointed out by \cite{imbens2004confidence} in simple examples. I will return to this point below.}
+\footnote{Inference for the interval-identified parameter $\beta^*$ and its identified set are not necessarily the same as pointed out by~\cite{imbens2004confidence} in simple examples. I will return to this point below.}
 That means, we want to extrapolte the LATE for the instrument-complier subpopulation with $u\in[0.4, 0.6]$ to a broader sub-population.
 Inference is complicated by the fact that the optimal solution $\beta^* = \beta^*(\beta_s)$ exhibits a kink at $\beta_s=0$ and hence is not fully differentiable at that point.
 However, as pointed out by~\cite{fang2023inference} and~\cite{hong2018numerical}, a delta method can be used that only requires \textit{directional} differentiability of the functional.
