@@ -16,7 +16,7 @@ DATE=$(date +%d-%m-%Y" "%H:%M:%S)
 
 DIR_TARGET="./marvin/$JOBID"
 
-cd C:/Users/budde/projects/thesis || exit
+cd C:/Users/budde/projects/thesis/src/thesis/ || exit
 
 # Create a directory with the job_id
 mkdir -p $DIR_TARGET

@@ -6,7 +6,7 @@ import numpy as np
 SRC = Path(__file__).parent.resolve()
 BLD = SRC.joinpath("..", "..", "bld").resolve()
 
-HPC_RES = SRC.joinpath("..", "..", "marvin").resolve()
+HPC_RES = SRC / "marvin"
 
 JOBID = 17055850
 

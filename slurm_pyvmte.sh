@@ -29,6 +29,8 @@
 
 # 60 Reps with two tasks in parallel: 25 minutes, 402 MB Ram
 
+# Runtime smaller runs: 60 cores-per-node, 50 sims per task, 120 tasks: 40 minutes.
+
 # --------------------------------------------------------------------------------------
 # Start script
 # --------------------------------------------------------------------------------------
