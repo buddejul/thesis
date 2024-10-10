@@ -230,7 +230,7 @@ Therefore, also the non-parametric bootstrap is valid in this case.
 \footnote{The only issue would arise at the boundary of the parameter space, that is when $\underline{\beta^*}(\beta_s)=-1$ or $\overline{\beta^*}(\beta_s)=1$.
 These cases are of less interest practically, hence I disregard them. However, a similar issue arises under shape restrictions discussed below.}
 
-\paragraph{Monotone Marginal Treatment Effects}
+\paragraph{Monotone Marginal Treatment Effect}
 We can impose the assumption, that the treatment effects $E[Y(1) - Y(0)|U_i=u]$ are monotone in $u$.
 In the language of~\cite{mogstad2018using}, the MTE function is monotone.
 The most interesting assumption is a \textit{decreasing} MTE function, since treatment take-up is decreasing in $u$.
@@ -245,6 +245,62 @@ In particular, coverage does not hold uniformly over parameter sequence implying
 While~\cite{imbens2004confidence} propose a fix to this, later on I focus on cases ``far enough'' away from point-identification.}
 
 
+\paragraph{Monotone Treatment Response}
+Under monotone treatment response, it is assumed that all individuals respond either negative or positive to the treatment.
+An implication for the marginal treatmnt effect is that it is either positive or negative everywhere.
+This again tightens the set, but it also restrict the parameter space of $\beta_s$ that is consistent with the model.
+In particular, any $\beta_s \leq 0$ is inconsistent with the assumption of positive treatment responses.
+In addition, the lower bound will be tighter:
+\begin{equation*}
+  \beta^* \in \begin{cases}
+    [\omega\beta_s, \beta_s + (1 - \omega)] & \beta_s \geq 0 \\
+    \emptyset & \beta_s < 0
+  \end{cases}
+\end{equation*}
+Here, inference becomes non-standard at the boundary of the parameter space.
+This case is close to the stylized example analyzed in~\cite{andrews1999estimation}, where interest lies in estimating an expectation which is known to be positive.
+[Explain, why not focusing on this in the following.]
+
+\paragraph{Decreasing Marginal Treatment Responses}
+A last set of restrictions considered by~\cite{mogstad2018using} are monotonocity restrictions on the MTR functions $m_d(u) = E[Y(d)|U=u]$.
+We consider the case of decreasing MTR functions also considered in their paper.
+Imposing restrictions on these functions is also the general approach discussed in Section~\ref{sec:general_mte}, since this allows to exploit other moments for identification.
+For example, in our model also $E[Y(1)|\text{always-taker}]$ and $E[Y(0)|\text{never-taker}]$ are identified and can help in tightening the identified set.
+
+While generally not impossible, with the restriction that $m_0(u), m_1(u)$ are decreasing in $u$, the computation of the identified set becomes less immediate.
+Figure [REF] illustrates the solution using constant spline basic functions defined separately over the intervals implied by $[0, p(0), p(1), p(1) + \overline{u}, 1]$.
+Essentially, since both the identified and target parameter are averages over the MTR (or MTE) function with constant weights on each subinterval, taking constant splines on these subintervals as basis functions does not impose any restrictions.
+
+The solution in this case is given by:
+\begin{equation}
+	\overline{\beta^*}(\beta_s)=
+	\begin{cases}
+		\omega \beta_s + (1 - \omega),& \quad \text{if } \beta_s \geq 0\\
+		\beta_s + (1 - \omega),              & \quad \text{if } \beta_s < 0,
+	\end{cases}
+\end{equation}
+and
+\begin{equation}
+	\underline{\beta^*}(\beta_s)=
+	\begin{cases}
+		\beta_s - (1 - \omega),& \quad \text{if } \beta_s \geq 0\\
+		\omega \beta_s - (1 - \omega),              & \quad \text{if } \beta_s < 0.
+	\end{cases}
+\end{equation}
+
+Hence, both bounds exhibit a kink at $\beta_s=0$.
+In these cases, as was shown in~\cite{dumbgen1993nondifferentiable} and later~\cite{fang2019infdirdiff}, non-differentiability at the kink renders the non-parametric bootstrap invalid.
+
+
+% Solution lower:
+% (_b_late >= 0) * (w * _b_late + (1 - w) * (_b_late - 1)) + (_b_late < 0) * (
+%         w * _b_late + (1 - w) * (-1)
+%     )
+
+% Solution upper:
+% return (_b_late >= 0) * (w * _b_late + (1 - w)) + (_b_late < 0) * (
+%   w * _b_late + (1 - w) * (1 + _b_late)
+% )
 
 \subsection{Problems}
 

@@ -97,7 +97,7 @@ for id_, kwargs in ID_TO_KWARGS_COVERAGE.items():
         fig = go.Figure()
 
         # RGB colors with alpha = 0.5
-        opacity = 0.25
+        opacity = 1
         confidence_interval_to_color_line = {
             "bootstrap": f"rgba(0, 128, 0, {opacity})",
             "subsampling": f"rgba(0, 0, 255, {opacity})",
@@ -141,6 +141,7 @@ for id_, kwargs in ID_TO_KWARGS_COVERAGE.items():
 
             for num_obs in df_plot["num_obs"].unique():
                 df_plot_num_obs = df_plot[df_plot["num_obs"] == num_obs]
+                df_plot_num_obs = df_plot_num_obs.sort_values("late_complier")
 
                 fig.add_trace(
                     go.Scatter(
