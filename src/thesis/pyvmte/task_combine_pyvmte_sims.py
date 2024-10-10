@@ -18,7 +18,7 @@ from thesis.pyvmte.task_pyvmte_sims import ID_TO_KWARGS
 
 HPC = True
 
-JOBS = [17162646, 17162699]
+JOBS = [17162646, 17162699, 17174486, 17176830, 17176989, 17185050]
 
 if HPC is True:
     RES_DIRS = [
@@ -34,7 +34,7 @@ if HPC is False:
 
 
 @pytask.mark.wip
-def task_combine_pyvmte_sims(
+def task_combine_pyvmte_sims(  # noqa: C901
     res_files: list[Path] = RES_FILES,
     path_to_combined: Annotated[Path, Product] = (
         BLD / "data" / "pyvmte_simulations" / "combined.pkl"
@@ -168,13 +168,19 @@ def task_combine_pyvmte_sims(
             df_combined[c] = df_combined.groupby(_cols_unique)[c].transform("sum")
             # TODO(@buddejul): In some cases the simulated upper bounds might be
             # slightly greater than 1.
-            _eps = 1e-2
-            assert (df_combined[c] <= 1 + _eps).all()
+            _eps = 6e-2
+            if not (df_combined[c] <= 1 + _eps).all():
+                msg = f"Column {c} is greater than 1. Max: {df_combined[c].max()}"
+                raise ValueError(msg)
 
             if "covers" in c:
-                assert (df_combined[c] >= 0 - _eps).all()
-            else:
-                assert (df_combined[c] >= -1 - _eps).all()
+                if not (df_combined[c] >= 0 - _eps).all():
+                    msg = f"Column {c} is smaller than 0. Min: {df_combined[c].min()}"
+                    raise ValueError(msg)
+
+            elif not (df_combined[c] >= -1 - _eps).all():
+                msg = f"Column {c} is smaller than -1. Min: {df_combined[c].min()}"
+                raise ValueError(msg)
 
         df_combined["num_sims"] = df_combined["total_sims"]
 

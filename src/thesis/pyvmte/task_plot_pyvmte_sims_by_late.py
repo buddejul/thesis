@@ -88,7 +88,7 @@ for id_, kwargs in ID_TO_KWARGS_COVERAGE.items():
         df_sols_combined = pd.read_pickle(path_to_sols_combined)
 
         alpha = 0.05
-        nominal_coverage = 1 - alpha
+        1 - alpha
 
         # ------------------------------------------------------------------------------
         # Plot simulation results
@@ -208,7 +208,7 @@ for id_, kwargs in ID_TO_KWARGS_COVERAGE.items():
 
         _subtitle = (
             f" <br><sup> Identified Estimands: {idestimands.capitalize()},"
-            f" Nominal Coverage = {nominal_coverage} </sup>"
+            f" Nominal Coverage = {1- alpha} </sup>"
             f" <br><sup> Shape constraints: {_constr_subtitle[constraint]} </sup>"
         )
 
@@ -227,7 +227,6 @@ for id_, kwargs in ID_TO_KWARGS_COVERAGE.items():
             counts = df_plot["num_sims"].value_counts()
             warning = f"num_sims is not unique, got {counts}."
             warn(warning, stacklevel=2)
-        num_sims = np.max(num_sims)
 
         num_boot = df_plot["n_boot"].unique()
         assert len(num_boot) == 1
@@ -244,7 +243,7 @@ for id_, kwargs in ID_TO_KWARGS_COVERAGE.items():
 
         fig.add_annotation(
             text=(
-                f"N Simulations: {int(num_sims)}<br>"
+                f"N Simulations: {num_sims}<br>"
                 f"Subsample size: {subsample_size}<br>"
                 f"N Bootstrap Samples/Subsamples: {int(num_boot)}/{int(num_subsamples)}"
             ),
@@ -460,7 +459,7 @@ for id_, kwargs in ID_TO_KWARGS_MEANS.items():
 
         _subtitle = (
             f" <br><sup> Identified Estimands: {idestimands.capitalize()},"
-            f" alpha = {alpha} </sup>"
+            f" Nominal Coverage = {1 - alpha} </sup>"
             f" <br><sup> Shape constraints: {_constr_subtitle[constraint]} </sup>"
         )
 
