@@ -1,0 +1,287 @@
+\documentclass[11pt,a4paper,english]{article} %document type and language
+\usepackage[utf8]{inputenc}	% set character set to support some UTF-8
+\usepackage{babel} 	% multi-language support
+% \usepackage{sectsty}	% allow redefinition of section command formatting
+\usepackage{tabularx}	% more table options
+\usepackage{titling}	% allow redefinition of title formatting
+\usepackage{imakeidx}	% create and index of words
+\usepackage{xcolor}	% more color options
+\usepackage{enumitem}	% more list formatting options
+\usepackage{tocloft}	% redefine table of contents, new list like objects
+
+\usepackage[centering,noheadfoot,margin=1in]{geometry}
+
+%set TOC margins
+\setlength{\cftbeforesecskip}{15pt} % skip in TOC
+
+% remove paragraph white space and modify space between list items
+\usepackage{parskip}
+
+% Set font globally
+\usepackage{lmodern}                % load Latin modern fonts
+\usepackage[defaultsans]{cantarell} % cantarell fonts
+
+% HACK: https://tex.stackexchange.com/questions/58087/how-to-remove-the-warnings-font-shape-ot1-cmss-m-n-in-size-4-not-available
+\usepackage{anyfontsize}
+
+% set LaTeX global font
+\renewcommand{\familydefault}{\sfdefault}
+\renewcommand{\sfdefault}{lmss}
+
+% set styling headings
+%\allsectionsfont{\usefont{OT1}{phi}{b}{n}}
+
+\usepackage{float} 	% floats
+\usepackage{graphicx}	% Graphics
+\usepackage{amsmath}	% extensive math options
+\usepackage{amssymb}	% special math symbols
+\usepackage[Gray,squaren,thinqspace,thinspace]{SIunits} % elegant units
+\usepackage{listings}                                   % source code
+
+% Custom Operators
+%% Expectation symbol
+\DeclareMathOperator*{\E}{\mathbb{E}}
+\DeclareMathOperator*{\Cov}{\mathrm{Cov}}
+\DeclareMathOperator*{\Var}{\mathrm{Var}}
+
+% missing math commands
+\providecommand{\abs}[1]{\left\lvert#1\right\rvert}                    % |.|
+\providecommand{\br}[1]{\left(#1\right)}                               % (.)
+\providecommand{\sbr}[1]{\left[#1\right]}                              % [.]
+\providecommand{\ddfrac}[2]{\frac{\displaystyle #1}{\displaystyle #2}}
+% use \math rm{d} to include math differential
+
+% independence symbol
+% https://tex.stackexchange.com/questions/79434/double-perpendicular-symbol-for-independence
+\newcommand{\indep}{\perp\!\!\!\!\perp}
+
+
+% options for listings
+\lstset{
+  breaklines=true,
+  postbreak=\raisebox{0ex}[0ex][0ex]{\ensuremath{\color{red}\hookrightarrow\space}},
+  numbers=left,
+  numbersep=5pt,
+  numberstyle=\tiny\color{gray},
+  basicstyle=\footnotesize\ttfamily
+}
+
+% NEEDS to be before hyperref, cleveref and autonum
+% number figures, tables and equations within the sections
+\numberwithin{equation}{section}
+\numberwithin{figure}{section}
+\numberwithin{table}{section}
+
+% references and annotation, citations
+\usepackage[small,bf,hang]{caption}        % captions
+\usepackage{subcaption}                    % adds sub figure & sub caption
+\usepackage{sidecap}                       % adds side captions
+\usepackage{hyperref}                      % add hyperlinks to references
+\usepackage[noabbrev,nameinlink]{cleveref} % better references than default~\ref
+% Hack:https://tex.stackexchange.com/questions/285950/package-autonum-needs-the-obsolete-etex-package
+\expandafter\def\csname ver@etex.sty\endcsname{3000/12/31}
+\let\globcount\newcount
+% Deactivate for now to avoid issues with equation* environment.
+% \usepackage{autonum}                       % only number referenced equations
+\usepackage{url}                           % URLs
+\usepackage{cite}                          % well formed numeric citations
+
+% biblatex for references
+% \usepackage{biblatex}
+% \addbibresource{literature.bib}
+% csquotes recommended: https://tex.stackexchange.com/questions/229638/package-biblatex-warning-babel-polyglossia-detected-but-csquotes-missing
+% \usepackage{csquotes}
+
+% format hyperlinks
+\colorlet{linkcolour}{black}
+\colorlet{urlcolour}{blue}
+\hypersetup{colorlinks=true,
+            linkcolor=linkcolour,
+            citecolor=linkcolour,
+            urlcolor=urlcolour}
+
+%\usepackage{todonotes} % add to do notes
+\usepackage{epstopdf}  % process eps-images
+\usepackage{float}     % floats
+\usepackage{fancyhdr}  % header and footer
+% HACK: https://tex.stackexchange.com/questions/664532/fancyhr-warning-footskip-is-too-small
+\setlength{\footskip}{14pt}
+
+% default path for figures
+\graphicspath{{figures/}}
+
+% If we have multiple directories, specify them like this: \graphicspath{{figures_ch1/}{figures_ch2/}}.
+
+% For rendering tikz
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+\usetikzlibrary{decorations.pathreplacing} % Load the library for drawing braces
+
+
+% Define some math environments
+% \usepackage{amsthm}
+
+% \newtheorem{theorem}{Theorem}[section]
+% \newtheorem{corollary}{Corollary}[theorem]
+% \newtheorem{lemma}[theorem]{Lemma}
+
+% \theoremstyle{definition}
+% \newtheorem{definition}{Definition}[section]
+
+% \theoremstyle{remark}
+% \newtheorem*{remark}{Remark}
+
+% set header and footer
+\pagestyle{fancy}
+\fancyhf{}                           % clear all header and footer fields
+\cfoot{\thepage}                     % add page number
+\renewcommand{\headrulewidth}{0pt} % add horizontal line of 0.4pt thick
+
+\title{Statistical Inference in Partially Identified Marginal Treatment Effect Models}
+\author{Julian Budde}
+\date{\today}
+\begin{document}
+\maketitle
+
+\begin{abstract}
+	I study inference in the marginal treatment effect model when used to partially-identify a target parameter of interest.
+	First, I demonstrate the invalidity of the bootstrap in a simple, but common binary IV model.
+	In specific settings, the bounds of the identified set have an easy to calculate solution.
+	These solutions exhibits points of non-differentiability when viewed as functions of the point-identified parameters rendering the nonparametric bootstrap invalid.
+	Second, I discuss potential solutions proposed in the literature and show how they might be adjusted to typical use-cases where bounds have to be calculated by the means of linear programming.
+	Third, for a number of empirically relevant settings I conduct novel simulation studies for the MTE model comparing competing inference methods.
+\end{abstract}
+
+Main paper:~\cite{mogstad2018using}.
+
+\section{Introduction}
+
+\section{Bootstrap Invalidity: A Simple Example}
+I first illustrate the invalidity of the bootstrap in a simple example with a binary instrument where we only use the point-identified LATE for the instrument-compliers as the basis for extrapolation.
+While this will not best we can do in this case --- there are more moments in the data we can point-identify --- it helps to illustrate the type of inference issues that can also arise in more complex setups.
+In particular, we can calculate explicit solutions for the upper and lower as functions of the point-identified complier LATE.\@
+
+\subsection{Setup}
+We first introduce some basic notation and key ingredients of the MTE model.
+A complete statement of the model corresponding to~\cite{mogstad2018using} can be found in Section~\ref{sec:general_mte}.
+
+The outcome is denoty $Y_i$ and has bounded support, which we generally assume to be in $[0,1]$ for convenience.
+The instrument $Z_i$ is binary with realizatons in $\{0,1\}$.
+Binary treatment $D_i$ is determined by a selection model with
+\begin{equation}\label{eq:treatment}
+  D_i = I\{p(Z_i) \geq U_i\}
+\end{equation}
+where unobserved heterogeneity $U_i$ is normalized to follow a $U(0,1)$ distribution, $U_i \indep Z_i$ and $I\{A\}$ denotes the indicator function for event $A$.
+Hence, $p(z) \equiv P(D_i=1|Z_i=z)$ is the propensity score. We define the instrument $Z_i$ such that $p(0)<p(1)$.
+
+As shown by~\cite{vytlacil2002independence}, under an appropriate set of assumptions stated more formally in Section~\ref{sec:general_mte}, this setup is equivalent to the potential outcome framework in~\cite{imbens_angrist1994ecma}.
+Hence, we can point-identify a local average treatment effect for the instrment-compliers, namely those individuals, who take up the treatment if and only if $Z_i=1$.
+In the selection model above, the complier sub-population is those with $U_i$ realizations in $[p(0), p(1)]$.
+Hence, in the notation of the model, we can point-identify,
+\begin{equation}
+  \beta_s = \E[Y(1) - Y(0)|U_i\in[p(0), p(1)]].
+\end{equation}
+Note that individuals with realizations $u \leq p(0)$ will always select into treatment, while individuals with $u \geq p(1)$ will never select into treatment.
+To keep the notation light, I will refers to these subpopulations as \textit{complier}, \textit{never-taker} and \textit{always-taker}.
+
+Our goal is to extrapolate from this identified complier-LATE to a larger subpopulation that also includes some never-takers.
+[Example for interpretation]. Now we are interested in a policy-change which we would believe to increase the propensity score.
+We denote this new target by
+\begin{equation}
+  \beta^* = \E[Y(1) - Y(0)|U_i \in[p(0), p(1) + \overline{u}]],
+\end{equation}
+where $\overline{u}\in[0, 1-p(1)]$.
+
+Without very strong restrictions, $\beta^*$ will not be point-identified.
+Instead, we will only generally be able to identify a set of values for the target that are both consistent with the data and theoretical assumptions we want to impose.
+Usually, this \textit{identified set} will be a closed interval on the real line and we will denote it by
+\begin{equation*}
+  \beta^* \in [\underline{\beta^*}(\beta_s), \overline{\beta^*}(\beta_s)],
+\end{equation*}
+where we emphasize the dependence of the upper and lower bound of the identified set on the point-identified parameter $\beta_s$.
+
+\subsection{Solution}
+While the identified set is usually computed via a linear program, in the simple case considered here with a single point-identified parameter the identified has an intuitive and easy to compute form.
+
+Denote by $\beta_{\overline{u}}$ the LATE for the population of never-takers for which we want to extend the treatment, i.e.
+\begin{equation*}
+  \beta_{\overline{u}} \equiv E[Y(1) - Y(0) | u \in [p(1), p(1) + \overline{u}]].
+\end{equation*}
+Then $\beta^*$ is a weighted average of the two LATES:\@
+\begin{equation*}
+  \beta^* = \omega\beta_s + (1-\omega)\beta_{\overline{u}}
+\end{equation*}
+where $\omega = \frac{p(1) - p(0)}{\overline{u} + p(1) - p(0)}$ is the relative share of compliers in the target population.
+Finding the identified set then amounts to finding bounds on $\beta_{\overline{u}}$, where different restrictions imply different bounds.
+
+
+
+\paragraph{Non-parametric Bounds}
+Without any further restrictions, the only bounds we can give follow from the support of $Y_i$.
+Since $Y_i\in[0,1]$ we have $\beta_{\overline{u}} \in [0,1]$ and hence
+\begin{equation*}
+  \beta^* \in [\omega\beta_s - (1 - \omega), \omega\beta_s + (1 - \omega)]
+\end{equation*}
+We can already see that this is a continuous and differentiable function of $\beta_s$.
+Hence, if estimation for $\beta_s$ and $\omega$ is standard, the usual delta method could be applied.
+This is the case here, since $\beta_s$ can be consistently estimated using the Wald estimator which --- assuming no weak identification issues --- is asymptotically normal.
+$\omega$ is a function of sample moments and can be estimated consistently.
+Therefore, also the non-parametric bootstrap is valid in this case.
+\footnote{The only issue would arise at the boundary of the parameter space, that is when $\underline{\beta^*}(\beta_s)=-1$ or $\overline{\beta^*}(\beta_s)=1$.
+These cases are of less interest practically, hence I disregard them. However, a similar issue arises under shape restrictions discussed below.}
+
+\paragraph{Monotone Marginal Treatment Effects}
+We can impose the assumption, that the treatment effects $E[Y(1) - Y(0)|U_i=u]$ are monotone in $u$.
+In the language of~\cite{mogstad2018using}, the MTE function is monotone.
+The most interesting assumption is a \textit{decreasing} MTE function, since treatment take-up is decreasing in $u$.
+
+If the MTE function is decreasing, we know $\beta_{\overline{u}} \leq \beta_s$ and hence the identified set shrinks at the upper bound:
+\begin{equation*}
+  \beta^* \in [\omega\beta_s - (1 - \omega), \beta_s]
+\end{equation*}
+In this case, inference is again standard. Note we have point identification when $\beta_s=-1$.
+\footnote{Convergence to point-identification can pose problems to the type of confidence intervals considered by~\cite{imbens2004confidence} and considered later here.
+In particular, coverage does not hold uniformly over parameter sequence implying convergence to point-identification.
+While~\cite{imbens2004confidence} propose a fix to this, later on I focus on cases ``far enough'' away from point-identification.}
+
+
+
+\subsection{Problems}
+
+\paragraph{Problem I:\@ Non-differentiability}
+
+\paragraph{Problem II:\@ Parameter at the Boundary}
+
+\section{General MTE Setup}\label{sec:general_mte}
+
+\subsection{Setup}
+
+\subsection{Linear Program}
+
+\subsection{Restrictions}
+
+\section{Inference Methods}
+
+\subsection{Resampling Methods: Non-parametric Bootstrap and Subsampling}
+
+\subsection{Confidence Intervals}
+
+\subsection{Adjusted Delta Methods}
+
+\paragraph{Analytical Delta Method}
+
+\paragraph{Numerical Delta Method}
+
+\section{Simulation Studies}
+
+\subsection{Model Setting}
+
+\subsection{Simulation Design}
+
+\subsection{Simulation Results}
+
+
+\bibliographystyle{plain}
+\bibliography{refs.bib}
+
+\end{document}
