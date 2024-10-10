@@ -225,7 +225,6 @@ for id_, kwargs in ID_TO_KWARGS_COVERAGE.items():
             counts = df_plot["num_sims"].value_counts()
             warning = f"num_sims is not unique, got {counts}."
             warn(warning, stacklevel=2)
-        num_sims = np.max(num_sims)
 
         num_boot = df_plot["n_boot"].unique()
         assert len(num_boot) == 1
@@ -242,7 +241,7 @@ for id_, kwargs in ID_TO_KWARGS_COVERAGE.items():
 
         fig.add_annotation(
             text=(
-                f"N Simulations: {int(num_sims)}<br>"
+                f"N Simulations: {num_sims}<br>"
                 f"Subsample size: {subsample_size}<br>"
                 f"N Bootstrap Samples/Subsamples: {num_boot}/{num_subsamples}"
             ),
