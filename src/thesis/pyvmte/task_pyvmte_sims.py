@@ -9,7 +9,7 @@ import pytask
 from pytask import Product, task
 from pyvmte.config import IV_SM  # type: ignore[import-untyped]
 
-from thesis.config import BLD, RNG
+from thesis.config import BLD, RNG, SRC
 from thesis.pyvmte.pyvmte_sims import simulation_pyvmte
 from thesis.utilities import constraint_dict_to_string
 
@@ -76,7 +76,7 @@ constraints_by_type: dict[str, dict] = {
 instrument = IV_SM
 
 # Define different grids to focus on interesting parameter intervals.
-path_solution = BLD / "data" / "solutions" / "solutions_simple_model_combined.pkl"
+path_solution = SRC / "data" / "solutions" / "solutions_simple_model_combined.pkl"
 
 sols = pd.read_pickle(path_solution)
 
