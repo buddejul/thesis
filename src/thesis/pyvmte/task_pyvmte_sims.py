@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import Annotated, NamedTuple
 
 import numpy as np
+import pandas as pd  # type: ignore[import-untyped]
 import pytask
 from pytask import Product, task
 from pyvmte.config import IV_SM  # type: ignore[import-untyped]
@@ -18,16 +19,16 @@ from thesis.utilities import constraint_dict_to_string
 # We perform num_sims * num_iterations simulations.
 # The reason is to make tasks smaller to avoid long-running tasks on the cluster.
 num_sims = 200
-num_iterations = 6
+num_iterations = 1
 
 u_hi_extra = 0.2
 
-num_grid_points_complier_late = 5
+num_grid_late = 20
 
 lo_grid = 0
 hi_grid = 1
 
-grid_late_complier = np.linspace(lo_grid, hi_grid, num_grid_points_complier_late)
+grid_late_complier = np.linspace(lo_grid, hi_grid, num_grid_late)
 
 confidence_intervals_to_sim = ["bootstrap", "subsampling"]
 
@@ -53,26 +54,62 @@ shape_constraints = ("decreasing", "decreasing")
 mte_monotone = "decreasing"
 monotone_response = "positive"
 
-constraints_to_sim: list[dict] = [
-    {
+constraints_by_type: dict[str, dict] = {
+    "none": {
         "shape_constraints": None,
         "mte_monotone": None,
         "monotone_response": None,
     },
-    {
+    "mte_monotone": {
         "shape_constraints": None,
         "mte_monotone": mte_monotone,
         "monotone_response": None,
     },
-    {
+    "monotone_response": {
         "shape_constraints": None,
         "mte_monotone": None,
         "monotone_response": monotone_response,
     },
-]
+}
 
 
 instrument = IV_SM
+
+# Define different grids to focus on interesting parameter intervals.
+path_solution = BLD / "data" / "solutions" / "solutions_simple_model_combined.pkl"
+
+sols = pd.read_pickle(path_solution)
+
+sols = sols.query(
+    'bfunc_type == "bernstein" and '
+    'idestimands == "sharp" and '
+    'constraint_type in ["none", "mte_monotone", "monotone_response"]',
+).dropna(subset=["upper_bound", "lower_bound"])
+
+# Check dataset is unique by: ["b_late", "constraint_type"]
+sols = sols.set_index(["b_late", "constraint_type"])
+assert sols.index.is_unique
+
+b_late_min_max = (
+    sols.reset_index().groupby("constraint_type")["b_late"].agg(["min", "max"])
+)
+
+_stop_mte_monotone = b_late_min_max.loc["mte_monotone", "max"]
+
+grid_by_constraint = {
+    "none": np.linspace(0.7, 1, num_grid_late),
+    "mte_monotone": np.linspace(0.5, _stop_mte_monotone, num_grid_late),
+    "monotone_response": np.linspace(0.65, 1, num_grid_late),
+}
+
+# Create a dictionary with constraints and late in grid for each type of constraint.
+constraints_and_late_for_sim: list[tuple] = []
+
+constraints_and_late_for_sim = [
+    (constraints_by_type[constr], late)
+    for constr in ["none", "mte_monotone", "monotone_response"]
+    for late in grid_by_constraint[constr]
+]
 
 
 # --------------------------------------------------------------------------------------
@@ -119,9 +156,9 @@ ID_TO_KWARGS = {
     for num_obs in num_obs_to_sim
     for bfunc in bfuncs_to_sim
     for idestimands in id_estimands_to_sim
-    for constraint_dict in constraints_to_sim
+    # Get the grid based on the key in constraint_dict with non-None value
+    for constraint_dict, complier_late in constraints_and_late_for_sim
     for confidence_interval in confidence_intervals_to_sim
-    for complier_late in grid_late_complier
     for iteration in np.arange(num_iterations)
 }
 
