@@ -81,7 +81,7 @@
 % Hack:https://tex.stackexchange.com/questions/285950/package-autonum-needs-the-obsolete-etex-package
 \expandafter\def\csname ver@etex.sty\endcsname{3000/12/31}
 \let\globcount\newcount
-\usepackage{autonum}                       % only number referenced equations
+% \usepackage{autonum}                       % only number referenced equations
 \usepackage{url}                           % URLs
 \usepackage{cite}                          % well formed numeric citations
 
@@ -242,7 +242,7 @@ Thus, the upper bound is given by any arguments that satisfy $\theta_{21} - \the
 One such set of choice variables is depicted in the graph.
 
 \begin{figure}
-	\input{figures/sm_upper_no_restr.tex}
+	% \input{figures/sm_upper_no_restr.tex}
 	\caption{Solution for Upper Bound without Restrictions}\label{fig:sm_upper_no_restr}
 \end{figure}
 
@@ -288,7 +288,7 @@ Figure~\ref{fig:sm_upper_incr.tex} illustrates how the constraint is binding in 
 Note we would like to set $\theta_{30} = 0$ but this violates the constraint $\theta_{30} \geq \theta_{20} = -\beta_s > 0$.
 
 \begin{figure}
-	\input{figures/sm_upper_incr.tex}
+	% \input{figures/sm_upper_incr.tex}
 	\caption{Upper Bound with Monotone MTR Functions}\label{fig:sm_upper_incr.tex}
 \end{figure}
 
@@ -297,13 +297,13 @@ Figure~\ref{fig:sm_sol_upper} displays the solution to the upper bound $\overlin
 	\centering
 	\begin{subfigure}{0.45\textwidth}
 		\centering
-		\input{figures/sm_sol_upper.tex}
+		% \input{figures/sm_sol_upper.tex}
 		\caption{Solution to $\overline{\beta^*}$}
 	\end{subfigure}
 	\hfill
 	\begin{subfigure}{0.45\textwidth}
 		\centering
-		\input{figures/sm_sol_lower.tex}
+		% \input{figures/sm_sol_lower.tex}
 		\caption{Solution to $\underline{\beta^*}$}
 	\end{subfigure}
 	\caption{Solutions under Different Constraints}\label{fig:sm_sol_upper}
@@ -382,25 +382,25 @@ Note that our setting is the same as Example 2.2 of~\cite{hong2018numerical}, wh
 	\centering
 	\begin{subfigure}{0.45\textwidth}
 		\centering
-		\includegraphics[width=\textwidth]{../bld/boot/figures/coverage.png}
+		% \includegraphics[width=\textwidth]{../bld/boot/figures/coverage.png}
 		\caption{Coverage for True Parameter}
 	\end{subfigure}
 	\hfill
 	\begin{subfigure}{0.45\textwidth}
 		\centering
-		\includegraphics[width=\textwidth]{../bld/boot/figures/length.png}
+		% \includegraphics[width=\textwidth]{../bld/boot/figures/length.png}
 		\caption{Length of CIs}
 	\end{subfigure}
 
 	\begin{subfigure}{0.45\textwidth}
 		\centering
-		\includegraphics[width=\textwidth]{../bld/boot/figures/means.png}
+		% \includegraphics[width=\textwidth]{../bld/boot/figures/means.png}
 		\caption{Means of Upper and Lower Bound}
 	\end{subfigure}
 	\hfill
 	\begin{subfigure}{0.45\textwidth}
 		\centering
-		\includegraphics[width=\textwidth]{../bld/boot/figures/coverage_eps_fun.png}
+		% \includegraphics[width=\textwidth]{../bld/boot/figures/coverage_eps_fun.png}
 		\caption{Coverage by Step Size for Numerical Delta Method}
 	\end{subfigure}
 	\caption{Simulation: CI Properties for Standard and Numerical Delta Bootstrap}\label{fig:simulation_ci_bootstrap}
