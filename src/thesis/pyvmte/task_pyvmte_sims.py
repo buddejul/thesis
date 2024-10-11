@@ -19,7 +19,7 @@ from thesis.utilities import constraint_dict_to_string
 # We perform num_sims * num_iterations simulations.
 # The reason is to make tasks smaller to avoid long-running tasks on the cluster.
 num_sims = 100
-num_iterations = 2
+num_iterations = 6
 
 u_hi_extra = 0.2
 
