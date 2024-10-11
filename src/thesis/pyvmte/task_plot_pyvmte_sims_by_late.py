@@ -12,12 +12,16 @@ from plotly.io import write_image  # type: ignore[import-untyped]
 from pytask import Product, task
 
 from thesis.config import BLD
+from thesis.pyvmte.task_pyvmte_sims import grid_by_constraint
 
 
 class _Arguments(NamedTuple):
     idestimands: str
     constraint: str
+    problematic_region: np.ndarray
     path_to_plot: Annotated[Path, Product]
+    path_to_plot_problematic_region: Annotated[Path, Product]
+    confidence_interval: str | None = None
 
 
 _shape_constr_to_plot = ("decreasing", "decreasing")
@@ -41,25 +45,31 @@ _constr_subtitle = {
     "monotone_response": (
         f"{_constr_vals['monotone_response'].capitalize()} Treatment Response"
     ),
-    None: "None",
+    "none": "None",
 }
 
 bfunc_types_to_plot = ["constant", "bernstein"]
 idestimands_to_plot = ["sharp"]
-constraints_to_plot = [None, "mte_monotone", "monotone_response"]
+constraints_to_plot = ["none", "mte_monotone", "monotone_response"]
 
 # --------------------------------------------------------------------------------------
 # Plot Coverage
 # --------------------------------------------------------------------------------------
 
+plot_dir = BLD / "figures" / "pyvmte_sims"
+
 ID_TO_KWARGS_COVERAGE = {
     f"{idestimands}_{constraint}": _Arguments(
         idestimands=idestimands,
         constraint=constraint,  # type: ignore[arg-type]
-        path_to_plot=BLD
-        / "figures"
-        / "pyvmte_sims"
+        problematic_region=grid_by_constraint[constraint],
+        path_to_plot=plot_dir
         / f"sims_simple_model_by_late_{idestimands}_{constraint}_coverage.png",
+        path_to_plot_problematic_region=plot_dir
+        / (
+            f"sims_simple_model_by_late_{idestimands}_{constraint}"
+            "_coverage_problematic_region.png"
+        ),
     )
     for idestimands in idestimands_to_plot
     for constraint in constraints_to_plot
@@ -72,7 +82,9 @@ for id_, kwargs in ID_TO_KWARGS_COVERAGE.items():
     def task_plot_pyvmte_sims_by_late_coverage(  # noqa: PLR0915
         idestimands: str,
         constraint: str,
+        problematic_region: np.ndarray,
         path_to_plot: Annotated[Path, Product],
+        path_to_plot_problematic_region: Annotated[Path, Product],
         path_to_sims_combined: Path = BLD
         / "data"
         / "pyvmte_simulations"
@@ -82,8 +94,11 @@ for id_, kwargs in ID_TO_KWARGS_COVERAGE.items():
         / "solutions"
         / "solutions_simple_model_combined.pkl",
         bfunc_type: str = "bernstein",
+        confidence_interval: str | None = None,
     ) -> None:
         """Plot simple model by LATE for different restrictions: coverage."""
+        del confidence_interval
+
         df_sims_combined = pd.read_pickle(path_to_sims_combined)
         df_sols_combined = pd.read_pickle(path_to_sols_combined)
 
@@ -116,7 +131,7 @@ for id_, kwargs in ID_TO_KWARGS_COVERAGE.items():
                 df_sims_combined["confidence_interval"] == confidence_interval
             ]
 
-            if constraint is not None:
+            if constraint != "none":
                 df_plot = df_plot[df_plot[constraint] == _constr_vals[constraint]]
             else:
                 # Select columns where all three constraints are None
@@ -147,6 +162,7 @@ for id_, kwargs in ID_TO_KWARGS_COVERAGE.items():
                     go.Scatter(
                         x=df_plot_num_obs["late_complier"],
                         y=df_plot_num_obs["covers_true_param"],
+                        mode="markers+lines",
                         name=f"N = {num_obs}",
                         legendgroup=confidence_interval,
                         legendgrouptitle={
@@ -161,10 +177,10 @@ for id_, kwargs in ID_TO_KWARGS_COVERAGE.items():
                             "dash": num_of_obs_to_dash[num_obs],
                         },
                         marker={
+                            "size": 5,
                             "color": confidence_interval_to_color_marker[
                                 confidence_interval
                             ],
-                            "size": 10,
                         },
                     ),
                 )
@@ -175,7 +191,7 @@ for id_, kwargs in ID_TO_KWARGS_COVERAGE.items():
 
         df_plot_sol = df_sols_combined[df_sols_combined["bfunc_type"] == bfunc_type]
 
-        if constraint is not None:
+        if constraint != "none":
             df_plot_sol = df_plot_sol[df_plot_sol["constraint_type"] == constraint]
             df_plot_sol = df_plot_sol[
                 df_plot_sol["constraint_val"] == _constr_vals[constraint]
@@ -252,7 +268,7 @@ for id_, kwargs in ID_TO_KWARGS_COVERAGE.items():
             showarrow=False,
             xref="paper",
             yref="paper",
-            x=1,
+            x=1.2,
             y=-0.21,
             # Right aligned
             align="right",
@@ -273,22 +289,36 @@ for id_, kwargs in ID_TO_KWARGS_COVERAGE.items():
 
         write_image(fig, path_to_plot, scale=2)
 
+        # Restrict x-axis to problematic region
+        fig.update_xaxes(range=[np.min(problematic_region), np.max(problematic_region)])
+
+        write_image(fig, path_to_plot_problematic_region, scale=2)
+
 
 # --------------------------------------------------------------------------------------
 # Plot Means
 # --------------------------------------------------------------------------------------
 
 ID_TO_KWARGS_MEANS = {
-    f"{idestimands}_{constraint}": _Arguments(
+    f"{idestimands}_{constraint}_{confidence_interval}": _Arguments(
+        confidence_interval=confidence_interval,
         idestimands=idestimands,
         constraint=constraint,  # type: ignore[arg-type]
-        path_to_plot=BLD
-        / "figures"
-        / "pyvmte_sims"
-        / f"sims_simple_model_by_late_{idestimands}_{constraint}_means.png",
+        problematic_region=grid_by_constraint[constraint],
+        path_to_plot=plot_dir
+        / (
+            f"sims_simple_model_by_late_{idestimands}_{constraint}_means_"
+            f"{confidence_interval}.png"
+        ),
+        path_to_plot_problematic_region=plot_dir
+        / (
+            f"sims_simple_model_by_late_{idestimands}_{constraint}_means_"
+            f"problematic_region_{confidence_interval}.png"
+        ),
     )
     for idestimands in idestimands_to_plot
     for constraint in constraints_to_plot
+    for confidence_interval in ["bootstrap", "subsampling"]
 }
 
 for id_, kwargs in ID_TO_KWARGS_MEANS.items():
@@ -296,9 +326,12 @@ for id_, kwargs in ID_TO_KWARGS_MEANS.items():
     @pytask.mark.wip
     @task(id=id_, kwargs=kwargs)  # type: ignore[arg-type]
     def task_plot_pyvmte_sims_by_late_means(
+        confidence_interval: str,
         idestimands: str,
         constraint: str,
+        problematic_region: np.ndarray,
         path_to_plot: Annotated[Path, Product],
+        path_to_plot_problematic_region: Annotated[Path, Product],
         path_to_sims_combined: Path = BLD
         / "data"
         / "pyvmte_simulations"
@@ -372,10 +405,10 @@ for id_, kwargs in ID_TO_KWARGS_MEANS.items():
         num_of_obs_to_dash = {1_000: "solid", 10_000: "dash"}
 
         df_plot = df_sims_combined[
-            df_sims_combined["confidence_interval"] == "bootstrap"
+            df_sims_combined["confidence_interval"] == confidence_interval
         ]
 
-        if constraint is not None:
+        if constraint != "none":
             df_plot = df_plot[df_plot[constraint] == _constr_vals[constraint]]
         else:
             # Select columns where all three constraints are None
@@ -397,19 +430,22 @@ for id_, kwargs in ID_TO_KWARGS_MEANS.items():
             for num_obs in df_plot["num_obs"].unique():
                 df_plot_num_obs = df_plot[df_plot["num_obs"] == num_obs]
 
+                df_plot_num_obs = df_plot_num_obs.sort_values("late_complier")
+
                 fig.add_trace(
                     go.Scatter(
                         x=df_plot_num_obs["late_complier"],
                         y=df_plot_num_obs[col],
+                        mode="markers+lines",
                         name=f"N = {num_obs}",
                         legendgroup=col_to_legend_group[col],
                         legendgrouptitle={
                             "text": col_to_legend_group[col],
                         },
                         marker={
+                            "size": 5,
                             "color": col_to_color_marker[col],
                             "symbol": marker_symbol_to_num_obs[num_obs],
-                            "size": 10,
                         },
                         line={
                             "color": col_to_color_line[col],
@@ -426,7 +462,7 @@ for id_, kwargs in ID_TO_KWARGS_MEANS.items():
 
         df_plot_sol = df_sols_combined[df_sols_combined["bfunc_type"] == bfunc_type]
 
-        if constraint is not None:
+        if constraint != "none":
             df_plot_sol = df_plot_sol[df_plot_sol["constraint_type"] == constraint]
             df_plot_sol = df_plot_sol[
                 df_plot_sol["constraint_val"] == _constr_vals[constraint]
@@ -452,20 +488,22 @@ for id_, kwargs in ID_TO_KWARGS_MEANS.items():
                     legendgroup=bfunc_type,
                     legendgrouptitle={"text": legend_title},
                     line={
-                        "color": "red",
+                        "color": "rgba(255, 0, 0, 0.5)",
                         "dash": bound_to_dash[bound],
                     },
                 ),
             )
 
         _subtitle = (
-            f" <br><sup> Identified Estimands: {idestimands.capitalize()},"
-            f" Nominal Coverage = {1 - alpha} </sup>"
-            f" <br><sup> Shape constraints: {_constr_subtitle[constraint]} </sup>"
+            f" <br><supConfidence Interval: {confidence_interval.capitalize()},"
+            f" <br>Identified Estimands: {idestimands.capitalize()},"
+            f" <br>Nominal Coverage = {1 - alpha}"
+            f" <br>Shape constraints: {_constr_subtitle[constraint]} </sup>"
         )
 
         fig.update_layout(
-            title="Coverage for Target LATE(0.4, 0.8) for Binary-IV Model" + _subtitle,
+            title="Mean Estimates for Target LATE(0.4, 0.8) for Binary-IV Model"
+            + _subtitle,
             xaxis_title="Identified LATE",
             yaxis_title="Means",
         )
@@ -486,7 +524,7 @@ for id_, kwargs in ID_TO_KWARGS_MEANS.items():
             showarrow=False,
             xref="paper",
             yref="paper",
-            x=1,
+            x=1.2,
             y=-0.21,
             # Right aligned
             align="right",
@@ -496,3 +534,7 @@ for id_, kwargs in ID_TO_KWARGS_MEANS.items():
         fig.update_xaxes(range=[-0.1, 1])
 
         write_image(fig, path_to_plot, scale=2)
+
+        fig.update_xaxes(range=[np.min(problematic_region), np.max(problematic_region)])
+
+        write_image(fig, path_to_plot_problematic_region, scale=2)
