@@ -414,7 +414,7 @@ and the coefficients are the individual contributions to the target parameter
 \end{equation*}
 Both of these are vectors of length $2K$.
 
-Next, we have an equality constraint for each point-identified estimand $s\in\mathcal{S}$:
+Next, we have an equality constraint for each point-identified estimand $s\in\mathcal{S}$.
 \begin{equation*}
   a_{eq}^s =
   \begin{bmatrix}
@@ -430,7 +430,8 @@ Note that we changed the map from $\Gamma^*_d$ to $\Gamma_{ds}$. Stacking these 
     a_{eq}^\mathcal{S} \\
   \end{bmatrix},
 \end{equation*}
-which is a matrix of dimension $(\mathcal{S}\times 2K)$. The constraint values are given by the point-identified estimands:
+which is a matrix of dimension $(S\times 2K)$, where, for brevity, we denote the \textit{number} of identified estimands $|\mathcal{S}| = S$.
+The constraint values are given by the point-identified estimands:
 \begin{equation*}
   b_{eq} =
   \begin{bmatrix}
@@ -530,7 +531,7 @@ Note that $\mathcal{M}$ again implicitly encodes any bounds and other shape rest
 Further, as pointed out in~\cite{mogstad2018using}, we need to introduce dummy variables to mimic the absolute values in the objective.
 
 \paragraph{Absolute Values in the Objective}
-With $|\mathcal{S}| = 1$, that is a single point-identified estimand, we have an objective of the following form:
+With $S = 1$, that is a single point-identified estimand, we have an objective of the following form:
 \begin{equation*}
   \inf_m |X_1|
 \end{equation*}
@@ -558,7 +559,7 @@ Plugging in the original expression for $X_1$ we get
   -(\hat{\Gamma}_1(m) - \hat{\beta}_1) \leq X_1',
 \end{align*}
 where minimization is now over the basis coefficients (appearing in the constraints) and the dummy variables (appearing in the objective).
-Hence, we now have $2K + |\mathcal{S}|$ choice variables. Denote $S = |\mathcal{S}|$ for brevity.
+Hence, we now have $2K + S$ choice variables.
 
 The vector of choice variables is given by
 \begin{equation*}
@@ -570,7 +571,7 @@ The vector of choice variables is given by
 with corresponding coefficients
 
 \begin{equation*}
-  c =
+  c^{fs} =
   \begin{bmatrix}
      \mathbf{0}', \mathbf{0}', \mathbf{1}'
   \end{bmatrix}',
@@ -606,23 +607,55 @@ Denote the minimal deviation from the first step program, that is the value func
 
 The choice variables in the second-step program are again only the basis function coefficients:
 \begin{equation*}
-  x =
+  x^{ss} =
   \begin{bmatrix}
-     \theta_{01} & \cdots & \theta_{0K} & \theta_{11} & \cdots & \theta_{1K}
+     \theta_{01} & \cdots & \theta_{0K} & \theta_{11} & \cdots & \theta_{1K} & X_1' & \cdots & X_S'
   \end{bmatrix}',
 \end{equation*}
 and the coefficients are the estimated individual contributions to the target parameter
 \begin{equation*}
-  c =
+  c^{ss} =
   \begin{bmatrix}
-     \hat{\Gamma}_0^*(b_{01}) & \cdots & \hat{\Gamma}_0^*(b_{0K}) & \hat{\Gamma}_1^*(b_{11}) & \cdots & \hat{\Gamma}_1^*(b_{1K})
+     \hat{\Gamma}_0^*(b_{01}) & \cdots & \hat{\Gamma}_0^*(b_{0K}) & \hat{\Gamma}_1^*(b_{11}) & \cdots & \hat{\Gamma}_1^*(b_{1K}) & \mathbf{0}
   \end{bmatrix}'.
 \end{equation*}
-Both of these are vectors of length $2K$.
+Both of these are vectors of length $2K + S$.
 
 Note that the problem again features the $l_1$ norm, this time in the constraints.
 Because we have a sum over multiple absolute values, we again introduce a dummy variable and two constraints that behaves like the absolute value for each point-identified estimand.
+The only difference to the first-step constraint matrix is then the additional presence of the (relaxed) constraint on the $l_1$ norm:
 
+\begin{equation*}
+  a_{ub}^{ss, 1} = \begin{bmatrix}
+    \mathbf{0} & \mathbf{1}
+  \end{bmatrix}
+  \leq \hat{\mu} + \kappa_n.
+\end{equation*}
+Here the first vector of zeros is of length $2K$ (the basis functions) and the vector of ones of length $S$ (the dummy variables).
+
+The full second-step upper ound matrix is then given by
+\begin{equation*}
+  A_{ub}^{ss} = \begin{bmatrix}
+    a_{ub}^{ss, 1} \\
+    \mathbf{A_{ub,1}^{fs}} \\
+    \mathbf{A_{ub,2}^{fs}} \\
+  \end{bmatrix}
+  \leq
+  \begin{bmatrix}
+    \hat{\mu} + \kappa_n \\
+    \mathbf{\hat{\beta}} \\
+    - \mathbf{\hat{\beta}} \\
+  \end{bmatrix}
+  = b_{ub}^{ss}.
+\end{equation*}
+
+The full program is then
+\begin{align}
+  & \min_x \hat{c}^{ss'}x^{ss} \text{ subject to }\\
+  & \hat{A}_{ub}^{ss} \leq \hat{b}_{ub}^{ss} \\
+  & \mathbf{0} \leq x^{ss} \leq \mathbf{1}.
+\end{align}
+where $\hat{\cdot}$ is used to emphasize, which parts of the problem are estimated from the data.
 
 \subsubsection{Shape Constraints}
 Shape constraints need to be added to both the first and second step program.
