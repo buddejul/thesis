@@ -131,6 +131,13 @@
 % \theoremstyle{remark}
 % \newtheorem*{remark}{Remark}
 
+% https://tex.stackexchange.com/questions/24840/use-courier-font-inline-on-text
+\usepackage{courier}
+
+% https://tex.stackexchange.com/questions/639234/how-to-put-braces-over-certain-parts-of-matrices
+\usepackage{nicematrix}
+
+
 % set header and footer
 \pagestyle{fancy}
 \fancyhf{}                           % clear all header and footer fields
@@ -339,5 +346,294 @@ In these cases, as was shown in~\cite{dumbgen1993nondifferentiable} and later~\c
 
 \bibliographystyle{plain}
 \bibliography{refs.bib}
+
+\appendix
+
+\section{Linear Programs}
+This section presents the exact formulation of the linear programs corresponding to how most solvers specify linear programs.
+I illustrate the actual programs in the case of binary IV model with an identified complier LATE/IV slope coefficient.
+[Add programs for sharp identified set?]
+
+\subsection{Identification}
+
+The program for the upper bound is formulated as follows in~\cite{mogstad2018using}:
+\begin{align}
+  \overline{\beta}^* \equiv \sup_{(\theta_0, \theta_1)\in\Theta} \sum_{k=1}^{K_0}\theta_{0k}\Gamma^*_0(b_{0k}) + \sum_{k=1}^{K_1}\theta_{1k}\Gamma^*_1(b_{1k}) \\
+  \text{subject to} \qquad \sum_{k=1}^{K_0}\theta_{0k}\Gamma_{0s}(b_{0k}) + \sum_{k=1}^{K_1}\theta_{1k}\Gamma_{1s}(b_{1k}) = \beta_s \text{ for } s \in \mathcal{S}.
+\end{align}
+
+In words: We maximize the target parameter, where we maximize over a basis function approximation with coefficients in a set $\Theta$.
+The first summation term corresponds to $m_0$, the second to $m_1$.
+We can separately parametrize $m_0$ and $m_1$ as reflected by the potentially different number of basis coefficients $K_0$ and $K_1$.
+$\Theta$ can implicitly incorporate other constraints, like shape restrictions on $m_0, m_1$ which will be made explicit below.
+It will at least entail the restrictions that $m_0, m_1$ are bounded by the support of the outcome $Y$, which we take to be $[0,1]$ without loss of generality.
+
+Explicitly stated in the second line are the restrictions that for each point-identified estimand $s\in\mathcal{S}$ the maximizers $(\theta_0, \theta_1)$ must recover the point-identified parameter.
+
+\paragraph{Matrix Form}
+I next explicitly define the matrices typically used to describe a linear program.
+In the so-called \textit{standard form}, all linear programs are described by:
+(1) A \textit{maximization} objective; (2) inequality constraints with upper bounds; (3) non-negativity constraints on the choice variables.
+Hence, we have:
+
+\begin{align}
+  \max_x c'x \\
+  \text{ subject to } Ax\leq b, x\geq0
+\end{align}
+
+To keep the notation lighter, I instead reformulate the program in terms of:
+(1) A \textit{minimization} objective; (2) inequality constraints with upper bounds; (3) equality constraints; (4) lower and upper bounds on the choice variables.
+In this case, the program is:
+
+\begin{align}
+  \min_x c'x \\
+  \text{ subject to } A_{ub}x \leq b_{ub}, A_{eq} = b_{eq}, l\leq x\leq u.
+\end{align}
+
+This is, for example, how the linear program is inputted into the \texttt{scipy} \texttt{linprog} solver.
+The program can easily be transformed to standard form by: (1) taking the negative of the objective, (2) reformulating equalities as two inequalities, and (3) expressing variables without positivity constraints as differences of two non-negative variables.
+\texttt{Scipy}, for example, performs these operations in addition to other pre-solve checks for potential simplifications in the background.
+It then passes the standard form program to a solver and post-processes the result to a solution of the original problem.
+
+For simplicity, in the following we take $K_0 = K_1 = K$. This is the case for non-parametric exact bounds using constant splines and also parametric cases there seems little reason to have different numbers of basis polynomials.
+Further, it simplifies the formulation of shape restrictions.
+
+The choice variables are the basis function coefficients
+\begin{equation*}
+  x =
+  \begin{bmatrix}
+     \theta_{01} & \cdots & \theta_{0K} & \theta_{11} & \cdots & \theta_{1K}
+  \end{bmatrix}',
+\end{equation*}
+and the coefficients are the individual contributions to the target parameter
+\begin{equation*}
+  c =
+  \begin{bmatrix}
+     \Gamma_0^*(b_{01}) & \cdots & \Gamma_0^*(b_{0K}) & \Gamma_1^*(b_{11}) & \cdots & \Gamma_1^*(b_{1K})
+  \end{bmatrix}'.
+\end{equation*}
+Both of these are vectors of length $2K$.
+
+Next, we have an equality constraint for each point-identified estimand $s\in\mathcal{S}$:
+\begin{equation*}
+  a_{eq}^s =
+  \begin{bmatrix}
+     \Gamma_{0s}(b_{01}) & \cdots & \Gamma_{0s}(b_{0K}) & \Gamma_{1s}(b_{11}) & \cdots & \Gamma_{1s}(b_{1K})
+  \end{bmatrix}.
+\end{equation*}
+Note that we changed the map from $\Gamma^*_d$ to $\Gamma_{ds}$. Stacking these row-vectors gives the equality constraint matrix:
+\begin{equation*}
+  A_{eq}^s =
+  \begin{bmatrix}
+    a_{eq}^1 \\
+    \vdots \\
+    a_{eq}^\mathcal{S} \\
+  \end{bmatrix},
+\end{equation*}
+which is a matrix of dimension $(\mathcal{S}\times 2K)$. The constraint values are given by the point-identified estimands:
+\begin{equation*}
+  b_{eq} =
+  \begin{bmatrix}
+    \beta_1, \ldots, \beta_\mathcal{S}
+  \end{bmatrix}'.
+\end{equation*}
+
+
+A set of restrictions to achieve a minimal degree of identification is $y_l \leq m_d \leq y_d$ for $d=0,1$ and $y_l, y_u$ the lower and uppre bound of the support of $Y$.
+Taking $y_l = 0, y_u=1$, for typical shape constraints --- constant splines or Bernstein polynomials --- this amounts to the restrictions $0\leq \theta_{dj} \leq 1$ for $d=0,1, j=1,\ldots,K$.
+Hence, we have the restrictions
+\begin{equation*}
+  l = \mathbf{0} \leq x \leq \mathbf{1} = u,
+\end{equation*}
+where $l$ and $u$ are vectors of length $2K$ each.
+
+Finally, a number of shape restrictions may be added in the form of inequality bounds $A_{ub} \leq b_{ub}$.
+The following applies to constant splines and Bernstein polynomials, but might not hold for all possible types of basis functions.
+
+\paragraph{MTR Monotonicity}
+To enforce a \textit{decreasing} MTR function $m_d(u)$ for constant splines, it is immediate that $\theta_{d1} \geq \theta_{d2} \geq \cdots \geq \theta_{dK}$, given that the functions are ordered from left to right over the partition of $u$, which we always assume to be the case.
+For Bernstein polynomials this also holds, since they obey a monotonicity property: Whenever the basis coefficients $\theta_{dk}$ are decreasing over $k$, so is the resulting Bernstein polynomial (and the same for increasing).
+
+Hence, to enforce a decreasing MTR function for $d=0$ we add the following constraints:
+% \begin{equation*}
+%   A_{eq}^s =
+%   \begin{bmatrix}
+%     -1 & 1 & 0 & \cdots & 0 & 0\\
+%     0 & -1 & 1 & \cdots & 0 & 0\\
+%     \vdots & & & \vdots \\
+%     0 & 0 & 0 & \cdots & -1 & 1\\
+%   \end{bmatrix} + \mathbf{0}
+% \end{equation*}
+
+\begin{equation*}
+  A_{ub} =
+  \begin{bNiceArray}{ccccccc}
+    -1 & 1 & 0 & \cdots & 0 & 0 & \Block{4-1}<\Large>{\mathbf{0}}\\
+    0 & -1 & 1 & \cdots & 0 & 0\\
+    \vdots & & & \vdots \\
+    0 & 0 & 0 & \cdots & -1 & 1\\
+  \end{bNiceArray} \leq \mathbf{0} = b_{ub}.
+\end{equation*}
+Here, the first block is of dimension $(K-1) \times K$ reflecting the inequalities on the basis functions for $m_0(u)$.
+The second block are zeros of dimension $(K-1) \times K$ on the basis functions for $m_1(u)$.
+To add a similar restrictions on $m_1(u)$ we can switch the blocks.
+To enforce \textit{increasing} MTR functions $A_{ub}$ above can be multiplied by $-1$ to flip the inequalities.
+$b_{ub}$ has length $(K-1)$.
+
+\paragraph{MTE Monotonicity}
+To enforce a \textit{decreasing} MTE function (the difference $m_1(u) - m_0(u)$) we require
+$\theta_{11} - \theta_{01} \geq \theta_{12} - \theta_{02} \geq \cdots \geq \theta_{1K} - \theta_{0K}$.
+For both constant splines and Bernstein polynomials this is immediate, since the difference $m_1(u) - m_0(u)$ implies a set of basis functions with the above differences as coefficients, which, hence, obey the same monotonicity conditions.
+
+\begin{equation*}
+  A_{ub} =
+  \begin{bmatrix}
+    \ldots
+  \end{bmatrix} \leq \mathbf{0} = b_{ub}
+\end{equation*}
+
+\paragraph{Monotone Treatment Response}
+Monotone treatment response requires $m_1(u) - m_0(u) \geq 0$ (positive) or $m_1(u) - m_0(u) \leq 0$ (negative) for all $u$.
+Hence, we require $\theta_{1j} - \theta_{0j} \geq 0$ for all $j=1,\ldots,K$ for positive responses and reversed for negative.
+\begin{equation*}
+  A_{ub} =
+  \begin{bmatrix}
+    \ldots
+  \end{bmatrix} \leq \mathbf{0} = b_{ub}
+\end{equation*}
+
+\subsection{Estimation}
+Estimation is more involved and features solving two linear programs.
+~\cite{mogstad2018using} propose a two-step estimator.
+The reason is, that in sample we might not always expect all equality constraints for the identified estimands to be satisfied.
+To allow for some sampling uncertainty, in a first step we compute the minimal achievable deviations from all point-identified estimands (as measured by the $l_1$ norm).
+In the second step, we then restrict the set of allowed MTR functions to maximize over to those achieving this minimal deviation plus some tolerance.
+In this way, the program always has a solution, meaning our estimators always exists.
+
+This approach is stated in equation (27) of~\cite{mogstad2018using}:
+\begin{align}
+  & \hat{\overline{\beta}^*} \equiv \sup_{m\in \mathcal{M}}\hat{\Gamma}^*(m) \\
+  & \text{ subject to } \sum_{s\in\mathcal{S}}|\hat{\Gamma}_s(m) - \hat{\beta}_s| \leq \inf_{m'\in \mathcal{M}} \sum_{s\in\mathcal{S}}|\hat{\Gamma}_s(m') - \hat{\beta}_s| + \kappa_n
+\end{align}
+
+Note we have a single constraint for the $l_1$ norm.
+The $\inf$ on the right-hand side is the first-step linear program and we allow for tolerance $\kappa_n$ to enlarge the set of possible solutions.
+
+\subsubsection{First Step Linear Program}
+The first step program is given by
+\begin{equation*}
+  \inf_{m'\in \mathcal{M}} \sum_{s\in\mathcal{S}}|\hat{\Gamma}_s(m') - \hat{\beta}_s|
+\end{equation*}
+
+We again rewrite it in the matrix form stated above.
+Note that $\mathcal{M}$ again implicitly encodes any bounds and other shape restrictions on the MTR functions.
+Further, as pointed out in~\cite{mogstad2018using}, we need to introduce dummy variables to mimic the absolute values in the objective.
+
+\paragraph{Absolute Values in the Objective}
+With $|\mathcal{S}| = 1$, that is a single point-identified estimand, we have an objective of the following form:
+\begin{equation*}
+  \inf_m |X_1|
+\end{equation*}
+
+where $X_1 = \hat{\Gamma}_1(m) - \hat{\beta}_1$.
+We now add a dummy variable $X_1'$ and two constraints to the model:
+\begin{align*}
+  X_1 \leq X_1', \\
+  -X_1 \leq X_1'.
+\end{align*}
+In the objective we replace the absolute value with the dummy:
+\begin{equation*}
+  \inf X_1'.
+\end{equation*}
+By going through all possible cases ($X_1=0, X_1<0, X_1>0$) it is easy to show,
+that $X_1'$ will behave like $|X_1|$.
+
+Having $|S|>1$ is then simply a matter of adding another dummy and two constraints per point-identified estimand.
+
+Plugging in the original expression for $X_1$ we get
+\begin{align*}
+  \inf X_1' \\
+  \text{ subject to }\\
+  \hat{\Gamma}_1(m) - \hat{\beta}_1 \leq X_1', \\
+  -(\hat{\Gamma}_1(m) - \hat{\beta}_1) \leq X_1',
+\end{align*}
+where minimization is now over the basis coefficients (appearing in the constraints) and the dummy variables (appearing in the objective).
+Hence, we now have $2K + |\mathcal{S}|$ choice variables. Denote $S = |\mathcal{S}|$ for brevity.
+
+The vector of choice variables is given by
+\begin{equation*}
+  x^{fs} =
+  \begin{bmatrix}
+     \theta_{01} & \cdots & \theta_{0K} & \theta_{11} & \cdots & \theta_{1K} & X_1' & \cdots & X_{S}
+  \end{bmatrix}',
+\end{equation*}
+with corresponding coefficients
+
+\begin{equation*}
+  c =
+  \begin{bmatrix}
+     \mathbf{0}', \mathbf{0}', \mathbf{1}'
+  \end{bmatrix}',
+\end{equation*}
+where the zeros on the basis functions are of length $K$ each and the $1$ on the dummies of length $S$.
+Both of these are vectors of length $2K + S$.
+
+
+To encode the first type of inequality for all $S$ we get the following inequality constraint matrix:
+\begin{equation*}
+  A_{ub, 1}^{fs} =
+  \begin{bmatrix}
+    \hat{\Gamma}_{01}(b_{01}) & \cdots & \hat{\Gamma}_{01}(b_{0K}) & \hat{\Gamma}_{11}(b_{11}) & \cdots & \hat{\Gamma}_{11}(b_{1K}) & -1 & 0 & \cdots & 0 \\
+    \vdots & & \vdots & \vdots &  & \vdots & \\
+    \hat{\Gamma}_{0S}(b_{01}) & \cdots & \hat{\Gamma}_{0S}(b_{0K}) & \hat{\Gamma}_{1S}(b_{11}) & \cdots & \hat{\Gamma}_{1S}(b_{1K}) & 0 & 0 & \cdots & -1 \\
+  \end{bmatrix}
+\end{equation*}
+which is of dimension $S\times (2K + S)$. The upper bounds are the estimated point-identified estimands:
+
+\begin{equation*}
+  b_{ub, 1}^{fs} =
+  \begin{bmatrix}
+    \hat{\beta}_1 & \cdots & \hat{\beta}_S
+  \end{bmatrix}'.
+\end{equation*}
+
+To encode the second type of constraint we multiply the first $2K$ columns of $A_{ub, 1}^{fs}$ as well as the upper bounds by $-1$.
+
+In the first step program, $c$ is a constant, while $A_{ub}^{fs}$ and $b_{ub}^{fs}$ need to be estimated from the data.
+
+\subsubsection{Second Step Linear Program}
+Denote the minimal deviation from the first step program, that is the value function, by $\mu$ (or $\hat{\mu}$, to emphasize the dependence on the data).
+
+The choice variables in the second-step program are again only the basis function coefficients:
+\begin{equation*}
+  x =
+  \begin{bmatrix}
+     \theta_{01} & \cdots & \theta_{0K} & \theta_{11} & \cdots & \theta_{1K}
+  \end{bmatrix}',
+\end{equation*}
+and the coefficients are the estimated individual contributions to the target parameter
+\begin{equation*}
+  c =
+  \begin{bmatrix}
+     \hat{\Gamma}_0^*(b_{01}) & \cdots & \hat{\Gamma}_0^*(b_{0K}) & \hat{\Gamma}_1^*(b_{11}) & \cdots & \hat{\Gamma}_1^*(b_{1K})
+  \end{bmatrix}'.
+\end{equation*}
+Both of these are vectors of length $2K$.
+
+Note that the problem again features the $l_1$ norm, this time in the constraints.
+Because we have a sum over multiple absolute values, we again introduce a dummy variable and two constraints that behaves like the absolute value for each point-identified estimand.
+
+
+\subsubsection{Shape Constraints}
+Shape constraints need to be added to both the first and second step program.
+All shape constraints are similar to the identification part, except for additional zero columns in $A_{ub}$ in the first step program due to the dummy variables.
+In particular, all of these constraints are non-random.
+
+
+\subsection{Illustration: Binary IV Model with Point-Identified LATE}
+
+
+\subsection{Illustration: Binary IV Model with Sharp Identified Set}
+
 
 \end{document}
