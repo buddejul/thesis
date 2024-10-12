@@ -495,7 +495,7 @@ for id_, kwargs in ID_TO_KWARGS_MEANS.items():
             )
 
         _subtitle = (
-            f" <br><supConfidence Interval: {confidence_interval.capitalize()},"
+            f" <br><sup>Confidence Interval: {confidence_interval.capitalize()},"
             f" <br>Identified Estimands: {idestimands.capitalize()},"
             f" <br>Nominal Coverage = {1 - alpha}"
             f" <br>Shape constraints: {_constr_subtitle[constraint]} </sup>"
