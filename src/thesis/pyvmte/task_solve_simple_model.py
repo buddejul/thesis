@@ -6,6 +6,7 @@ from typing import Annotated, NamedTuple
 
 import numpy as np
 import pandas as pd  # type: ignore[import-untyped]
+import pytask
 from pytask import Product, task
 from pyvmte.classes import Estimand  # type: ignore[import-untyped]
 from pyvmte.config import IV_SM  # type: ignore[import-untyped]
@@ -21,15 +22,15 @@ from thesis.pyvmte.pyvmte_sims_config import Y0_AT, Y0_NT, Y1_AT, Y1_NT
 # --------------------------------------------------------------------------------------
 # Task parameters
 # --------------------------------------------------------------------------------------
-num_gridpoints = 1000
-
-k_bernstein = 11
+num_gridpoints = 100
 
 u_hi_extra = 0.2
 
 shape_constraints = ("decreasing", "decreasing")
 mte_monotone = "decreasing"
 monotone_response = "positive"
+
+k_bernstein_to_solve = np.arange(2, 12)
 
 # --------------------------------------------------------------------------------------
 # Construct inputs
@@ -56,7 +57,6 @@ identified_late = [Estimand(esttype="late", u_lo=pscore_lo, u_hi=pscore_hi)]
 u_partition = np.unique(np.array([0, pscore_lo, pscore_hi, pscore_hi + u_hi_extra, 1]))
 
 bfuncs_const_spline = generate_constant_splines_basis_funcs(u_partition=u_partition)
-bfuncs_bernstein = generate_bernstein_basis_funcs(k=k_bernstein)
 
 
 def _at(u: float) -> bool:
@@ -101,6 +101,7 @@ class _Arguments(NamedTuple):
     idestimands: str
     constraint_type_to_arg: dict
     bfunc_type: str
+    k_bernstein: int | None
     path_to_data: Annotated[Path, Product]
     path_to_dicts: Annotated[Path, Product]
     num_gridpoints: int = num_gridpoints
@@ -113,36 +114,45 @@ _monotone_response = {"monotone_response": monotone_response}
 
 
 ID_TO_KWARGS = {
-    f"{bfunc}_{idestimands}_{constraint}": _Arguments(
+    f"{bfunc}_{idestimands}_{constraint}_{k_bernstein}": _Arguments(
         idestimands=idestimands,
         bfunc_type=bfunc,
         constraint_type_to_arg=constraint,  # type: ignore[arg-type]
         path_to_data=BLD
         / "data"
         / "solutions"
-        / f"solution_simple_model_{bfunc}_{idestimands}_{constraint}.pkl",
+        / f"solution_simple_model_{bfunc}_{idestimands}_{constraint}_"
+        f"{k_bernstein}.pkl",
         path_to_dicts=BLD
         / "data"
         / "solutions"
-        / f"full_solution_dict_simple_model_{bfunc}_{idestimands}_{constraint}.pkl",
+        / f"full_solution_dict_simple_model_{bfunc}_{idestimands}_{constraint}_"
+        f"{k_bernstein}.pkl",
+        k_bernstein=k_bernstein,
     )
     for bfunc in ["constant", "bernstein"]
     for idestimands in ["late", "sharp"]
     for constraint in [_none, _shape_constr, _mte_monotone, _monotone_response]
+    for k_bernstein in (k_bernstein_to_solve if bfunc == "bernstein" else [None])  # type: ignore[attr-defined]
 }
 
 for id_, kwargs in ID_TO_KWARGS.items():
 
     @task(id=id_, kwargs=kwargs)  # type: ignore[arg-type]
+    @pytask.mark.solve
     def task_solve_simple_model(
         num_gridpoints: int,
         constraint_type_to_arg: dict,
         bfunc_type: str,
         idestimands: str,
+        k_bernstein: int,
         path_to_data: Annotated[Path, Product],
         path_to_dicts: Annotated[Path, Product],
     ) -> None:
         """Solve the simple model for a range of parameter values."""
+        if bfunc_type == "bernstein":
+            bfuncs_bernstein = generate_bernstein_basis_funcs(k=k_bernstein)
+
         beta_late = np.linspace(-1, 1, num_gridpoints)
 
         # Construct y1_c and y0_c such that beta_late = y1_c - y0_c but both are between
