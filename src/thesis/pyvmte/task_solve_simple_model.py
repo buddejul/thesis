@@ -183,11 +183,16 @@ for id_, kwargs in ID_TO_KWARGS.items():
                 m1_dgp=_m1,
                 **constraint_type_to_arg,
             )
-            res = {"upper_bound": res.upper_bound, "lower_bound": res.lower_bound}
 
-            results.append(res)
+            results.append(
+                {"upper_bound": res.upper_bound, "lower_bound": res.lower_bound},
+            )
 
             _b_late = y1_c_val - y0_c_val
+
+            # Replace the basis_funcs attribute, cannot be pickled.
+            res = res._replace(basis_funcs=None)
+
             results_full[_b_late] = res
 
         # Put into pandas DataFrame and save to disk
