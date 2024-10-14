@@ -1,4 +1,11 @@
-\documentclass[11pt,a4paper,english]{article} %document type and language
+% Thesis guidelines:
+% - 40 pages including graphs, graphics and pictures, TOC/appendix/bibliography not counted
+% - 1.5 line-spacing
+\documentclass[12pt,a4paper,english]{article} %document type and language
+
+\usepackage[onehalfspacing]{setspace}
+% \linespread{1.5}
+
 \usepackage[utf8]{inputenc}	% set character set to support some UTF-8
 \usepackage{babel} 	% multi-language support
 % \usepackage{sectsty}	% allow redefinition of section command formatting
@@ -9,7 +16,7 @@
 \usepackage{enumitem}	% more list formatting options
 \usepackage{tocloft}	% redefine table of contents, new list like objects
 
-\usepackage[centering,noheadfoot,margin=1in]{geometry}
+\usepackage[centering,noheadfoot,left=3cm, right=2cm, top=2cm, bottom=2cm]{geometry}
 
 %set TOC margins
 \setlength{\cftbeforesecskip}{15pt} % skip in TOC
@@ -105,7 +112,7 @@
 \usepackage{float}     % floats
 \usepackage{fancyhdr}  % header and footer
 % HACK: https://tex.stackexchange.com/questions/664532/fancyhr-warning-footskip-is-too-small
-\setlength{\footskip}{14pt}
+\setlength{\footskip}{15pt}
 
 % default path for figures
 \graphicspath{{figures/}}
@@ -148,6 +155,7 @@
 \author{Julian Budde}
 \date{\today}
 \begin{document}
+
 \maketitle
 
 \begin{abstract}
@@ -159,7 +167,23 @@
 	Third, for a number of empirically relevant settings I conduct novel simulation studies for the MTE model comparing competing inference methods.
 \end{abstract}
 
-Main paper:~\cite{mogstad2018using}.
+\clearpage
+\newpage
+
+\tableofcontents
+
+\clearpage
+\newpage
+
+\listoftables
+
+\clearpage
+\newpage
+
+\listoffigures
+
+\clearpage
+\newpage
 
 \section{Introduction}
 
@@ -207,8 +231,10 @@ Usually, this \textit{identified set} will be a closed interval on the real line
 \end{equation*}
 where we emphasize the dependence of the upper and lower bound of the identified set on the point-identified parameter $\beta_s$.
 
-\subsection{Solution}
-While the identified set is usually computed via a linear program, in the simple case considered here with a single point-identified parameter the identified has an intuitive and easy to compute form.
+\subsection{Solution: Non-parametric Bounds}
+While the identified set is usually computed via a linear program, in the simple case considered here with a single point-identified parameter the identified set has an intuitive and easy to compute form.
+Note the following solutions are referred to as \textit{non-parametric} in~\cite{mogstad2018using}, that is, they do not impose any parametric assumptions on the underlying MTR functions.
+The corresponding linear program solution can be achieved by using constant splines defined on the grid $[0, p(0), p(1), p(1) + \overline{u}, 1]$.
 
 Denote by $\beta_{\overline{u}}$ the LATE for the population of never-takers for which we want to extend the treatment, i.e.
 \begin{equation*}
@@ -297,19 +323,11 @@ and
 
 Hence, both bounds exhibit a kink at $\beta_s=0$.
 In these cases, as was shown in~\cite{dumbgen1993nondifferentiable} and later~\cite{fang2019infdirdiff}, non-differentiability at the kink renders the non-parametric bootstrap invalid.
+However, other methods have been deviced for this case. For example,~\cite{fang2019infdirdiff} and~\cite{hong2018numerical} extend the delta method to the case of functions that are only directionally differentiable, such as the ones with a kink shown above.
+Further, subsampling is theoretically justified as long as the bounds of the identified set have \textit{any} limiting distribution.
+I consider these methods as well as the non-parametric bootstrap in more detail in Section~\ref{sec:inference_methods} and provide simulation evidence in a realistic setting in Section~\ref{sec:simulation_studies}.
 
-
-% Solution lower:
-% (_b_late >= 0) * (w * _b_late + (1 - w) * (_b_late - 1)) + (_b_late < 0) * (
-%         w * _b_late + (1 - w) * (-1)
-%     )
-
-% Solution upper:
-% return (_b_late >= 0) * (w * _b_late + (1 - w)) + (_b_late < 0) * (
-%   w * _b_late + (1 - w) * (1 + _b_late)
-% )
-
-\subsection{Problems}
+\subsection{Solutions}
 
 \paragraph{Problem I:\@ Non-differentiability}
 
@@ -323,7 +341,7 @@ In these cases, as was shown in~\cite{dumbgen1993nondifferentiable} and later~\c
 
 \subsection{Restrictions}
 
-\section{Inference Methods}
+\section{Inference Methods}\label{sec:inference_methods}
 
 \subsection{Resampling Methods: Non-parametric Bootstrap and Subsampling}
 
@@ -335,7 +353,7 @@ In these cases, as was shown in~\cite{dumbgen1993nondifferentiable} and later~\c
 
 \paragraph{Numerical Delta Method}
 
-\section{Simulation Studies}
+\section{Simulation Studies}\label{sec:simulation_studies}
 
 \subsection{Model Setting}
 
