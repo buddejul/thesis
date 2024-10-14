@@ -59,7 +59,7 @@ class _Arguments(NamedTuple):
     path_to_plot: Annotated[Path, Product]
     k_bernstein: int
     bounds_to_plot: tuple[str] = ("lower",)
-    num_grid_points: int = 1_000
+    num_grid_points: int = 2_500
 
 
 ID_TO_KWARGS = {
@@ -77,11 +77,12 @@ for id_, kwargs in ID_TO_KWARGS.items():
 
     @task(id=id_, kwargs=kwargs)  # type: ignore[arg-type]
     @pytask.mark.plot_for_paper
-    def task_plot_identification_binary_iv_with_bernstein(  # noqa: PLR0915
+    def task_plot_identification_binary_iv_with_bernstein(  # noqa: PLR0915, C901, PLR0912
         path_to_plot: Annotated[Path, Product],
         k_bernstein: int,
         bounds_to_plot: tuple[str],
         num_grid_points: int,
+        show_legend: bool = False,  # noqa: FBT001, FBT002
     ) -> None:
         """Plot bounds and bfunc coefs for binary IV model and Bernstein."""
         basis_funcs = generate_bernstein_basis_funcs(k_bernstein)
@@ -178,14 +179,18 @@ for id_, kwargs in ID_TO_KWARGS.items():
             cols = 2
 
         if num_bounds_to_plot == 1:
-            subplot_titles = ("Bound", "MTR d = 0", "MTR d = 1")
+            subplot_titles = (
+                f"{bounds_to_plot[0].capitalize()} Bound",
+                "Basis Coefficients for MTR d = 0",
+                "Basis Coefficients for MTR d = 1",
+            )
         else:
             subplot_titles = (  # type: ignore[assignment]
                 "Bounds",
-                "MTR d = 0",
-                "MTR d = 1",
-                "MTR d = 0",
-                "MTR d = 1",
+                "Basis Coefficients for MTR d = 0",
+                "Basis Coefficients for MTR d = 1",
+                "Basis Coefficients for MTR d = 0",
+                "Basis Coefficients for MTR d = 1",
             )
 
         fig = make_subplots(
@@ -201,6 +206,7 @@ for id_, kwargs in ID_TO_KWARGS.items():
                     y=data[f"{bound}_bound"],
                     mode="lines",
                     name=f"{bound.capitalize()} Bound",
+                    showlegend=False,
                 ),
                 row=1,
                 col=1,
@@ -252,8 +258,6 @@ for id_, kwargs in ID_TO_KWARGS.items():
 
         fig.update_xaxes(matches="x")
 
-        fig.update_yaxes(matches="y")
-
         # Make less wide
         fig.update_layout(width=800, height=800)
 
@@ -272,12 +276,34 @@ for id_, kwargs in ID_TO_KWARGS.items():
                 },
             )
 
-        subtitle = f"<br><sup>Bernstein Polynomial of Degree {k_bernstein}</sup>"
+        subtitle = (
+            f"<br><sup>Bernstein Polynomial of Degree {k_bernstein},"
+            f"{num_grid_points} Grid Points</sup>"
+        )
 
         fig.update_layout(
             title_text=(
                 "Identification Bounds and Basis Function Coefficients" + subtitle
             ),
         )
+
+        # Put legend below plot
+        fig.update_layout(
+            legend={
+                "orientation": "h",
+                "yanchor": "top",
+                "y": -0.2,
+                "xanchor": "center",
+                "x": 0.5,
+            },
+        )
+
+        # Adjust x-axis range for 2nd and 3rd row (MTR coefs are bounded between 0, 1)
+        fig.update_yaxes(range=[0, 1], row=2, col=1)
+        fig.update_yaxes(range=[0, 1], row=3, col=1)
+
+        # Turn off legend
+        if not show_legend:
+            fig.update_layout(showlegend=False)
 
         fig.write_image(path_to_plot)

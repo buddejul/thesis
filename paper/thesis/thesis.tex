@@ -91,13 +91,24 @@
 % Deactivate for now to avoid issues with equation* environment.
 % \usepackage{autonum}                       % only number referenced equations
 \usepackage{url}                           % URLs
-\usepackage{cite}                          % well formed numeric citations
+% Biblatex throws error when cite is used.
+% Similar warning is given by natbib.
+% \usepackage{cite}                          % well formed numeric citations
 
-% biblatex for references
+% % biblatex for references
 % \usepackage{biblatex}
 % \addbibresource{literature.bib}
-% csquotes recommended: https://tex.stackexchange.com/questions/229638/package-biblatex-warning-babel-polyglossia-detected-but-csquotes-missing
+% % csquotes recommended: https://tex.stackexchange.com/questions/229638/package-biblatex-warning-babel-polyglossia-detected-but-csquotes-missing
 % \usepackage{csquotes}
+% \addbibresource{refs.bib}
+
+% https://tex.stackexchange.com/questions/144764/author-year-citation-in-latex
+\usepackage[round]{natbib}
+
+% Avoid space before footnotes when \footnote{...} is on next line.
+% https://tex.stackexchange.com/questions/94563/new-line-for-footnote-without-blank-space
+\usepackage{xpatch}
+\xpretocmd{\footnote}{\unskip}{}{}
 
 % format hyperlinks
 \colorlet{linkcolour}{black}
@@ -327,7 +338,53 @@ However, other methods have been deviced for this case. For example,~\cite{fang2
 Further, subsampling is theoretically justified as long as the bounds of the identified set have \textit{any} limiting distribution.
 I consider these methods as well as the non-parametric bootstrap in more detail in Section~\ref{sec:inference_methods} and provide simulation evidence in a realistic setting in Section~\ref{sec:simulation_studies}.
 
-\subsection{Solutions}
+\subsection{Solutions: Bounds with Bernstein Polynomials}
+In most applications, the non-parametric identified set resulting from constant splines will features solutions, i.e. MTR functions, that exhibit jump discontinuities.
+[Maybe put a solution in the appendix similar to Bernstein figures?].
+The appeal of the MST framework is, that the MTR functions have direct economic interpretations that allow to place theoretical restrictions about which meaningful discussions are possible.
+In particular, in most cases a certain degree of smoothness in these functions seems reasonable.
+
+To implement this in a tractable manner,~\cite{mogstad2018using} propose to use Bernstein polynomials as basis polynomials for the MTR functions, because they exhibit many computational advantages.
+For example, shape restrictions, including monotonicity of the MTR or MTE functions as well as monotone treatment response, can be easily implemented in a linear program.
+\footnote{For details on the implementation of shape restrictions see Appendix Section~\ref{app_sec:linear_programs}.}
+
+The Bernstein polynomial of degree $k$ is given by the sum over $k+1$ basis polynomials:
+\begin{equation*}
+  B_k(x) := \sum_{v=0}^n c_v b_{v,n}(x) \qquad \text{ where } b_{v,n}(x) := \binom{n}{v} x^v(1-x)^{n-v}, \qquad v = 0, \ldots, k.
+\end{equation*}
+
+For example, for $k=2$, we have
+\begin{equation*}
+  B_2(x) = c_0 (1-x)^2 + c_1 2x(1-x) + c_2 x^2.
+\end{equation*}
+
+Using these basis polynomials, it is easy to construct a linear program such that the implied MTR functions are smooth over $[0,1]$ and have images in $[0,1]$ (or any other interval, for that matter).
+However, the value function of the linear program, that is the upper or lower bound of the identified set, can still be \textit{non-smoth} and feature kinks.
+
+To illustrate, I return to the binary-IV example discussed above for non-parametric bounds.
+Because the analytical solution is non-trivial to characterize for polynomials of degree $\geq2$, I instead repeatedly solve the linear program over a range of parameter values for the compliers LATE $\beta_s$.
+\footnote{For a precise statement of the problem see Section~\ref{sec:general_mte} and Appendix Section~\ref{app_sec:linear_programs} for the linear program.}
+While somewhat arbitrary, I report results for a lower, meaning more restrictive, polynomial of degree $2$ as well as an $11$th order polynomial similar to~\cite{mogstad2018using}.
+
+Figure
+
+\begin{figure}
+
+  \caption{Identified Sets for the Binary-IV Model with Bernstein Polynomial MTRs}\label{fig:id_set_binary_iv_bernstein}
+
+  \centering
+  \begin{subfigure}[b]{0.49\textwidth}
+      \centering
+      \includegraphics[width=\textwidth]{../../bld/figures/binary_iv/identification_with_bernstein_2.png}
+      \caption{Degree $k=3$}\label{fig:id_set_binary_iv_bernstein_k_2}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[b]{0.49\textwidth}
+      \centering
+      \includegraphics[width=\textwidth]{../../bld/figures/binary_iv/identification_with_bernstein_11.png}
+      \caption{Degree $k=11$}\label{fig:id_set_binary_iv_bernstein_k_11}
+  \end{subfigure}
+\end{figure}
 
 \paragraph{Problem I:\@ Non-differentiability}
 
@@ -361,13 +418,14 @@ I consider these methods as well as the non-parametric bootstrap in more detail 
 
 \subsection{Simulation Results}
 
-
-\bibliographystyle{plain}
+\bibliographystyle{abbrvnat}
 \bibliography{refs.bib}
+
+% \printbibliography % use this for biblatex
 
 \appendix
 
-\section{Linear Programs}
+\section{Linear Programs}\label{app_sec:linear_programs}
 This section presents the exact formulation of the linear programs corresponding to how most solvers specify linear programs.
 I illustrate the actual programs in the case of binary IV model with an identified complier LATE/IV slope coefficient.
 [Add programs for sharp identified set?]
