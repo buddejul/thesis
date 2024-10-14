@@ -29,8 +29,6 @@ from thesis.utilities import make_mtr_binary_iv
 if TYPE_CHECKING:
     from scipy.optimize import OptimizeResult  # type: ignore[import-untyped]
 
-b_late_grid = np.linspace(-1, 1, num=1000)
-
 target = Estimand(esttype="late", u_lo=0.4, u_hi=0.6, u_hi_extra=0.2)
 
 identified_estimands = SETUP_SM_IDLATE.identified_estimands
@@ -61,6 +59,7 @@ class _Arguments(NamedTuple):
     path_to_plot: Annotated[Path, Product]
     k_bernstein: int
     bounds_to_plot: tuple[str] = ("lower",)
+    num_grid_points: int = 1_000
 
 
 ID_TO_KWARGS = {
@@ -82,9 +81,12 @@ for id_, kwargs in ID_TO_KWARGS.items():
         path_to_plot: Annotated[Path, Product],
         k_bernstein: int,
         bounds_to_plot: tuple[str],
+        num_grid_points: int,
     ) -> None:
         """Plot bounds and bfunc coefs for binary IV model and Bernstein."""
-        basis_funcs = (generate_bernstein_basis_funcs(k_bernstein),)
+        basis_funcs = generate_bernstein_basis_funcs(k_bernstein)
+
+        b_late_grid = np.linspace(-1, 1, num=num_grid_points)
 
         # ------------------------------------------------------------------------------
         # Compute solutions
@@ -123,140 +125,159 @@ for id_, kwargs in ID_TO_KWARGS.items():
             optres_lower[beta_late] = _res.lower_optres
             optres_upper[beta_late] = _res.upper_optres
 
-            data = pd.DataFrame(
-                {
-                    "beta_late": b_late_grid,
-                    "lower_bound": res_lower_bounds,
-                    "upper_bound": res_upper_bounds,
-                },
+        # ------------------------------------------------------------------------------
+        # Collect Data
+        # ------------------------------------------------------------------------------
+        data = pd.DataFrame(
+            {
+                "beta_late": b_late_grid,
+                "lower_bound": res_lower_bounds,
+                "upper_bound": res_upper_bounds,
+            },
+        )
+        for bound in ["lower", "upper"]:
+            _optres = optres_lower if bound == "lower" else optres_upper
+            _mat = np.array([_optres[beta].x for beta in b_late_grid])
+            data = data.assign(
+                **{f"x_{i}_{bound}": _mat[:, i] for i in range(_mat.shape[1])},
             )
-            for bound in ["lower", "upper"]:
-                _optres = optres_lower if bound == "lower" else optres_upper
-                _mat = np.array([_optres[beta].x for beta in b_late_grid])
-                data = data.assign(
-                    **{f"x_{i}_{bound}": _mat[:, i] for i in range(_mat.shape[1])},
-                )
 
-            # Identify kinks in "lower_bound" by looking at changes in the first
-            # derivative. First, approximate the derivative by taking differences
+        # Identify kinks in "lower_bound" by looking at changes in the first
+        # derivative. First, approximate the derivative by taking differences
 
-            data["d_lower_bound"] = np.gradient(data["lower_bound"], b_late_grid)
-            data["d_lower_bound"]
+        data["d_lower_bound"] = np.gradient(data["lower_bound"], b_late_grid)
+        data["d_lower_bound"]
 
-            # Find the kinks by looking at changes in the first derivative larger than
-            # some epsilon Compute differences in the first derivative
-            data["dd_lower_bound"] = np.gradient(data["d_lower_bound"], b_late_grid)
+        # Find the kinks by looking at changes in the first derivative larger than
+        # some epsilon Compute differences in the first derivative
+        data["dd_lower_bound"] = np.gradient(data["d_lower_bound"], b_late_grid)
 
-            # Find the kinks
-            epsilon = 0.1
-            kinks = data.loc[
-                (data["dd_lower_bound"].abs() > epsilon),
-                ["beta_late", "lower_bound", "d_lower_bound", "dd_lower_bound"],
-            ]
+        # Find the kinks
+        epsilon = 0.1
+        kinks = data.loc[
+            (data["dd_lower_bound"].abs() > epsilon),
+            ["beta_late", "lower_bound", "d_lower_bound", "dd_lower_bound"],
+        ]
 
-            kinks_beta = kinks["beta_late"].to_numpy()
+        kinks_beta = kinks["beta_late"].to_numpy()
 
-            # --------------------------------------------------------------------------
-            # Figure
-            # --------------------------------------------------------------------------
+        # --------------------------------------------------------------------------
+        # Figure
+        # --------------------------------------------------------------------------
 
-            # Example usage
-            color_by_x_number = _generate_color_by_x_number(k_bernstein + 1)
+        # Example usage
+        color_by_x_number = _generate_color_by_x_number(k_bernstein + 1)
 
-            if len(bounds_to_plot) == 1:
-                rows = 3
-                cols = 1
+        num_bounds_to_plot = len(bounds_to_plot)
+
+        if num_bounds_to_plot == 1:
+            rows = 3
+            cols = 1
+        else:
+            rows = 3
+            cols = 2
+
+        if num_bounds_to_plot == 1:
+            subplot_titles = ("Bound", "MTR d = 0", "MTR d = 1")
+        else:
+            subplot_titles = (  # type: ignore[assignment]
+                "Bounds",
+                "MTR d = 0",
+                "MTR d = 1",
+                "MTR d = 0",
+                "MTR d = 1",
+            )
+
+        fig = make_subplots(
+            rows=rows,
+            cols=cols,
+            subplot_titles=subplot_titles,
+        )
+
+        for bound in bounds_to_plot:
+            fig.add_trace(
+                go.Scatter(
+                    x=data["beta_late"],
+                    y=data[f"{bound}_bound"],
+                    mode="lines",
+                    name=f"{bound.capitalize()} Bound",
+                ),
+                row=1,
+                col=1,
+            )
+
+        for bound in bounds_to_plot:
+            max_len = 2
+            if len(bounds_to_plot) == max_len:
+                row = 2 if bound == "lower" else 3
+                row_mtr0 = row
+                row_mtr1 = row
+                col_mtr0 = 1
+                col_mtr1 = 2
             else:
-                rows = 3
-                cols = 2
+                col_mtr0 = 1
+                col_mtr1 = 1
+                row_mtr0 = 2
+                row_mtr1 = 3
 
-            fig = make_subplots(
-                rows=rows,
-                cols=cols,
-                subplot_titles=("Bounds",),
-            )
-
-            for bound in bounds_to_plot:
+            for j in range(k_bernstein + 1):
                 fig.add_trace(
                     go.Scatter(
                         x=data["beta_late"],
-                        y=data[f"{bound}_bound"],
+                        y=data[f"x_{j}_{bound}"],
                         mode="lines",
-                        name=f"{bound}_bound",
+                        name=f"{j}",
+                        legendgroup="MTR0",
+                        legendgrouptitle={"text": "Solution: Basis Coefficients"},
+                        line={"color": color_by_x_number[j]},
                     ),
-                    row=1,
-                    col=1,
+                    row=row_mtr0,
+                    col=col_mtr0,
                 )
 
-            for bound in bounds_to_plot:
-                max_len = 2
-                if len(bounds_to_plot) == max_len:
-                    row = 2 if bound == "lower" else 3
-                    row_mtr0 = row
-                    row_mtr1 = row
-                    col_mtr0 = 1
-                    col_mtr1 = 2
-                else:
-                    col_mtr0 = 1
-                    col_mtr1 = 1
-                    row_mtr0 = 2
-                    row_mtr1 = 3
-
-                for j in range(k_bernstein + 1):
-                    fig.add_trace(
-                        go.Scatter(
-                            x=data["beta_late"],
-                            y=data[f"x_{j}_{bound}"],
-                            mode="lines",
-                            name=f"x_{j}",
-                            legendgroup="MTR0",
-                            legendgrouptitle={"text": "Coefs on MTR d = 0"},
-                            line={"color": color_by_x_number[j]},
-                            showlegend=False,
-                        ),
-                        row=row_mtr0,
-                        col=col_mtr0,
-                    )
-
-                    fig.add_trace(
-                        go.Scatter(
-                            x=data["beta_late"],
-                            y=data[f"x_{j + k_bernstein + 1}_{bound}"],
-                            mode="lines",
-                            name=f"x_{j + k_bernstein + 1}",
-                            legendgroup="MTR1",
-                            legendgrouptitle={"text": "Coefs on MTR d = 1"},
-                            line={"color": color_by_x_number[j]},
-                            showlegend=False,
-                        ),
-                        row=row_mtr1,
-                        col=col_mtr1,
-                    )
-
-            fig.update_xaxes(matches="x")
-
-            fig.update_yaxes(matches="y")
-
-            # Make less wide
-            fig.update_layout(width=800, height=800)
-
-            # Add vertical lines at the kinks to all subplots
-            for beta in kinks_beta:
-                fig.add_shape(
-                    {
-                        "type": "line",
-                        "x0": beta,
-                        "y0": 0,
-                        "x1": beta,
-                        "y1": 1,
-                        "xref": "x",
-                        "yref": "paper",
-                        "line": {"color": "rgba(0, 0, 0, 0.1)", "width": 1},
-                    },
+                fig.add_trace(
+                    go.Scatter(
+                        x=data["beta_late"],
+                        y=data[f"x_{j + k_bernstein + 1}_{bound}"],
+                        mode="lines",
+                        name=f"x_{j + k_bernstein + 1}",
+                        legendgroup="MTR1",
+                        legendgrouptitle={"text": "Coefs on MTR d = 1"},
+                        line={"color": color_by_x_number[j]},
+                        showlegend=False,
+                    ),
+                    row=row_mtr1,
+                    col=col_mtr1,
                 )
 
-            fig.update_layout(
-                title_text="Identification Bounds and Basis Function Coefficients",
+        fig.update_xaxes(matches="x")
+
+        fig.update_yaxes(matches="y")
+
+        # Make less wide
+        fig.update_layout(width=800, height=800)
+
+        # Add vertical lines at the kinks to all subplots
+        for beta in kinks_beta:
+            fig.add_shape(
+                {
+                    "type": "line",
+                    "x0": beta,
+                    "y0": 0,
+                    "x1": beta,
+                    "y1": 1,
+                    "xref": "x",
+                    "yref": "paper",
+                    "line": {"color": "rgba(0, 0, 0, 0.1)", "width": 1},
+                },
             )
 
-            fig.write_image(path_to_plot)
+        subtitle = f"<br><sup>Bernstein Polynomial of Degree {k_bernstein}</sup>"
+
+        fig.update_layout(
+            title_text=(
+                "Identification Bounds and Basis Function Coefficients" + subtitle
+            ),
+        )
+
+        fig.write_image(path_to_plot)

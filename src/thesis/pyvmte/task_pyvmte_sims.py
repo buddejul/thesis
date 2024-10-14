@@ -9,7 +9,7 @@ import pytask
 from pytask import Product, task
 from pyvmte.config import IV_SM  # type: ignore[import-untyped]
 
-from thesis.config import BLD, RNG, SRC
+from thesis.config import BLD, NO_LONG_RUNNING_TASKS, RNG, SRC
 from thesis.pyvmte.pyvmte_sims import simulation_pyvmte
 from thesis.utilities import constraint_dict_to_string
 
@@ -180,6 +180,10 @@ for id_, kwargs in ID_TO_KWARGS.items():
 
     @task(id=id_, kwargs=kwargs)  # type: ignore[arg-type]
     @pytask.mark.hpc_pyvmte
+    @pytask.mark.skipif(
+        NO_LONG_RUNNING_TASKS,
+        reason="Skip long-running tasks meant for cluster.",
+    )
     def task_pyvmte_simulations(
         num_sims: int,
         num_obs: int,

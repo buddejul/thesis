@@ -21,3 +21,5 @@ GROUPS = ["marital_status", "qualification"]
 __all__ = ["BLD", "SRC", "TEST_DIR", "GROUPS"]
 
 RNG = np.random.default_rng()
+
+NO_LONG_RUNNING_TASKS = True
