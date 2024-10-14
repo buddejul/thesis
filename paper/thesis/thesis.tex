@@ -173,7 +173,7 @@
 	I study inference in the marginal treatment effect model when used to partially-identify a target parameter of interest.
 	First, I demonstrate the invalidity of the bootstrap in a simple, but common binary IV model.
 	In specific settings, the bounds of the identified set have an easy to calculate solution.
-	These solutions exhibits points of non-differentiability when viewed as functions of the point-identified parameters rendering the nonparametric bootstrap invalid.
+	These solutions exhibit points of non-differentiability when viewed as functions of the point-identified parameters rendering the non-parametric bootstrap invalid.
 	Second, I discuss potential solutions proposed in the literature and show how they might be adjusted to typical use-cases where bounds have to be calculated by the means of linear programming.
 	Third, for a number of empirically relevant settings I conduct novel simulation studies for the MTE model comparing competing inference methods.
 \end{abstract}
@@ -201,14 +201,14 @@
 \section{Bootstrap Invalidity: A Simple Example}
 I first illustrate the invalidity of the bootstrap in a simple example with a binary instrument where we only use the point-identified LATE for the instrument-compliers as the basis for extrapolation.
 While this will not best we can do in this case --- there are more moments in the data we can point-identify --- it helps to illustrate the type of inference issues that can also arise in more complex setups.
-In particular, we can calculate explicit solutions for the upper and lower as functions of the point-identified complier LATE.\@
+In particular, we can calculate explicit solutions for the upper and lower viewed as functions of the point-identified complier LATE.\@
 
 \subsection{Setup}
 We first introduce some basic notation and key ingredients of the MTE model.
 A complete statement of the model corresponding to~\cite{mogstad2018using} can be found in Section~\ref{sec:general_mte}.
 
-The outcome is denoty $Y_i$ and has bounded support, which we generally assume to be in $[0,1]$ for convenience.
-The instrument $Z_i$ is binary with realizatons in $\{0,1\}$.
+The outcome is denoted $Y_i$ and has bounded support, which we generally assume to be in $[0,1]$ for convenience.
+The instrument $Z_i$ is binary with realizations in $\{0,1\}$.
 Binary treatment $D_i$ is determined by a selection model with
 \begin{equation}\label{eq:treatment}
   D_i = I\{p(Z_i) \geq U_i\}
@@ -217,14 +217,14 @@ where unobserved heterogeneity $U_i$ is normalized to follow a $U(0,1)$ distribu
 Hence, $p(z) \equiv P(D_i=1|Z_i=z)$ is the propensity score. We define the instrument $Z_i$ such that $p(0)<p(1)$.
 
 As shown by~\cite{vytlacil2002independence}, under an appropriate set of assumptions stated more formally in Section~\ref{sec:general_mte}, this setup is equivalent to the potential outcome framework in~\cite{imbens_angrist1994ecma}.
-Hence, we can point-identify a local average treatment effect for the instrment-compliers, namely those individuals, who take up the treatment if and only if $Z_i=1$.
-In the selection model above, the complier sub-population is those with $U_i$ realizations in $[p(0), p(1)]$.
+Hence, we can point-identify a local average treatment effect for the instrument-compliers, namely those individuals, who take up the treatment if and only if $Z_i=1$.
+In the selection model above, the complier subpopulation is those with $U_i$ realizations in $[p(0), p(1)]$.
 Hence, in the notation of the model, we can point-identify,
 \begin{equation}
   \beta_s = \E[Y(1) - Y(0)|U_i\in[p(0), p(1)]].
 \end{equation}
 Note that individuals with realizations $u \leq p(0)$ will always select into treatment, while individuals with $u \geq p(1)$ will never select into treatment.
-To keep the notation light, I will refers to these subpopulations as \textit{complier}, \textit{never-taker} and \textit{always-taker}.
+To keep the notation light, I will refer to these subpopulations as \textit{complier}, \textit{never-taker} and \textit{always-taker}.
 
 Our goal is to extrapolate from this identified complier-LATE to a larger subpopulation that also includes some never-takers.
 [Example for interpretation]. Now we are interested in a policy-change which we would believe to increase the propensity score.
@@ -236,7 +236,7 @@ where $\overline{u}\in[0, 1-p(1)]$.
 
 Without very strong restrictions, $\beta^*$ will not be point-identified.
 Instead, we will only generally be able to identify a set of values for the target that are both consistent with the data and theoretical assumptions we want to impose.
-Usually, this \textit{identified set} will be a closed interval on the real line and we will denote it by
+Usually, this \textit{identified set} will be a closed interval on the real line, and we will denote it by
 \begin{equation*}
   \beta^* \in [\underline{\beta^*}(\beta_s), \overline{\beta^*}(\beta_s)],
 \end{equation*}
@@ -251,7 +251,7 @@ Denote by $\beta_{\overline{u}}$ the LATE for the population of never-takers for
 \begin{equation*}
   \beta_{\overline{u}} \equiv E[Y(1) - Y(0) | u \in [p(1), p(1) + \overline{u}]].
 \end{equation*}
-Then $\beta^*$ is a weighted average of the two LATES:\@
+Then $\beta^*$ is a weighted average of the two LATEs:\@
 \begin{equation*}
   \beta^* = \omega\beta_s + (1-\omega)\beta_{\overline{u}}
 \end{equation*}
@@ -291,8 +291,8 @@ While~\cite{imbens2004confidence} propose a fix to this, later on I focus on cas
 
 \paragraph{Monotone Treatment Response}
 Under monotone treatment response, it is assumed that all individuals respond either negative or positive to the treatment.
-An implication for the marginal treatmnt effect is that it is either positive or negative everywhere.
-This again tightens the set, but it also restrict the parameter space of $\beta_s$ that is consistent with the model.
+An implication for the marginal treatment effect is that it is either positive or negative everywhere.
+This again tightens the set, but it also restricts the parameter space of $\beta_s$ that is consistent with the model.
 In particular, any $\beta_s \leq 0$ is inconsistent with the assumption of positive treatment responses.
 In addition, the lower bound will be tighter:
 \begin{equation*}
@@ -306,14 +306,14 @@ This case is close to the stylized example analyzed in~\cite{andrews1999estimati
 [Explain, why not focusing on this in the following.]
 
 \paragraph{Decreasing Marginal Treatment Responses}
-A last set of restrictions considered by~\cite{mogstad2018using} are monotonocity restrictions on the MTR functions $m_d(u) = E[Y(d)|U=u]$.
+A last restriction considered by~\cite{mogstad2018using} are monotonicity restrictions on the MTR functions $m_d(u) = E[Y(d)|U=u]$.
 We consider the case of decreasing MTR functions also considered in their paper.
 Imposing restrictions on these functions is also the general approach discussed in Section~\ref{sec:general_mte}, since this allows to exploit other moments for identification.
 For example, in our model also $E[Y(1)|\text{always-taker}]$ and $E[Y(0)|\text{never-taker}]$ are identified and can help in tightening the identified set.
 
 While generally not impossible, with the restriction that $m_0(u), m_1(u)$ are decreasing in $u$, the computation of the identified set becomes less immediate.
 Figure [REF] illustrates the solution using constant spline basic functions defined separately over the intervals implied by $[0, p(0), p(1), p(1) + \overline{u}, 1]$.
-Essentially, since both the identified and target parameter are averages over the MTR (or MTE) function with constant weights on each subinterval, taking constant splines on these subintervals as basis functions does not impose any restrictions.
+Essentially, since both the identified and target parameter are averages over the MTR (or MTE) function with constant weights on each sub-interval, taking constant splines on these sub-intervals as basis functions does not impose any restrictions.
 
 The solution in this case is given by:
 \begin{equation}
@@ -334,12 +334,12 @@ and
 
 Hence, both bounds exhibit a kink at $\beta_s=0$.
 In these cases, as was shown in~\cite{dumbgen1993nondifferentiable} and later~\cite{fang2019infdirdiff}, non-differentiability at the kink renders the non-parametric bootstrap invalid.
-However, other methods have been deviced for this case. For example,~\cite{fang2019infdirdiff} and~\cite{hong2018numerical} extend the delta method to the case of functions that are only directionally differentiable, such as the ones with a kink shown above.
+However, other methods have been devised for this case. For example,~\cite{fang2019infdirdiff} and~\cite{hong2018numerical} extend the delta method to the case of functions that are only directionally differentiable, such as the ones with a kink shown above.
 Further, subsampling is theoretically justified as long as the bounds of the identified set have \textit{any} limiting distribution.
 I consider these methods as well as the non-parametric bootstrap in more detail in Section~\ref{sec:inference_methods} and provide simulation evidence in a realistic setting in Section~\ref{sec:simulation_studies}.
 
 \subsection{Solutions: Bounds with Bernstein Polynomials}
-In most applications, the non-parametric identified set resulting from constant splines will features solutions, i.e. MTR functions, that exhibit jump discontinuities.
+In most applications, the non-parametric identified set resulting from constant splines will feature solutions, i.e. MTR functions, that exhibit jump discontinuities.
 [Maybe put a solution in the appendix similar to Bernstein figures?].
 The appeal of the MST framework is, that the MTR functions have direct economic interpretations that allow to place theoretical restrictions about which meaningful discussions are possible.
 In particular, in most cases a certain degree of smoothness in these functions seems reasonable.
@@ -359,14 +359,35 @@ For example, for $k=2$, we have
 \end{equation*}
 
 Using these basis polynomials, it is easy to construct a linear program such that the implied MTR functions are smooth over $[0,1]$ and have images in $[0,1]$ (or any other interval, for that matter).
-However, the value function of the linear program, that is the upper or lower bound of the identified set, can still be \textit{non-smoth} and feature kinks.
+However, the value function of the linear program, that is the upper or lower bound of the identified set, can still be \textit{non-smooth} and feature kinks.
 
 To illustrate, I return to the binary-IV example discussed above for non-parametric bounds.
 Because the analytical solution is non-trivial to characterize for polynomials of degree $\geq2$, I instead repeatedly solve the linear program over a range of parameter values for the compliers LATE $\beta_s$.
 \footnote{For a precise statement of the problem see Section~\ref{sec:general_mte} and Appendix Section~\ref{app_sec:linear_programs} for the linear program.}
-While somewhat arbitrary, I report results for a lower, meaning more restrictive, polynomial of degree $2$ as well as an $11$th order polynomial similar to~\cite{mogstad2018using}.
+I report results for a lower-order, meaning more restrictive, polynomial of degree $2$ as well as a $11$th order polynomial similar to the numerical example in~\cite{mogstad2018using}.
+\footnote{
+  To construct the solutions, I first use DGPs with a constant spline MTR function defined on the sub-intervals of $[0, p(0), p(1), p(1) + \overline{u}, 1]$.
+  To vary $\beta_s$ I change the coefficients on the constant spline on the complier sub-interval $[p(0), p(1)]$.
+  While in principle this DGP is inconsistent with a Bernstein polynomial used in identification,
+  note that the MTR functions are only used to compute $\beta_s$ and play no role otherwise.
+}
 
-Figure
+Figure~\ref{fig:id_set_binary_iv_bernstein} plots the solution to the lower bound $\underline{\beta}^*(\beta_s)$ as a function of the identified late.
+In addition to the lower bound, the figure also shows the basis function coefficients that solve the linear program separately for $m_0$ and $m_1$.
+The corresponding solution for the upper bound is symmetric, since no other shape restrictions are placed on the problem. Hence, I focus on the lower bound only for clarity.
+
+Notably, while still continuous, these solutions again exhibit kinks, this time even without any shape restrictions.
+While also visually notable, I estimate the position of the kinks by checking for discontinuities in estimated second derivatives.
+These positions are indicated by gray lines and align well with the visual kinks.
+From the lower subplots it is easy to see, that the kinks are associated with corner solutions of the linear programs, where coefficients start to increase from 0 or decrease from 1.
+This feature is present for both reported degrees, $k=3$ and $k=11$.
+
+Notably, increasing the degree of the polynomial has three effects:
+First, as expected, the lower bounds become smaller, since the space of possible solutions is larger.
+Second, the solution exhibits more kinks. In fact, the number of kinks equals the number of basis polynomials.
+Lastly, increasing the number of polynomials sharply increases the slope of the solution close to 1, that is the boundary of the parameter space.
+If we think of an increasing sequence $k$, this could indicate a failure of Lipschitz continuity close to the boundary.
+
 
 \begin{figure}
 
@@ -376,7 +397,7 @@ Figure
   \begin{subfigure}[b]{0.49\textwidth}
       \centering
       \includegraphics[width=\textwidth]{../../bld/figures/binary_iv/identification_with_bernstein_2.png}
-      \caption{Degree $k=3$}\label{fig:id_set_binary_iv_bernstein_k_2}
+      \caption{Degree $k=2$}\label{fig:id_set_binary_iv_bernstein_k_2}
   \end{subfigure}
   \hfill
   \begin{subfigure}[b]{0.49\textwidth}
@@ -386,10 +407,21 @@ Figure
   \end{subfigure}
 \end{figure}
 
-\paragraph{Problem I:\@ Non-differentiability}
+\paragraph{Shape Constraints}
+When adding shape constraints, the qualitative features of the solution that can pose problems for inference do not change.
+[Construct Appendix Figures under shape constraints.]
+However, adding further shape constraints typically reduces the solution space and hence can increase
 
-\paragraph{Problem II:\@ Parameter at the Boundary}
+To summarize, in this section I considered a simple binary IV model which already exhibits some problems for inference in the MTE model:
+First, many solutions to the MTE problem exhibit \textit{kinks} when viewed as a function of the point-identified parameters.
+Kinks are present under certain shape restrictions for the non-parametric identified set using constant splines and are a general feature when using Bernstein polynomials.
+Non-differentiability generally renders typical inference approaches like the non-parametric bootstrap inconsistent, as observed by~\cite{dumbgen1993nondifferentiable}.
+Second, for Bernstein polynomials, the slope of the solutions close to the boundary of the parameter space exhibits increasing slopes over the degree $k$.
+This could potentially indicate a failure of Lipschitz continuity.
+Lastly, introducing shape restrictions, in particular monotonicity and sign constraints on the implied MTE function $m_1(u) - m_0(u)$, can significantly reduce the parameter space consistent with the model.
+This can lead to parameter at the boundary issues, as, for example, discussed in~\cite{andrews1999estimation}.
 
+After presenting the general MTE model setup, the rest of the paper is concerned with presenting inference approaches, that can potentially address these concerns (Section~\ref{sec:inference_methods}) and comparing their performance in a Monte Carlo simulation.
 \section{General MTE Setup}\label{sec:general_mte}
 
 \subsection{Setup}
@@ -447,7 +479,7 @@ It will at least entail the restrictions that $m_0, m_1$ are bounded by the supp
 Explicitly stated in the second line are the restrictions that for each point-identified estimand $s\in\mathcal{S}$ the maximizers $(\theta_0, \theta_1)$ must recover the point-identified parameter.
 
 \paragraph{Matrix Form}
-I next explicitly define the matrices typically used to describe a linear program.
+Next, I explicitly define the matrices typically used to describe a linear program.
 In the so-called \textit{standard form}, all linear programs are described by:
 (1) A \textit{maximization} objective; (2) inequality constraints with upper bounds; (3) non-negativity constraints on the choice variables.
 Hence, we have:
@@ -466,9 +498,9 @@ In this case, the program is:
   \text{ subject to } A_{ub}x \leq b_{ub}, A_{eq} = b_{eq}, l\leq x\leq u.
 \end{align}
 
-This is, for example, how the linear program is inputted into the \texttt{scipy} \texttt{linprog} solver.
+This is, for example, how the linear program is inputted into the \texttt{SciPy} \texttt{linprog} solver.
 The program can easily be transformed to standard form by: (1) taking the negative of the objective, (2) reformulating equalities as two inequalities, and (3) expressing variables without positivity constraints as differences of two non-negative variables.
-\texttt{Scipy}, for example, performs these operations in addition to other pre-solve checks for potential simplifications in the background.
+\texttt{SciPy}, for example, performs these operations in addition to other pre-solve checks for potential simplifications in the background.
 It then passes the standard form program to a solver and post-processes the result to a solution of the original problem.
 
 For simplicity, in the following we take $K_0 = K_1 = K$. This is the case for non-parametric exact bounds using constant splines and also parametric cases there seems little reason to have different numbers of basis polynomials.
@@ -516,7 +548,7 @@ The constraint values are given by the point-identified estimands:
 \end{equation*}
 
 
-A set of restrictions to achieve a minimal degree of identification is $y_l \leq m_d \leq y_d$ for $d=0,1$ and $y_l, y_u$ the lower and uppre bound of the support of $Y$.
+A set of restrictions to achieve a minimal degree of identification is $y_l \leq m_d \leq y_d$ for $d=0,1$ and $y_l, y_u$ the lower and upper bound of the support of $Y$.
 Taking $y_l = 0, y_u=1$, for typical shape constraints --- constant splines or Bernstein polynomials --- this amounts to the restrictions $0\leq \theta_{dj} \leq 1$ for $d=0,1, j=1,\ldots,K$.
 Hence, we have the restrictions
 \begin{equation*}
@@ -528,7 +560,7 @@ Finally, a number of shape restrictions may be added in the form of inequality b
 The following applies to constant splines and Bernstein polynomials, but might not hold for all possible types of basis functions.
 
 \paragraph{MTR Monotonicity}
-To enforce a \textit{decreasing} MTR function $m_d(u)$ for constant splines, it is immediate that $\theta_{d1} \geq \theta_{d2} \geq \cdots \geq \theta_{dK}$, given that the functions are ordered from left to right over the partition of $u$, which we always assume to be the case.
+To enforce a \textit{decreasing} MTR function $m_d(u)$ for constant splines, it is immediate that $\theta_{d1} \geq \theta_{d2} \geq \cdots \geq \theta_{dK}$, given that the functions are ordered over the partition of $u$, which we always assume to be the case.
 For Bernstein polynomials this also holds, since they obey a monotonicity property: Whenever the basis coefficients $\theta_{dk}$ are decreasing over $k$, so is the resulting Bernstein polynomial (and the same for increasing).
 
 Hence, to enforce a decreasing MTR function for $d=0$ we add the following constraints:
@@ -553,7 +585,7 @@ Hence, to enforce a decreasing MTR function for $d=0$ we add the following const
 \end{equation*}
 Here, the first block is of dimension $(K-1) \times K$ reflecting the inequalities on the basis functions for $m_0(u)$.
 The second block are zeros of dimension $(K-1) \times K$ on the basis functions for $m_1(u)$.
-To add a similar restrictions on $m_1(u)$ we can switch the blocks.
+To add a similar restriction on $m_1(u)$ we can switch the blocks.
 To enforce \textit{increasing} MTR functions $A_{ub}$ above can be multiplied by $-1$ to flip the inequalities.
 $b_{ub}$ has length $(K-1)$.
 
@@ -594,7 +626,7 @@ This approach is stated in equation (27) of~\cite{mogstad2018using}:
 \end{align}
 
 Note we have a single constraint for the $l_1$ norm.
-The $\inf$ on the right-hand side is the first-step linear program and we allow for tolerance $\kappa_n$ to enlarge the set of possible solutions.
+The $\inf$ on the right-hand side is the first-step linear program, and we allow for tolerance $\kappa_n$ to enlarge the set of possible solutions.
 
 \subsubsection{First Step Linear Program}
 The first step program is given by
@@ -609,7 +641,7 @@ Further, as pointed out in~\cite{mogstad2018using}, we need to introduce dummy v
 \paragraph{Absolute Values in the Objective}
 With $S = 1$, that is a single point-identified estimand, we have an objective of the following form:
 \begin{equation*}
-  \inf_m |X_1|
+  \inf_m |X_1|,
 \end{equation*}
 
 where $X_1 = \hat{\Gamma}_1(m) - \hat{\beta}_1$.
@@ -709,7 +741,7 @@ The only difference to the first-step constraint matrix is then the additional p
 \end{equation*}
 Here the first vector of zeros is of length $2K$ (the basis functions) and the vector of ones of length $S$ (the dummy variables).
 
-The full second-step upper ound matrix is then given by
+The full second-step upper bound matrix is then given by
 \begin{equation*}
   A_{ub}^{ss} = \begin{bmatrix}
     a_{ub}^{ss, 1} \\
@@ -729,7 +761,7 @@ The full program is then
 \begin{align}
   & \min_x \hat{c}^{ss'}x^{ss} \text{ subject to }\\
   & \hat{A}_{ub}^{ss} \leq \hat{b}_{ub}^{ss} \\
-  & \mathbf{0} \leq x^{ss} \leq \mathbf{1}.
+  & \mathbf{0} \leq x^{ss} \leq \mathbf{1},
 \end{align}
 where $\hat{\cdot}$ is used to emphasize, which parts of the problem are estimated from the data.
 

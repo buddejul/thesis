@@ -1,0 +1,4 @@
+{"rule":"UPPERCASE_SENTENCE_START","sentence":"^\\Qbreaklines=true, postbreak=, numbers=left, numbersep=5pt, numberstyle=, basicstyle=\\E$"}
+{"rule":"MORFOLOGIK_RULE_EN_US","sentence":"^\\Qbreaklines=true, postbreak=, numbers=left, numbersep=5pt, numberstyle=, basicstyle=\\E$"}
+{"rule":"WHITESPACE_RULE","sentence":"^\\Qver@etex.sty3000/12/31\\E$"}
+{"rule":"MORFOLOGIK_RULE_EN_US","sentence":"^\\Qcompat=1.18\\E$"}
