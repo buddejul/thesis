@@ -1,5 +1,6 @@
 """Solve the simple model for a specification resulting in sharp bounds."""
 
+import pickle
 from pathlib import Path
 from typing import Annotated, NamedTuple
 
@@ -101,6 +102,7 @@ class _Arguments(NamedTuple):
     constraint_type_to_arg: dict
     bfunc_type: str
     path_to_data: Annotated[Path, Product]
+    path_to_dicts: Annotated[Path, Product]
     num_gridpoints: int = num_gridpoints
 
 
@@ -114,11 +116,15 @@ ID_TO_KWARGS = {
     f"{bfunc}_{idestimands}_{constraint}": _Arguments(
         idestimands=idestimands,
         bfunc_type=bfunc,
+        constraint_type_to_arg=constraint,  # type: ignore[arg-type]
         path_to_data=BLD
         / "data"
         / "solutions"
         / f"solution_simple_model_{bfunc}_{idestimands}_{constraint}.pkl",
-        constraint_type_to_arg=constraint,  # type: ignore[arg-type]
+        path_to_dicts=BLD
+        / "data"
+        / "solutions"
+        / f"full_solution_dict_simple_model_{bfunc}_{idestimands}_{constraint}.pkl",
     )
     for bfunc in ["constant", "bernstein"]
     for idestimands in ["late", "sharp"]
@@ -130,10 +136,11 @@ for id_, kwargs in ID_TO_KWARGS.items():
     @task(id=id_, kwargs=kwargs)  # type: ignore[arg-type]
     def task_solve_simple_model(
         num_gridpoints: int,
-        path_to_data: Annotated[Path, Product],
         constraint_type_to_arg: dict,
         bfunc_type: str,
         idestimands: str,
+        path_to_data: Annotated[Path, Product],
+        path_to_dicts: Annotated[Path, Product],
     ) -> None:
         """Solve the simple model for a range of parameter values."""
         beta_late = np.linspace(-1, 1, num_gridpoints)
@@ -148,6 +155,8 @@ for id_, kwargs in ID_TO_KWARGS.items():
         identified = identified_late if idestimands == "late" else identified_sharp
 
         results = []
+
+        results_full = {}
 
         for y1_c_val, y0_c_val in zip(y1_c, y0_c, strict=True):
             _m1 = _make_m1(y1_c_val)
@@ -167,6 +176,9 @@ for id_, kwargs in ID_TO_KWARGS.items():
             res = {"upper_bound": res.upper_bound, "lower_bound": res.lower_bound}
 
             results.append(res)
+
+            _b_late = y1_c_val - y0_c_val
+            results_full[_b_late] = res
 
         # Put into pandas DataFrame and save to disk
 
@@ -201,3 +213,16 @@ for id_, kwargs in ID_TO_KWARGS.items():
         df_res["num_gridpoints"] = num_gridpoints
 
         df_res.to_pickle(path_to_data)
+
+        # Save full results in dictionary
+        results_full["bfunc_type"] = bfunc_type
+        results_full["idestimands"] = idestimands
+        results_full["constraint_type"] = constraint_type
+        results_full["constraint_val"] = constraint_val
+        results_full["k_bernstein"] = (
+            k_bernstein if bfunc_type == "bernstein" else np.nan
+        )
+        results_full["num_gridpoints"] = num_gridpoints
+
+        with Path.open(path_to_dicts, "wb") as f:
+            pickle.dump(results_full, f)
