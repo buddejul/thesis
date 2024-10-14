@@ -14,6 +14,7 @@ plot = "A marker for tasks plotting binary IV model solutions."
 hpc_pyvmte = "A marker for pyvmte simulations on HPC."
 hpc = "A marker for high-performance computing tasks."
 pyvmte_sols = "A marker for model solutions using pyvmte."
+plot_for_paper = "A marker for plots specifically for the paper."
 
 [tool.ruff]
 target-version = "py311"
