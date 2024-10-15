@@ -5,9 +5,8 @@
 # Alternative approach: Could we get the lower/upper bound Bernstein MTR from the
 # identification function and then take some kind of average?
 
-from functools import partial
 from pathlib import Path
-from typing import TYPE_CHECKING, Annotated, NamedTuple
+from typing import Annotated, NamedTuple
 
 import numpy as np
 import pandas as pd  # type: ignore[import-untyped]
@@ -15,138 +14,100 @@ import plotly.graph_objects as go  # type: ignore[import-untyped]
 import pytask
 from plotly.subplots import make_subplots  # type: ignore[import-untyped]
 from pytask import Product, task
-from pyvmte.classes import Estimand  # type: ignore[import-untyped]
-from pyvmte.config import IV_SM, SETUP_SM_IDLATE  # type: ignore[import-untyped]
-from pyvmte.identification import identification  # type: ignore[import-untyped]
-from pyvmte.utilities import (  # type: ignore[import-untyped]
-    generate_bernstein_basis_funcs,
-)
 
 from thesis.config import BLD
-from thesis.pyvmte.pyvmte_sims_config import Y0_AT, Y0_NT, Y1_AT, Y1_NT
-from thesis.utilities import make_mtr_binary_iv
-
-if TYPE_CHECKING:
-    from scipy.optimize import OptimizeResult  # type: ignore[import-untyped]
-
-target = Estimand(esttype="late", u_lo=0.4, u_hi=0.6, u_hi_extra=0.2)
-
-identified_estimands = SETUP_SM_IDLATE.identified_estimands
-
-instrument = IV_SM
-
-u_partition = np.array([0, 0.4, 0.6, 0.8, 1])
-
-id_kwargs = {
-    "target": target,
-    "identified_estimands": identified_estimands,
-    "instrument": instrument,
-    "u_partition": u_partition,
-}
-
-pscore_lo, pscore_hi = instrument.pscores[0], instrument.pscores[1]
-
-id_func = partial(identification, **id_kwargs)
+from thesis.pyvmte.task_solve_simple_model import num_gridpoints
 
 
-def _generate_color_by_x_number(k_bernstein):
+def _generate_color_by_x_number(num_bfuncs: int) -> dict[int, str]:
     # Cycle through the palette to create the color dictionary
     # Cycle through red numbers using rgb
-    return {i: f"rgb({255 - i * 255 // k_bernstein}, 0, 0)" for i in range(k_bernstein)}
+    return {i: f"rgb({255 - i * 255 // num_bfuncs}, 0, 0)" for i in range(num_bfuncs)}
 
 
 class _Arguments(NamedTuple):
     path_to_plot: Annotated[Path, Product]
     k_bernstein: int
+    bfunc_type: str
+    constraint_type: str
+    idestimands: str
     bounds_to_plot: tuple[str] = ("lower",)
-    num_grid_points: int = 2_500
+    path_to_solutions: Path = (
+        BLD / "data" / "solutions" / "full_solutions_simple_model_combined.pkl"
+    )
 
 
 ID_TO_KWARGS = {
-    f"degree_{k}": _Arguments(
+    f"degree_{bfunc_type}_{k}_{constraint_type}_{idestimands}": _Arguments(
         path_to_plot=BLD
         / "figures"
         / "binary_iv"
-        / f"identification_with_bernstein_{k}.png",
+        / f"id_{bfunc_type}_{k}_{constraint_type}_{idestimands}.png",
         k_bernstein=k,
+        bfunc_type=bfunc_type,
+        constraint_type=constraint_type,
+        idestimands=idestimands,
     )
-    for k in [2, 3, 11]
+    for bfunc_type in ["bernstein", "constant"]
+    for k in ([2, 3, 11] if bfunc_type == "bernstein" else [np.nan])  # type: ignore[list-item]
+    for constraint_type in [
+        "none",
+        "shape_constraints",
+        "mte_monotone",
+        "monotone_response",
+    ]
+    for idestimands in ["late", "sharp"]
 }
 
 for id_, kwargs in ID_TO_KWARGS.items():
 
     @task(id=id_, kwargs=kwargs)  # type: ignore[arg-type]
     @pytask.mark.plot_for_paper
-    def task_plot_identification_binary_iv_with_bernstein(  # noqa: PLR0915, C901, PLR0912
+    def task_plot_identification_binary_iv(  # noqa: PLR0915
         path_to_plot: Annotated[Path, Product],
-        k_bernstein: int,
         bounds_to_plot: tuple[str],
-        num_grid_points: int,
+        k_bernstein: int,
+        path_to_solutions: Path,
+        bfunc_type: str,
+        constraint_type: str,
+        idestimands: str,
         show_legend: bool = False,  # noqa: FBT001, FBT002
     ) -> None:
-        """Plot bounds and bfunc coefs for binary IV model and Bernstein."""
-        basis_funcs = generate_bernstein_basis_funcs(k_bernstein)
-
-        b_late_grid = np.linspace(-1, 1, num=num_grid_points)
-
-        # ------------------------------------------------------------------------------
-        # Compute solutions
-        # ------------------------------------------------------------------------------
-
-        res_lower_bounds = np.zeros_like(b_late_grid)
-        res_upper_bounds = np.zeros_like(b_late_grid)
-
-        optres_lower: dict[str, OptimizeResult] = {}
-        optres_upper: dict[str, OptimizeResult] = {}
-
-        for i, beta_late in enumerate(b_late_grid):
-            y1_c = beta_late / 2 + 0.5
-            y0_c = -beta_late / 2 + 0.5
-
-            mtr1 = make_mtr_binary_iv(
-                yd_c=y1_c,
-                yd_at=Y1_AT,
-                yd_nt=Y1_NT,
-                pscore_lo=pscore_lo,
-                pscore_hi=pscore_hi,
-            )
-            mtr0 = make_mtr_binary_iv(
-                yd_c=y0_c,
-                yd_at=Y0_AT,
-                yd_nt=Y0_NT,
-                pscore_lo=pscore_lo,
-                pscore_hi=pscore_hi,
-            )
-
-            _res = id_func(basis_funcs=basis_funcs, m1_dgp=mtr1, m0_dgp=mtr0)
-
-            res_lower_bounds[i] = _res.lower_bound
-            res_upper_bounds[i] = _res.upper_bound
-
-            optres_lower[beta_late] = _res.lower_optres
-            optres_upper[beta_late] = _res.upper_optres
-
-        # ------------------------------------------------------------------------------
-        # Collect Data
-        # ------------------------------------------------------------------------------
-        data = pd.DataFrame(
-            {
-                "beta_late": b_late_grid,
-                "lower_bound": res_lower_bounds,
-                "upper_bound": res_upper_bounds,
-            },
+        """Plot bounds and bfunc coefs for binary IV model."""
+        num_bfuncs_const = 2 * 4
+        num_bfuncs = (
+            2 * (k_bernstein + 1) if bfunc_type == "bernstein" else num_bfuncs_const
         )
-        for bound in ["lower", "upper"]:
-            _optres = optres_lower if bound == "lower" else optres_upper
-            _mat = np.array([_optres[beta].x for beta in b_late_grid])
-            data = data.assign(
-                **{f"x_{i}_{bound}": _mat[:, i] for i in range(_mat.shape[1])},
-            )
+
+        # ------------------------------------------------------------------------------
+        # Load solutions
+        # ------------------------------------------------------------------------------
+        data = pd.read_pickle(path_to_solutions)
+
+        data = data[data["bfunc_type"] == bfunc_type]
+        data = data[data["constraint_type"] == constraint_type]
+        data = data[data["idestimands"] == idestimands]
+        if bfunc_type == "bernstein":
+            data = data[data["k_bernstein"] == k_bernstein]
+
+        assert data.index.is_unique
+        data = data.reset_index()
+
+        data = data.sort_values("complier_late")
+
+        # ------------------------------------------------------------------------------
+        # Identify kinks
+        # ------------------------------------------------------------------------------
 
         # Identify kinks in "lower_bound" by looking at changes in the first
         # derivative. First, approximate the derivative by taking differences
+        b_late_grid = np.linspace(-1, 1, num_gridpoints)
 
-        data["d_lower_bound"] = np.gradient(data["lower_bound"], b_late_grid)
+        data["d_lower_bound"] = np.gradient(
+            data["lower_bound"].to_numpy(),
+            b_late_grid,
+        )
+
         data["d_lower_bound"]
 
         # Find the kinks by looking at changes in the first derivative larger than
@@ -157,17 +118,17 @@ for id_, kwargs in ID_TO_KWARGS.items():
         epsilon = 0.1
         kinks = data.loc[
             (data["dd_lower_bound"].abs() > epsilon),
-            ["beta_late", "lower_bound", "d_lower_bound", "dd_lower_bound"],
+            ["complier_late", "lower_bound", "d_lower_bound", "dd_lower_bound"],
         ]
 
-        kinks_beta = kinks["beta_late"].to_numpy()
+        kinks_beta = kinks["complier_late"].to_numpy()
 
         # --------------------------------------------------------------------------
         # Figure
         # --------------------------------------------------------------------------
 
         # Example usage
-        color_by_x_number = _generate_color_by_x_number(k_bernstein + 1)
+        color_by_x_number = _generate_color_by_x_number(num_bfuncs)
 
         num_bounds_to_plot = len(bounds_to_plot)
 
@@ -202,7 +163,7 @@ for id_, kwargs in ID_TO_KWARGS.items():
         for bound in bounds_to_plot:
             fig.add_trace(
                 go.Scatter(
-                    x=data["beta_late"],
+                    x=data["complier_late"],
                     y=data[f"{bound}_bound"],
                     mode="lines",
                     name=f"{bound.capitalize()} Bound",
@@ -226,11 +187,11 @@ for id_, kwargs in ID_TO_KWARGS.items():
                 row_mtr0 = 2
                 row_mtr1 = 3
 
-            for j in range(k_bernstein + 1):
+            for j in range(num_bfuncs // 2):
                 fig.add_trace(
                     go.Scatter(
-                        x=data["beta_late"],
-                        y=data[f"x_{j}_{bound}"],
+                        x=data["complier_late"],
+                        y=data[f"x_{bound}_{j}"],
                         mode="lines",
                         name=f"{j}",
                         legendgroup="MTR0",
@@ -243,10 +204,10 @@ for id_, kwargs in ID_TO_KWARGS.items():
 
                 fig.add_trace(
                     go.Scatter(
-                        x=data["beta_late"],
-                        y=data[f"x_{j + k_bernstein + 1}_{bound}"],
+                        x=data["complier_late"],
+                        y=data[f"x_{bound}_{j + num_bfuncs // 2}"],
                         mode="lines",
-                        name=f"x_{j + k_bernstein + 1}",
+                        name=f"x_{j + num_bfuncs // 2}",
                         legendgroup="MTR1",
                         legendgrouptitle={"text": "Coefs on MTR d = 1"},
                         line={"color": color_by_x_number[j]},
@@ -278,7 +239,7 @@ for id_, kwargs in ID_TO_KWARGS.items():
 
         subtitle = (
             f"<br><sup>Bernstein Polynomial of Degree {k_bernstein},"
-            f"{num_grid_points} Grid Points</sup>"
+            f"{num_gridpoints} Grid Points</sup>"
         )
 
         fig.update_layout(
@@ -299,8 +260,8 @@ for id_, kwargs in ID_TO_KWARGS.items():
         )
 
         # Adjust x-axis range for 2nd and 3rd row (MTR coefs are bounded between 0, 1)
-        fig.update_yaxes(range=[0, 1], row=2, col=1)
-        fig.update_yaxes(range=[0, 1], row=3, col=1)
+        fig.update_yaxes(range=[-0.1, 1.1], row=2, col=1)
+        fig.update_yaxes(range=[-0.1, 1.1], row=3, col=1)
 
         # Turn off legend
         if not show_legend:

@@ -22,7 +22,7 @@ from thesis.pyvmte.pyvmte_sims_config import Y0_AT, Y0_NT, Y1_AT, Y1_NT
 # --------------------------------------------------------------------------------------
 # Task parameters
 # --------------------------------------------------------------------------------------
-num_gridpoints = 100
+num_gridpoints = 2500
 
 u_hi_extra = 0.2
 

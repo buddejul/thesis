@@ -171,10 +171,11 @@
 
 \begin{abstract}
 	I study inference in the marginal treatment effect model when used to partially-identify a target parameter of interest.
-	First, I demonstrate the invalidity of the bootstrap in a simple, but common binary IV model.
+	First, I demonstrate the invalidity of the non-parametric bootstrap in a simple, but common binary IV model.
 	In specific settings, the bounds of the identified set have an easy to calculate solution.
-	These solutions exhibit points of non-differentiability when viewed as functions of the point-identified parameters rendering the non-parametric bootstrap invalid.
-	Second, I discuss potential solutions proposed in the literature and show how they might be adjusted to typical use-cases where bounds have to be calculated by the means of linear programming.
+	These solutions exhibit points of non-differentiability when viewed as functions of the point-identified parameters hence rendering the non-parametric bootstrap invalid.
+	Similar issues arise when a parametric approximation to the MTR functions is used.
+  Second, I discuss potential solutions proposed in the literature and show how they might be adjusted to typical use-cases where bounds have to be calculated by the means of linear programming.
 	Third, for a number of empirically relevant settings I conduct novel simulation studies for the MTE model comparing competing inference methods.
 \end{abstract}
 
@@ -388,7 +389,6 @@ Second, the solution exhibits more kinks. In fact, the number of kinks equals th
 Lastly, increasing the number of polynomials sharply increases the slope of the solution close to 1, that is the boundary of the parameter space.
 If we think of an increasing sequence $k$, this could indicate a failure of Lipschitz continuity close to the boundary.
 
-
 \begin{figure}
 
   \caption{Identified Sets for the Binary-IV Model with Bernstein Polynomial MTRs}\label{fig:id_set_binary_iv_bernstein}
@@ -396,13 +396,13 @@ If we think of an increasing sequence $k$, this could indicate a failure of Lips
   \centering
   \begin{subfigure}[b]{0.49\textwidth}
       \centering
-      \includegraphics[width=\textwidth]{../../bld/figures/binary_iv/identification_with_bernstein_2.png}
+      \includegraphics[width=\textwidth]{../../bld/figures/binary_iv/id_bernstein_2_none_late.png}
       \caption{Degree $k=2$}\label{fig:id_set_binary_iv_bernstein_k_2}
   \end{subfigure}
   \hfill
   \begin{subfigure}[b]{0.49\textwidth}
       \centering
-      \includegraphics[width=\textwidth]{../../bld/figures/binary_iv/identification_with_bernstein_11.png}
+      \includegraphics[width=\textwidth]{../../bld/figures/binary_iv/id_bernstein_11_none_late.png}
       \caption{Degree $k=11$}\label{fig:id_set_binary_iv_bernstein_k_11}
   \end{subfigure}
 \end{figure}
@@ -422,13 +422,14 @@ Lastly, introducing shape restrictions, in particular monotonicity and sign cons
 This can lead to parameter at the boundary issues, as, for example, discussed in~\cite{andrews1999estimation}.
 
 After presenting the general MTE model setup, the rest of the paper is concerned with presenting inference approaches, that can potentially address these concerns (Section~\ref{sec:inference_methods}) and comparing their performance in a Monte Carlo simulation.
-\section{General MTE Setup}\label{sec:general_mte}
 
+\section{General MTE Setup}\label{sec:general_mte}
+In this section I restate the MTE problem and the approaches to identification and estimation presented in~\cite{mogstad2018using}.
 \subsection{Setup}
 
-\subsection{Linear Program}
+\subsection{Inference}
 
-\subsection{Restrictions}
+\subsection{Estimation}
 
 \section{Inference Methods}\label{sec:inference_methods}
 

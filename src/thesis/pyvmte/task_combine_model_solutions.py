@@ -49,6 +49,7 @@ def task_solutions_binary_iv_full_results(
     / "data"
     / "solutions"
     / "full_solutions_simple_model_combined.pkl",
+    paths_to_full_solutions: list[Path] = paths_to_full_solutions,
 ) -> pd.DataFrame:
     """Combine model solutions with coefficients into a single DataFrame."""
     df_to_append: list[pd.DataFrame] = []
@@ -89,8 +90,8 @@ def task_solutions_binary_iv_full_results(
         out = pd.DataFrame(
             {
                 "complier_late": complier_late,
-                "upper_bound": upper_bounds,
                 "lower_bound": lower_bounds,
+                "upper_bound": upper_bounds,
             },
         )
 
@@ -116,12 +117,19 @@ def task_solutions_binary_iv_full_results(
                 x_upper[i, :] = np.nan
 
         for i in range(max_len_lower):
-            out[f"lower_x_{i}"] = x_lower[:, i]
+            out[f"x_lower_{i}"] = x_lower[:, i]
 
         for i in range(max_len_upper):
-            out[f"upper_x_{i}"] = x_upper[:, i]
+            out[f"x_upper_{i}"] = x_upper[:, i]
 
         out = out.set_index("complier_late")
+
+        # Merge with params
+        out = out.merge(
+            pd.DataFrame(params, index=out.index),
+            left_index=True,
+            right_index=True,
+        )
 
         df_to_append.append(out)
 
