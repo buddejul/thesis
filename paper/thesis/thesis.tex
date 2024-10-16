@@ -672,40 +672,48 @@ Additionally, there are 2 more moments that cannot be identified but are require
 \end{align*}
 
 
+\paragraph{MTR Functions: Constant Splines}
+In terms of the parametrization from above, the constant spline MTR functions are
+\begin{equation*}
+  m_d(u; \gamma) \equiv \sum_{g\in\{at, c, nt\}} I\{u \in I_g\} \gamma_{d}^g,
+\end{equation*}
+where $I_g$ are the intervals characterizing each respective group (always-takers, compliers, and never-takers).
+To mimic a bounded outcome in (approximately) $[0,1]$, I take $\gamma_d^g\in[0,1]$.
+The least favorable parameter position in terms of coverage is at the boundary of the identified set.
+For the upper bound, this would occur at $\gamma_1^{nt} - \gamma_0^{nt} = 1$.
+For the lower bound, this would occur at $\gamma_1^{nt} - \gamma_0^{nt} = -1$.
 
-\paragraph{Basis Functions: Constant Splines}
+\paragraph{MTR Functions: Bernstein Polynomials}
+The goal is to find two Bernstein polynomial of the specified order $k$ for $m_0, m_1$, that
+(1) are consistent with the moments point-identified moments $\gamma_1^{at}, \gamma_1^c, \gamma_0^c, \gamma_0^{nt}$;
+(2) imply a parameter at the boundary of the identified set;
+(3) are consistent with any other shape restrictions.
+
+To this end, I first solve the linear program for the identification problem using the desired Bernstein polynomial as the basis functions.
+The values of the point-identified parameters in this problem are computed based on the constant spline MTR functions $m_d(u) = \sum_g I\{u \in I_g\} \gamma_d^g$.
+The basis function coefficient vector that solves the linear program can then be used to construct the desired MTR functions as Bernstein polynomials.
+By construction, it generates the point-identified parameters, implies a parameter at the boundary (either the upper or lower bound depending on the linear program), and satisfies any shape restrictions that are imposed.
+Note, however, that the linear program might not have a solution and hence no polynomials satisfying these requirements exist.
+
+\paragraph{Data}
 For constant spline approximations I generate the data $\{Y_i, D_i, Z_i\}_{i=1}^N$ in the following way:
 \begin{itemize}
   \item[1.] Draw $Z_i$ and $p(Z_i)$ randomly according to $P(Z_i=z)$, draw $U_i$ from $\text{Uniform}(0,1)$.
   \item[2.] Generate the treatment using the selection equation $D_i = I\{p(Z_i) \geq U_i\}$.
-  \item[3.] Generate the outcome by $Y = \sum_{g\in\{at, c, nt\}} I\{u_i \in I_g\} \gamma_{D_i}^g + \varepsilon_i$,
+  \item[3.] Generate the outcome by $Y = D_i m_1(u; \gamma) + (1 - D_i) m_0(u; \gamma) + \varepsilon_i$,
   where $I_g$ indicates the respective interval for always-takers, never-takers and compliers, and $\varepsilon\sim N(0, \sigma^2)$ with $\sigma=0.1$ is additional, independent noise.
 \end{itemize}
 
-To mimic a bounded outcome in (approximately) $[0,1]$, I take $\gamma_d^g\in[0,1]$.
-Hence, while $\sigma=0.1$ seems like a reasonable degree of dispersion.
-Essentially, I am using constant spline MTR functions with knows at $0, p(0), p(1), 1$.
-
-The least favorable parameter position in terms of coverage is at the boundary of the identified set.
-For the upper bound, this would occur, for example, at $\gamma_1^{nt} - \gamma_0^{nt} = 1$.
-For the lower bound, this would occur, for example, at $\gamma_1^{nt} - \gamma_0^{nt} = -1$.
-
-\paragraph{Bernstein Polynomials}
-For Bernstein polynomials, however, this approach does not work.
-The problem is that the polynomial form is inconsistent with the constant splines that generate the data, meaning the model is misspecified.
-While the estimator still exists --- there is no way to reject the Bernstein approximation from the data in this case, since we only use conditional moments --- the estimated identified set will generally be too small.
-
-However, with a minor adjustment we can construct a DGP that complies with the model assumptions and has the same implied conditional moments as above.
-The challenge is to find two Bernstein polynomial of the specified order $k$ for $m_0, m_1$, that
-(1) generate are consistent with the moments $\gamma_1^{at}, \gamma_1^c, \gamma_0^c, \gamma_0^{nt}$, that parametrize the model;
-(2) imply a parameter at the boundary of the identified set;
-(3) are consistent with any other shape restrictions.
-
-To generate results that are easy to visualize in terms of point-identified complier late, I use
+\paragraph{Parameter Grid}
+I conduct simulation studies over a grid of parameters to study performance around kinks.
+To generate results that are easy to visualize in terms of the point-identified complier late, I use
 \begin{align}
-  \gamma_1^c = \ldots, \gamma_0^c = \ldots,
+  \gamma_1^c = \beta_s / 2 + 0.5, \quad \gamma_0^c = -\beta_s / 2 + 0.5,
 \end{align}
-over a grid $[-1, 1]$ for the complier LATE.
+over a grid $[-1, 1]$ for the complier LATE $\beta_s$.
+For the remaining point-identified parameters I take $\gamma_1^{at} = 0.75$ and $\gamma_0^{nt} = 0.2$.
+This allows for DGPs consistent with decreasing MTR functions, a decreasing MTE, and a positive response everywhere.
+\footnote{In the extreme, if we were to set $\gamma_1^{at} = 0$ the largest complier LATE consistent with a decreasing MTE function would be $0$, namely when $\gamma_0^{at}=0$.}
 
 \paragraph{Shape Restrictions}
 
