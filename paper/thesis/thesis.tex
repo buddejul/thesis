@@ -696,12 +696,12 @@ By construction, it generates the point-identified parameters, implies a paramet
 Note, however, that the linear program might not have a solution and hence no polynomials satisfying these requirements exist.
 
 \paragraph{Data}
-For constant spline approximations I generate the data $\{Y_i, D_i, Z_i\}_{i=1}^N$ in the following way:
+I generate the data $\{Y_i, D_i, Z_i\}_{i=1}^N$ in the following way:
 \begin{itemize}
-  \item[1.] Draw $Z_i$ and $p(Z_i)$ randomly according to $P(Z_i=z)$, draw $U_i$ from $\text{Uniform}(0,1)$.
+  \item[1.] Draw $Z_i$ according to $P(Z_i=z) = 0.5$ and $U_i$ from $\text{Uniform}(0,1)$.
   \item[2.] Generate the treatment using the selection equation $D_i = I\{p(Z_i) \geq U_i\}$.
   \item[3.] Generate the outcome by $Y = D_i m_1(u; \gamma) + (1 - D_i) m_0(u; \gamma) + \varepsilon_i$,
-  where $I_g$ indicates the respective interval for always-takers, never-takers and compliers, and $\varepsilon\sim N(0, \sigma^2)$ with $\sigma=0.1$ is additional, independent noise.
+  where $m_1, m_0$ are the parametrized MTR functions (see below), and $\varepsilon\sim N(0, \sigma^2)$ with $\sigma=0.1$ is additional, independent noise.
 \end{itemize}
 
 \paragraph{Parameter Grid}
@@ -713,12 +713,15 @@ To generate results that are easy to visualize in terms of the point-identified 
 over a grid $[-1, 1]$ for the complier LATE $\beta_s$.
 For the remaining point-identified parameters I take $\gamma_1^{at} = 0.75$ and $\gamma_0^{nt} = 0.2$.
 This allows for DGPs consistent with decreasing MTR functions, a decreasing MTE, and a positive response everywhere.
-\footnote{In the extreme, if we were to set $\gamma_1^{at} = 0$ the largest complier LATE consistent with a decreasing MTE function would be $0$, namely when $\gamma_0^{at}=0$.}
+\footnote{In the extreme, if we were to set $\gamma_1^{at} = 0$, the largest complier LATE consistent with a decreasing MTE function would be $0$, namely when $\gamma_0^{at}=0$.}
 
 \paragraph{Shape Restrictions}
+I provide simulation results for a model without shape restrictions, a model with positive monotone treatment response (MTE positive everywhere), and a model with a decreasing treatment effect (a decreasing MTE function).
 
-\paragraph{Basis Functions: Bernstein Polynomials}
-
+\paragraph{Identified Set}
+I focus on the case of the \textit{sharp} identified set in the sense of MST, which is arguably the most relevant specification.
+This is the set that uses all conditional moments of $Y$.
+Hence, in our case this will make use of $\gamma_1^{at}, \gamma_1^{c}, \gamma_0^{c}$ and $\gamma_0^{nt}$.
 
 \subsection{Simulation Results}
 
