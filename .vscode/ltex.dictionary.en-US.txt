@@ -14,3 +14,11 @@ estimand
 linprog
 estimands
 Monotonicity
+
+covariates
+functionals
+OLS
+Slutsky
+Hadamard
+MSTs
+misspecified
