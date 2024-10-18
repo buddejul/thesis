@@ -21,6 +21,8 @@ class _Arguments(NamedTuple):
     problematic_region: np.ndarray
     path_to_plot: Annotated[Path, Product]
     path_to_plot_problematic_region: Annotated[Path, Product]
+    path_to_plot_html: Annotated[Path, Product] | None = None
+    path_to_plot_problematic_region_html: Annotated[Path, Product] | None = None
     confidence_interval: str | None = None
 
 
@@ -76,6 +78,14 @@ ID_TO_KWARGS_COVERAGE = {
 }
 
 for id_, kwargs in ID_TO_KWARGS_COVERAGE.items():
+    ID_TO_KWARGS_COVERAGE[id_] = kwargs._replace(
+        path_to_plot_html=ID_TO_KWARGS_COVERAGE[id_].path_to_plot.with_suffix(".html"),
+        path_to_plot_problematic_region_html=ID_TO_KWARGS_COVERAGE[
+            id_
+        ].path_to_plot_problematic_region.with_suffix(".html"),
+    )
+
+for id_, kwargs in ID_TO_KWARGS_COVERAGE.items():
 
     @pytask.mark.wip
     @task(id=id_, kwargs=kwargs)  # type: ignore[arg-type]
@@ -85,6 +95,8 @@ for id_, kwargs in ID_TO_KWARGS_COVERAGE.items():
         problematic_region: np.ndarray,
         path_to_plot: Annotated[Path, Product],
         path_to_plot_problematic_region: Annotated[Path, Product],
+        path_to_plot_html: Annotated[Path, Product],
+        path_to_plot_problematic_region_html: Annotated[Path, Product],
         path_to_sims_combined: Path = BLD
         / "data"
         / "pyvmte_simulations"
@@ -288,11 +300,13 @@ for id_, kwargs in ID_TO_KWARGS_COVERAGE.items():
         fig.update_xaxes(range=[-0.1, 1])
 
         write_image(fig, path_to_plot, scale=2)
+        fig.write_html(path_to_plot_html)
 
         # Restrict x-axis to problematic region
         fig.update_xaxes(range=[np.min(problematic_region), np.max(problematic_region)])
 
         write_image(fig, path_to_plot_problematic_region, scale=2)
+        fig.write_html(path_to_plot_problematic_region_html)
 
 
 # --------------------------------------------------------------------------------------
@@ -322,16 +336,26 @@ ID_TO_KWARGS_MEANS = {
 }
 
 for id_, kwargs in ID_TO_KWARGS_MEANS.items():
+    ID_TO_KWARGS_MEANS[id_] = kwargs._replace(
+        path_to_plot_html=ID_TO_KWARGS_MEANS[id_].path_to_plot.with_suffix(".html"),
+        path_to_plot_problematic_region_html=ID_TO_KWARGS_MEANS[
+            id_
+        ].path_to_plot_problematic_region.with_suffix(".html"),
+    )
+
+for id_, kwargs in ID_TO_KWARGS_MEANS.items():
 
     @pytask.mark.wip
     @task(id=id_, kwargs=kwargs)  # type: ignore[arg-type]
-    def task_plot_pyvmte_sims_by_late_means(
+    def task_plot_pyvmte_sims_by_late_means(  # noqa: PLR0915
         confidence_interval: str,
         idestimands: str,
         constraint: str,
         problematic_region: np.ndarray,
         path_to_plot: Annotated[Path, Product],
         path_to_plot_problematic_region: Annotated[Path, Product],
+        path_to_plot_html: Annotated[Path, Product],
+        path_to_plot_problematic_region_html: Annotated[Path, Product],
         path_to_sims_combined: Path = BLD
         / "data"
         / "pyvmte_simulations"
@@ -534,7 +558,9 @@ for id_, kwargs in ID_TO_KWARGS_MEANS.items():
         fig.update_xaxes(range=[-0.1, 1])
 
         write_image(fig, path_to_plot, scale=2)
+        fig.write_html(path_to_plot_html)
 
         fig.update_xaxes(range=[np.min(problematic_region), np.max(problematic_region)])
 
         write_image(fig, path_to_plot_problematic_region, scale=2)
+        fig.write_html(path_to_plot_problematic_region_html)
