@@ -94,7 +94,6 @@ def task_solutions_binary_iv_full_results(
                 "upper_bound": upper_bounds,
             },
         )
-
         max_len_lower = max([len(x) for x in lower_x if x is not None])
         max_len_upper = max([len(x) for x in upper_x if x is not None])
 

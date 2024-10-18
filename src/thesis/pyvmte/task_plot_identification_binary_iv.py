@@ -35,6 +35,7 @@ class _Arguments(NamedTuple):
     path_to_solutions: Path = (
         BLD / "data" / "solutions" / "full_solutions_simple_model_combined.pkl"
     )
+    path_to_plot_html: Annotated[Path, Product] | None = None
 
 
 ID_TO_KWARGS = {
@@ -59,12 +60,26 @@ ID_TO_KWARGS = {
     for idestimands in ["late", "sharp"]
 }
 
+# Add path_to_html for all tasks
+for id_, kwargs in ID_TO_KWARGS.items():
+    ID_TO_KWARGS[id_] = kwargs._replace(
+        path_to_plot_html=BLD
+        / "figures"
+        / "binary_iv"
+        / "html"
+        / (
+            f"id_{kwargs.bfunc_type}_{kwargs.k_bernstein}_"
+            f"{kwargs.constraint_type}_{kwargs.idestimands}.html"
+        ),
+    )
+
 for id_, kwargs in ID_TO_KWARGS.items():
 
     @task(id=id_, kwargs=kwargs)  # type: ignore[arg-type]
     @pytask.mark.plot_for_paper
-    def task_plot_identification_binary_iv(  # noqa: PLR0915
+    def task_plot_identification_binary_iv(  # noqa: PLR0915, C901, PLR0912
         path_to_plot: Annotated[Path, Product],
+        path_to_plot_html: Annotated[Path, Product],
         bounds_to_plot: tuple[str],
         k_bernstein: int,
         path_to_solutions: Path,
@@ -237,9 +252,17 @@ for id_, kwargs in ID_TO_KWARGS.items():
                 },
             )
 
+        types_to_subtitles = {
+            "none": "None",
+            "shape_constraints": "Decreasing MTR Functions",
+            "mte_monotone": "MTE Decreasing",
+            "monotone_response": "Positive Treatment Response",
+        }
+
         subtitle = (
-            f"<br><sup>Bernstein Polynomial of Degree {k_bernstein},"
-            f"{num_gridpoints} Grid Points</sup>"
+            f"<br><sup>Bernstein Polynomial of Degree {k_bernstein}, "
+            f"{num_gridpoints} Grid Points"
+            f"<br>Shape restriction: {types_to_subtitles[constraint_type]}</sup>"
         )
 
         fig.update_layout(
@@ -268,3 +291,6 @@ for id_, kwargs in ID_TO_KWARGS.items():
             fig.update_layout(showlegend=False)
 
         fig.write_image(path_to_plot)
+
+        if path_to_plot_html is not None:
+            fig.write_html(path_to_plot_html)

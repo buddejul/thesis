@@ -76,8 +76,8 @@
 % NEEDS to be before hyperref, cleveref and autonum
 % number figures, tables and equations within the sections
 \numberwithin{equation}{section}
-\numberwithin{figure}{section}
-\numberwithin{table}{section}
+% \numberwithin{figure}{section}
+% \numberwithin{table}{section}
 
 % references and annotation, citations
 \usepackage[small,bf,hang]{caption}        % captions
@@ -719,7 +719,7 @@ This allows for DGPs consistent with decreasing MTR functions, a decreasing MTE,
 I provide simulation results for a model without shape restrictions, a model with positive monotone treatment response (MTE positive everywhere), and a model with a decreasing treatment effect (a decreasing MTE function).
 
 \paragraph{Identified Set}
-I focus on the case of the \textit{sharp} identified set in the sense of MST, which is arguably the most relevant specification.
+I focus on the case of the \textit{sharp} identified set in the sense of MST, which is likely the specification most used in practice.
 This is the set that uses all conditional moments of $Y$.
 Hence, in our case this will make use of $\gamma_1^{at}, \gamma_1^{c}, \gamma_0^{c}$ and $\gamma_0^{nt}$.
 
@@ -732,14 +732,38 @@ Hence, in our case this will make use of $\gamma_1^{at}, \gamma_1^{c}, \gamma_0^
   \centering
   \begin{subfigure}[b]{0.49\textwidth}
       \centering
-      \includegraphics[width=\textwidth]{../../}
-      \caption{Degree $k=2$}\label{fig:simulation_binary_iv_bernstein}
+      \includegraphics[width=\textwidth]{../../bld/figures/pyvmte_sims/sims_simple_model_by_late_sharp_none_coverage.png}
+      \caption{No Shape Restrictions}\label{fig:simulation_coverage_none}
   \end{subfigure}
   \hfill
   \begin{subfigure}[b]{0.49\textwidth}
       \centering
-      \includegraphics[width=\textwidth]{../../bld/figures/binary_iv/id_bernstein_11_none_late.png}
-      \caption{Degree $k=11$}\label{fig:simulation_binary_iv_bernstein}
+      \includegraphics[width=\textwidth]{../../bld/figures/pyvmte_sims/sims_simple_model_by_late_sharp_none_coverage_problematic_region.png}
+      \caption{Problematic Region}\label{fig:simulation_coverage_none_problematic}
+  \end{subfigure}
+
+  \begin{subfigure}[b]{0.49\textwidth}
+      \centering
+      \includegraphics[width=\textwidth]{../../bld/figures/pyvmte_sims/sims_simple_model_by_late_sharp_monotone_response_coverage.png}
+      \caption{Monotone Response}\label{fig:simulation_coverage_monotone_response}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.49\textwidth}
+      \centering
+      \includegraphics[width=\textwidth]{../../bld/figures/pyvmte_sims/sims_simple_model_by_late_sharp_monotone_response_coverage_problematic_region.png}
+      \caption{Problematic Region}\label{fig:simulation_coverage_monotone_response_problematic}
+  \end{subfigure}
+
+  \begin{subfigure}[b]{0.49\textwidth}
+      \centering
+      \includegraphics[width=\textwidth]{../../bld/figures/pyvmte_sims/sims_simple_model_by_late_sharp_mte_monotone_coverage.png}
+      \caption{MTE Decreasing}\label{fig:simulation_coverage_mte_monotone}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.49\textwidth}
+      \centering
+      \includegraphics[width=\textwidth]{../../bld/figures/pyvmte_sims/sims_simple_model_by_late_sharp_mte_monotone_coverage_problematic_region.png}
+      \caption{Problematic Region}\label{fig:simulation_coverage_mte_monotone_problematic}
   \end{subfigure}
 \end{figure}
 
@@ -759,12 +783,86 @@ Hence, in our case this will make use of $\gamma_1^{at}, \gamma_1^{c}, \gamma_0^
   \item Other inference approaches: Projection approach in~\cite{bei2023inference}.
 \end{itemize}
 
+\clearpage
+\newpage
+
+
 \bibliographystyle{abbrvnat}
 \bibliography{refs.bib}
 
 % \printbibliography % use this for biblatex
 
 \appendix
+\counterwithin{figure}{section}
+
+
+\section{Binary IV Model: Solutions}
+\subsection{Identified Estimands: Complier LATE}
+\begin{figure}
+
+  \caption{Identified Sets for the Binary-IV-Bernstein: Shape Restrictions}\label{app_fig:id_set_binary_iv_bernstein_shape_restrictions}
+
+  \centering
+  \begin{subfigure}[b]{0.49\textwidth}
+      \centering
+      \includegraphics[width=\textwidth]{../../bld/figures/binary_iv/id_bernstein_2_monotone_response_late.png}
+      \caption{Positive Treatment Response ($k=2$)}\label{app_fig:id_set_binary_iv_bernstein_k_2_monotone_response}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[b]{0.49\textwidth}
+      \centering
+      \includegraphics[width=\textwidth]{../../bld/figures/binary_iv/id_bernstein_11_monotone_response_late.png}
+      \caption{Positive Treatment Response ($k=11$)}\label{app_fig:id_set_binary_iv_bernstein_k_11_monotone_response}
+  \end{subfigure}
+
+  \begin{subfigure}[b]{0.49\textwidth}
+      \centering
+      \includegraphics[width=\textwidth]{../../bld/figures/binary_iv/id_bernstein_2_mte_monotone_late.png}
+      \caption{Decreasing MTE ($k=2$)}\label{app_fig:id_set_binary_iv_bernstein_k_2_mte_monotone}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[b]{0.49\textwidth}
+      \centering
+      \includegraphics[width=\textwidth]{../../bld/figures/binary_iv/id_bernstein_11_mte_monotone_late.png}
+      \caption{Decreasing MTE ($k=11$)}\label{app_fig:id_set_binary_iv_bernstein_k_11_mte_monotone}
+  \end{subfigure}
+
+
+\end{figure}
+
+\subsection{Identified Estimands: Sharp Identified Set}
+\begin{figure}
+
+  \caption{Identified Sets for the Binary-IV-Bernstein: Shape Restrictions}\label{app_fig:id_set_binary_iv_bernstein_shape_restrictions_sharp}
+
+  \centering
+  \begin{subfigure}[b]{0.49\textwidth}
+      \centering
+      \includegraphics[width=\textwidth]{../../bld/figures/binary_iv/id_bernstein_2_monotone_response_sharp.png}
+      \caption{Positive Treatment Response ($k=2$)}\label{app_fig:id_set_binary_iv_bernstein_k_2_monotone_response_sharp}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[b]{0.49\textwidth}
+      \centering
+      \includegraphics[width=\textwidth]{../../bld/figures/binary_iv/id_bernstein_11_monotone_response_sharp.png}
+      \caption{Positive Treatment Response ($k=11$)}\label{app_fig:id_set_binary_iv_bernstein_k_11_monotone_response_sharp}
+  \end{subfigure}
+
+  \begin{subfigure}[b]{0.49\textwidth}
+      \centering
+      \includegraphics[width=\textwidth]{../../bld/figures/binary_iv/id_bernstein_2_mte_monotone_sharp.png}
+      \caption{Decreasing MTE ($k=2$)}\label{app_fig:id_set_binary_iv_bernstein_k_2_mte_monotone_sharp}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[b]{0.49\textwidth}
+      \centering
+      \includegraphics[width=\textwidth]{../../bld/figures/binary_iv/id_bernstein_11_mte_monotone_sharp.png}
+      \caption{Decreasing MTE ($k=11$)}\label{app_fig:id_set_binary_iv_bernstein_k_11_mte_monotone_sharp}
+  \end{subfigure}
+\end{figure}
+
+\clearpage
+\newpage
 
 \section{Linear Programs}\label{app_sec:linear_programs}
 This section presents the exact formulation of the linear programs corresponding to how most solvers specify linear programs.

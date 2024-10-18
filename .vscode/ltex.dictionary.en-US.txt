@@ -22,3 +22,6 @@ Slutsky
 Hadamard
 MSTs
 misspecified
+
+Estimands
+Complier
