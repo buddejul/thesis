@@ -77,6 +77,18 @@ def task_combine_pyvmte_sims(  # noqa: C901
         _df["covers_idset_lower"] = _df["sim_ci_lower"] <= _df["true_lower_bound"]
         _df["covers_idset"] = _df["covers_idset_upper"] & _df["covers_idset_lower"]
 
+        # Whenever sim_ci_upper or sim_ci_lower is missing, set covers to False
+        for col in [
+            "covers_true_param",
+            "covers_idset_upper",
+            "covers_idset_lower",
+            "covers_idset",
+        ]:
+            _df.loc[
+                _df["sim_ci_upper"].isna() | _df["sim_ci_lower"].isna(),
+                col,
+            ] = False
+
         # breakpoint if "true_param" is about 0.5
         if np.isclose(_df["true_param"].mean(), 0.5, atol=0.1):
             pass

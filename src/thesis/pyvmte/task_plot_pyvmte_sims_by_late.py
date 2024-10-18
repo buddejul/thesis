@@ -66,10 +66,10 @@ ID_TO_KWARGS_COVERAGE = {
         constraint=constraint,  # type: ignore[arg-type]
         problematic_region=grid_by_constraint[constraint],
         path_to_plot=plot_dir
-        / f"sims_simple_model_by_late_{idestimands}_{constraint}_coverage.png",
+        / f"sims_binary_iv_{idestimands}_{constraint}_coverage.png",
         path_to_plot_problematic_region=plot_dir
         / (
-            f"sims_simple_model_by_late_{idestimands}_{constraint}"
+            f"sims_binary_iv_{idestimands}_{constraint}"
             "_coverage_problematic_region.png"
         ),
     )
@@ -157,6 +157,7 @@ for id_, kwargs in ID_TO_KWARGS_COVERAGE.items():
 
             _k_bernstein = df_plot["k_bernstein"].unique()
             assert len(_k_bernstein) == 1
+            _k_bernstein = _k_bernstein[0]
 
             _legend_title_by_confidence_interval = {
                 "bootstrap": "Bootstrap",
@@ -213,9 +214,7 @@ for id_, kwargs in ID_TO_KWARGS_COVERAGE.items():
 
         df_plot_sol = df_plot_sol[df_plot_sol["idestimands"] == idestimands]
 
-        _k_bernstein = df_plot_sol["k_bernstein"].unique()
-
-        assert len(_k_bernstein) == 1
+        df_plot_sol = df_plot_sol[df_plot_sol["k_bernstein"] == _k_bernstein]
 
         legend_title = "True Bound"
 
@@ -321,12 +320,12 @@ ID_TO_KWARGS_MEANS = {
         problematic_region=grid_by_constraint[constraint],
         path_to_plot=plot_dir
         / (
-            f"sims_simple_model_by_late_{idestimands}_{constraint}_means_"
+            f"sims_binary_iv_{idestimands}_{constraint}_means_"
             f"{confidence_interval}.png"
         ),
         path_to_plot_problematic_region=plot_dir
         / (
-            f"sims_simple_model_by_late_{idestimands}_{constraint}_means_"
+            f"sims_binary_iv_{idestimands}_{constraint}_means_"
             f"problematic_region_{confidence_interval}.png"
         ),
     )
@@ -446,6 +445,7 @@ for id_, kwargs in ID_TO_KWARGS_MEANS.items():
 
         _k_bernstein = df_plot["k_bernstein"].unique()
         assert len(_k_bernstein) == 1
+        _k_bernstein = _k_bernstein[0]
 
         # Drop all rows where true_lower_bound and true_upper_bound are NaN
         df_plot = df_plot.dropna(subset=["true_lower_bound", "true_upper_bound"])
@@ -495,10 +495,7 @@ for id_, kwargs in ID_TO_KWARGS_MEANS.items():
             df_plot_sol = df_plot_sol[df_plot_sol["constraint_type"] == "none"]
 
         df_plot_sol = df_plot_sol[df_plot_sol["idestimands"] == idestimands]
-
-        _k_bernstein = df_plot_sol["k_bernstein"].unique()
-
-        assert len(_k_bernstein) == 1
+        df_plot_sol = df_plot_sol[df_plot_sol["k_bernstein"] == _k_bernstein]
 
         legend_title = "True Bounds"
 
@@ -519,10 +516,10 @@ for id_, kwargs in ID_TO_KWARGS_MEANS.items():
             )
 
         _subtitle = (
-            f" <br><sup>Confidence Interval: {confidence_interval.capitalize()},"
-            f" <br>Identified Estimands: {idestimands.capitalize()},"
-            f" <br>Nominal Coverage = {1 - alpha}"
-            f" <br>Shape constraints: {_constr_subtitle[constraint]} </sup>"
+            f"<br><sup>Confidence Interval: {confidence_interval.capitalize()}, "
+            f"Identified: {idestimands.capitalize()}"
+            f"<br>Nominal Coverage = {1 - alpha}, "
+            f"Shape constraints: {_constr_subtitle[constraint]} </sup>"
         )
 
         fig.update_layout(
