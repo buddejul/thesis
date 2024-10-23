@@ -34,6 +34,9 @@ dependencies:
   # - r-yaml
   # - r-forcats
 
+  # Optimization
+  - optimagic
+
   # Install project
   - pip:
     - -e .
