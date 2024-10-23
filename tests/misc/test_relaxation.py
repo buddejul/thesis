@@ -1,6 +1,6 @@
 """Test relaxation functions."""
 from thesis.config import RNG
-from thesis.misc.relaxation_mte import solve_lp_convex
+from thesis.misc._task_relaxation_mte import solve_lp_convex
 
 
 def test_solve_lp_convex_runs() -> None:

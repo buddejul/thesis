@@ -1,16 +1,24 @@
 """Relaxation of MTE problem to convex problem with larger parameter space."""
+
 from functools import partial
+from pathlib import Path
+from typing import Annotated, NamedTuple
 
 import numpy as np
 import optimagic as om  # type: ignore[import-untyped]
+import pandas as pd  # type: ignore[import-untyped]
+import plotly.graph_objects as go  # type: ignore[import-untyped]
+import pytask
+from pytask import Product
 from pyvmte.classes import Estimand  # type: ignore[import-untyped]
-from pyvmte.config import (
-    IV_SM,  # type: ignore[import-untyped]
+from pyvmte.config import (  # type: ignore[import-untyped]
+    BLD,
+    IV_SM,
     SETUP_SM_SHARP,
 )
 from pyvmte.identification import identification  # type: ignore[import-untyped]
-from pyvmte.utilities import (
-    generate_bernstein_basis_funcs,  # type: ignore[import-untyped]
+from pyvmte.utilities import (  # type: ignore[import-untyped]
+    generate_bernstein_basis_funcs,
 )
 
 from thesis.pyvmte.pyvmte_sims_config import Y0_AT, Y0_NT, Y1_AT, Y1_NT
@@ -72,6 +80,10 @@ def solve_lp_convex(beta: float, k_bernstein: int = 11) -> dict[str, float]:
     }
 
     res = identification(**kwargs)
+
+    if res.success[0] is False:
+        return {"lp": np.nan, "convex": np.nan}
+
     c = res.lp_inputs["c"]
     a_eq = res.lp_inputs["a_eq"]
     b_eq = res.lp_inputs["b_eq"]
@@ -109,3 +121,48 @@ def solve_lp_convex(beta: float, k_bernstein: int = 11) -> dict[str, float]:
     )
 
     return {"lp": res.lower_bound, "convex": res_convex.fun}
+
+
+class _Arguments(NamedTuple):
+    path_to_plot: Annotated[Path, Product]
+    num_points: int = 100
+
+
+args = _Arguments(
+    path_to_plot=BLD / "figures" / "relaxation" / "relaxation_mte.html",
+    num_points=10,
+)
+
+
+@pytask.mark.relax()
+def task_relaxation_mte(
+    path_to_plot: Annotated[Path, Product],
+    num_points: int,
+) -> None:
+    beta_grid = np.linspace(-0.4, 1, num_points)
+
+    results = [solve_lp_convex(beta) for beta in beta_grid]
+
+    data = pd.DataFrame(results, index=beta_grid)
+
+    fig = go.Figure()
+
+    fig.add_trace(
+        go.Scatter(
+            x=data.index,
+            y=data["lp"],
+            mode="lines",
+            name="LP Solution",
+        ),
+    )
+
+    fig.add_trace(
+        go.Scatter(
+            x=data.index,
+            y=data["convex"],
+            mode="lines",
+            name="Convex Program Solution",
+        ),
+    )
+
+    fig.write_html(path_to_plot)
