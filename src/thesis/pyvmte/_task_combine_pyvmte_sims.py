@@ -14,7 +14,7 @@ import pytask
 from pytask import Product
 
 from thesis.config import BLD, HPC_RES
-from thesis.pyvmte.task_pyvmte_sims import ID_TO_KWARGS
+from thesis.pyvmte._task_pyvmte_sims import ID_TO_KWARGS
 
 HPC = True
 

@@ -12,7 +12,7 @@ from plotly.io import write_image  # type: ignore[import-untyped]
 from pytask import Product, task
 
 from thesis.config import BLD
-from thesis.pyvmte.task_pyvmte_sims import grid_by_constraint
+from thesis.pyvmte._task_pyvmte_sims import grid_by_constraint
 
 
 class _Arguments(NamedTuple):

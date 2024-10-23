@@ -9,10 +9,9 @@ import optimagic as om  # type: ignore[import-untyped]
 import pandas as pd  # type: ignore[import-untyped]
 import plotly.graph_objects as go  # type: ignore[import-untyped]
 import pytask
-from pytask import Product
+from pytask import Product, task
 from pyvmte.classes import Estimand  # type: ignore[import-untyped]
 from pyvmte.config import (  # type: ignore[import-untyped]
-    BLD,
     IV_SM,
     SETUP_SM_SHARP,
 )
@@ -21,6 +20,7 @@ from pyvmte.utilities import (  # type: ignore[import-untyped]
     generate_bernstein_basis_funcs,
 )
 
+from thesis.config import BLD
 from thesis.pyvmte.pyvmte_sims_config import Y0_AT, Y0_NT, Y1_AT, Y1_NT
 from thesis.utilities import make_mtr_binary_iv
 
@@ -116,7 +116,7 @@ def solve_lp_convex(beta: float, k_bernstein: int = 11) -> dict[str, float]:
     res_convex = om.minimize(
         fun=objective,
         params=params,
-        algorithm="scipy_cobyla",
+        algorithm="ipopt",
         constraints=constraints,
     )
 
@@ -125,44 +125,50 @@ def solve_lp_convex(beta: float, k_bernstein: int = 11) -> dict[str, float]:
 
 class _Arguments(NamedTuple):
     path_to_plot: Annotated[Path, Product]
-    num_points: int = 100
+    num_points: int
 
 
-args = _Arguments(
-    path_to_plot=BLD / "figures" / "relaxation" / "relaxation_mte.html",
-    num_points=10,
-)
+args = {
+    "task1": _Arguments(
+        path_to_plot=BLD / "figures" / "relaxation" / "relaxation_mte.html",
+        num_points=250,
+    ),
+}
 
 
-@pytask.mark.relax()
-def task_relaxation_mte(
-    path_to_plot: Annotated[Path, Product],
-    num_points: int,
-) -> None:
-    beta_grid = np.linspace(-0.4, 1, num_points)
+for id_, kwargs in args.items():
 
-    results = [solve_lp_convex(beta) for beta in beta_grid]
+    @pytask.mark.relax()
+    @task(name=id_, kwargs=kwargs)  # type: ignore[arg-type]
+    def task_relaxation_mte(
+        path_to_plot: Annotated[Path, Product],
+        num_points: int,
+    ) -> None:
+        """Task for solving original and relaxed convex problem."""
+        beta_grid = np.linspace(0.6, 1, num_points)
 
-    data = pd.DataFrame(results, index=beta_grid)
+        results = [solve_lp_convex(beta) for beta in beta_grid]
 
-    fig = go.Figure()
+        data = pd.DataFrame(results, index=beta_grid)
 
-    fig.add_trace(
-        go.Scatter(
-            x=data.index,
-            y=data["lp"],
-            mode="lines",
-            name="LP Solution",
-        ),
-    )
+        fig = go.Figure()
 
-    fig.add_trace(
-        go.Scatter(
-            x=data.index,
-            y=data["convex"],
-            mode="lines",
-            name="Convex Program Solution",
-        ),
-    )
+        fig.add_trace(
+            go.Scatter(
+                x=data.index,
+                y=data["lp"],
+                mode="lines",
+                name="LP Solution",
+            ),
+        )
 
-    fig.write_html(path_to_plot)
+        fig.add_trace(
+            go.Scatter(
+                x=data.index,
+                y=data["convex"],
+                mode="lines",
+                name="Convex Program Solution",
+            ),
+        )
+
+        fig.write_html(path_to_plot)
