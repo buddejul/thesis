@@ -43,7 +43,7 @@ dependencies:
   - pip:
     - -e .
     - pdbp
-    - kaleido==0.1.0post1
+    - kaleido # for windows: ==0.1.0post1
     - joblib
     - git+https://github.com/buddejul/pyvmte@fix_second_step_error
     - coptpy

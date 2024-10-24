@@ -22,6 +22,7 @@ from pyvmte.utilities import (  # type: ignore[import-untyped]
 )
 
 from thesis.config import BLD
+from thesis.misc.relax import generate_poly_constraints
 from thesis.pyvmte.pyvmte_sims_config import Y0_AT, Y0_NT, Y1_AT, Y1_NT
 from thesis.utilities import make_mtr_binary_iv
 
@@ -57,10 +58,13 @@ _make_m1 = partial(
 def solve_lp_convex(
     beta: float,
     algorithm: str,
+    constraint: str,
     k_bernstein: int = 11,
     return_optimizer: bool = False,  # noqa: FBT001, FBT002
 ) -> dict[str, float] | Callable:
     """Solve linear program and convex relaxation."""
+    num_dims = (k_bernstein + 1) * 2
+
     y0_c = 0.5 - beta / 2
     y1_c = 0.5 + beta / 2
 
@@ -107,15 +111,17 @@ def solve_lp_convex(
         for i in range(num_rows)
     ]
 
-    # Unit ball constraint
-    constraints.append(
-        om.NonlinearConstraint(
-            func=lambda x: np.sum((x - 0.5) ** 2),
-            upper_bound=(k_bernstein + 1) * 2 * 0.25,
-        ),
-    )
+    if constraint == "unit_ball":
+        # Unit ball constraint
+        constraints.append(
+            om.NonlinearConstraint(
+                func=lambda x: np.sum((x - 0.5) ** 2),
+                upper_bound=(k_bernstein + 1) * 2 * 0.25,
+            ),
+        )
 
-    # def grad(x):
+    if constraint == "polynomial_degree4":
+        constraints.extend(generate_poly_constraints(num_dims=num_dims))
 
     params = res.upper_optres.x
 
@@ -171,31 +177,55 @@ for id_, kwargs in args.items():
         """Task for solving original and relaxed convex problem."""
         beta_grid = np.linspace(-1, 1, num_points)
 
-        results = [
-            solve_lp_convex(beta=beta, k_bernstein=k_bernstein, algorithm="scipy_slsqp")
+        results_unit_ball = [
+            solve_lp_convex(
+                beta=beta,
+                k_bernstein=k_bernstein,
+                algorithm="scipy_slsqp",
+                constraint="unit_ball",
+            )
             for beta in beta_grid
         ]
 
-        data = pd.DataFrame(results, index=beta_grid)
+        result_polynomial_degree4 = [
+            solve_lp_convex(
+                beta=beta,
+                k_bernstein=k_bernstein,
+                algorithm="scipy_slsqp",
+                constraint="polynomial_degree4",
+            )
+            for beta in beta_grid
+        ]
+
+        data_unit_ball = pd.DataFrame(results_unit_ball, index=beta_grid)
+        data_polynomial_degree4 = pd.DataFrame(
+            result_polynomial_degree4,
+            index=beta_grid,
+        )
+        data_unit_ball["constraint"] = "unit_ball"
+        data_polynomial_degree4["constraint"] = "polynomial_degree4"
+
+        data = pd.concat([data_unit_ball, data_polynomial_degree4])
 
         fig = go.Figure()
 
         fig.add_trace(
             go.Scatter(
-                x=data.index,
-                y=data["lp"],
+                x=data[data["constraint"] == "unit_ball"].index,
+                y=data[data["constraint"] == "unit_ball"]["lp"],
                 mode="lines",
                 name="LP Solution",
             ),
         )
 
-        fig.add_trace(
-            go.Scatter(
-                x=data.index,
-                y=data["convex"],
-                mode="lines",
-                name="Convex Program Solution",
-            ),
-        )
+        for constraint in ["unit_ball", "polynomial_degree4"]:
+            fig.add_trace(
+                go.Scatter(
+                    x=data[data["constraint"] == constraint].index,
+                    y=data[data["constraint"] == constraint]["convex"],
+                    mode="lines",
+                    name=f"Convex Program Solution ({constraint})",
+                ),
+            )
 
         fig.write_html(path_to_plot)

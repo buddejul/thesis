@@ -11,6 +11,7 @@ import pytask
 from pytask import Product, task
 
 from thesis.config import BLD, RNG
+from thesis.misc.relax import generate_poly_constraints
 
 
 def _linear_objective(params, slope):
@@ -41,32 +42,7 @@ convex = partial(
     constraints=[constraint],
 )
 
-c = (0.5 - (0.5) ** 4) ** (1 / 4)
-
-
-def _fun_1(x):
-    return (x[0] - 0.5) ** 4 + (x[1] - c) ** 4
-
-
-def _fun_2(x):
-    return (x[0] - c) ** 4 + (x[1] - 0.5) ** 4
-
-
-def _fun_3(x):
-    return (x[0] - 0.5) ** 4 + (x[1] - (1 - c)) ** 4
-
-
-def _fun_4(x):
-    return (x[0] - (1 - c)) ** 4 + (x[1] - 0.5) ** 4
-
-
-constraints = [
-    om.NonlinearConstraint(
-        func=fun,
-        upper_bound=0.5,
-    )
-    for fun in [_fun_1, _fun_2, _fun_3, _fun_4]
-]
+constraints = generate_poly_constraints(2)
 
 convex_sharper = partial(
     om.minimize,
@@ -187,13 +163,25 @@ num_points = 20
 start_left = -0.2
 end_right = 0.2
 
+slopes = np.concatenate(
+    (
+        np.linspace(
+            start_left,
+            0,
+            np.floor(num_points / 2).astype(int),
+            endpoint=False,
+        ),
+        np.linspace(0, end_right, np.ceil(num_points / 2).astype(int)),
+    ),
+)
+
 
 class _Arguments(NamedTuple):
     slope: float
     path_to_results: Annotated[Path, Product]
-    num_sims: int = 1000
-    num_boot: int = 1000
-    num_obs: int = 1000
+    num_sims: int = 500
+    num_boot: int = 200
+    num_obs: int = 100
     alpha: float = 0.05
 
 
@@ -204,22 +192,12 @@ ID_TO_KWARGS = {
             BLD / "data" / "relaxation_bootstrap" / f"results_{slope}.pkl"
         ),
     )
-    for slope in np.concatenate(
-        (
-            np.linspace(
-                start_left,
-                0,
-                np.floor(num_points / 2).astype(int),
-                endpoint=False,
-            ),
-            np.linspace(0, end_right, np.ceil(num_points / 2).astype(int)),
-        ),
-    )
+    for slope in slopes
 }
 
 for kwargs in ID_TO_KWARGS.values():
 
-    @pytask.mark.relax_boot
+    @pytask.mark.hpc_relax_boot
     @task(kwargs=kwargs)  # type: ignore[arg-type]
     def task_relaxation_bootstrap(
         num_sims: int,

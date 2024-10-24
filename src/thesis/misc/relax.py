@@ -38,7 +38,7 @@ def generate_poly_constraints(num_dims: int) -> list[om.NonlinearConstraint]:
             func=lambda x, dim=dim: np.sum((x - centering_matrix[dim]) ** k),
             upper_bound=ub,
         )
-        for dim in range(num_dims)
+        for dim in range(num_dims * 2)
     ]
 
 
