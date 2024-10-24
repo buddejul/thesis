@@ -17,6 +17,7 @@ pyvmte_sols = "A marker for model solutions using pyvmte."
 plot_for_paper = "A marker for plots specifically for the paper."
 solve = "A marker for tasks solving models."
 relax = "A marker for tasks working on relaxation of the LP."
+relax_boot = "A marker for tasks simulation of relaxation using bootstrap."
 
 [tool.ruff]
 target-version = "py311"

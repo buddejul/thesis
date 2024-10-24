@@ -1,5 +1,6 @@
 """Relaxation of MTE problem to convex problem with larger parameter space."""
 
+from collections.abc import Callable
 from functools import partial
 from pathlib import Path
 from typing import Annotated, NamedTuple
@@ -53,7 +54,12 @@ _make_m1 = partial(
 )
 
 
-def solve_lp_convex(beta: float, k_bernstein: int = 11) -> dict[str, float]:
+def solve_lp_convex(
+    beta: float,
+    algorithm: str,
+    k_bernstein: int = 11,
+    return_optimizer: bool = False,  # noqa: FBT001, FBT002
+) -> dict[str, float] | Callable:
     """Solve linear program and convex relaxation."""
     y0_c = 0.5 - beta / 2
     y1_c = 0.5 + beta / 2
@@ -105,34 +111,51 @@ def solve_lp_convex(beta: float, k_bernstein: int = 11) -> dict[str, float]:
     constraints.append(
         om.NonlinearConstraint(
             func=lambda x: np.sum((x - 0.5) ** 2),
-            upper_bound=0.5,
+            upper_bound=(k_bernstein + 1) * 2 * 0.25,
         ),
     )
 
-    params = res.lower_optres.x
+    # def grad(x):
+
+    params = res.upper_optres.x
 
     np.testing.assert_array_almost_equal(a_eq @ params, b_eq)
 
-    res_convex = om.minimize(
+    if return_optimizer:
+        return partial(
+            om.maximize,
+            fun=objective,
+            params=params,
+            algorithm=algorithm,
+            constraints=constraints,
+        )
+
+    res_convex = om.maximize(
         fun=objective,
         params=params,
-        algorithm="ipopt",
+        algorithm=algorithm,
         constraints=constraints,
     )
 
-    return {"lp": res.lower_bound, "convex": res_convex.fun}
+    return {"lp": res.upper_bound, "convex": res_convex.fun}
 
 
 class _Arguments(NamedTuple):
     path_to_plot: Annotated[Path, Product]
     num_points: int
+    k_bernstein: int
 
 
 args = {
-    "task1": _Arguments(
-        path_to_plot=BLD / "figures" / "relaxation" / "relaxation_mte.html",
-        num_points=250,
-    ),
+    f"k_bernstein_{k}": _Arguments(
+        path_to_plot=BLD
+        / "figures"
+        / "relaxation"
+        / f"relaxation_mte_k_bernstein_{k}.html",
+        num_points=1000,
+        k_bernstein=k,
+    )
+    for k in [2, 5, 11]
 }
 
 
@@ -143,11 +166,15 @@ for id_, kwargs in args.items():
     def task_relaxation_mte(
         path_to_plot: Annotated[Path, Product],
         num_points: int,
+        k_bernstein: int,
     ) -> None:
         """Task for solving original and relaxed convex problem."""
-        beta_grid = np.linspace(0.6, 1, num_points)
+        beta_grid = np.linspace(-1, 1, num_points)
 
-        results = [solve_lp_convex(beta) for beta in beta_grid]
+        results = [
+            solve_lp_convex(beta=beta, k_bernstein=k_bernstein, algorithm="scipy_slsqp")
+            for beta in beta_grid
+        ]
 
         data = pd.DataFrame(results, index=beta_grid)
 

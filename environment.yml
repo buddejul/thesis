@@ -37,6 +37,7 @@ dependencies:
   # Optimization
   - optimagic
   - cyipopt
+  - nlopt
 
   # Install project
   - pip:
