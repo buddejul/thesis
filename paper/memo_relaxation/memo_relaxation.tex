@@ -166,7 +166,7 @@ If $c=\mathbf{0}$, all $x\in [0,1]^2$ are optimal. If either $c_j = 0, c_i\neq0$
 Whenever $c_1\neq0, c_2\neq0$ we have a unique solution that appears at one of the corners of $[0,1]^2$ depending on the signs of $c_1, c_2$.
 
 Assume $c_i, c_j \neq 0$ so we have a unique solution.
-Figure~\ref{fig:feasible_dim_2} plots the feasible region for various constraints in $\mathbb{R}^2$ and the value functions as a function of $c_1$ with $c_2=0.5$ fixed.
+Figure~\ref{fig:feasible_and_val_dim_2} plots the feasible region for various constraints in $\mathbb{R}^2$ and the value functions as a function of $c_1$ with $c_2=0.5$ fixed.
 The blue square is the box constraint $x\in[0,1]^2$.
 The associated value function exhibits a clear kink at $c_1 = 0$.
 
@@ -208,21 +208,21 @@ Take the four sets defined by the following four inequalities. For example,
 \end{align}
 where again $c'$ ensures $[0,1]^2$ is included.
 
-Figure~\ref{fig:feasible_dim_2} plots the first option for $k\in\{2,4,6,10\}$.
+Figure~\ref{fig:feasible_and_val_dim_2} plots the first option for $k\in\{2,4,6,10\}$.
 The feasible region shrinks towards the unit square as $k$ increases.
 Hence, the value function is also closer to the original linear program one, while still being smooth.
 
 \begin{figure}
 	\centering
-	\caption{Feasible Regions and Value Functions in $\mathbb{R}^2$.}\label{fig:feasible_dim_2}
+	\caption{Feasible Regions and Value Functions in $\mathbb{R}^2$.}\label{fig:feasible_and_val_dim_2}
 
-	\begin{subfigure}{0.9\textwidth}
+	\begin{subfigure}{0.75\textwidth}
 		\includegraphics[width=\textwidth]{../figures/desmos_dim_2_v2.png}
 		\caption{Feasible Regions $\mathbb{R}^2$}
 	\end{subfigure}
 
-	\begin{subfigure}{0.9\textwidth}
-		\includegraphics[width=\textwidth]{../figures/value_function_dim_2.png}
+	\begin{subfigure}{0.75\textwidth}
+		\includegraphics[width=\textwidth]{../figures/value_function_by_constraint_set_dim_2.png}
 		\caption{Value Functions $\mathbb{R}^2$}
 	\end{subfigure}
 \end{figure}
@@ -232,22 +232,50 @@ Hence, the value function is also closer to the original linear program one, whi
 	\caption{Feasible Regions and Value Functions in $\mathbb{R}^3$.}\label{fig:feasible_dim_3}
 
 	\begin{subfigure}{0.5\textwidth}
-		\includegraphics[width=\textwidth]{../figures/desmos_dim_3_unit_ball.png}
-		\caption{Unit Cube in $\mathbb{R}^3$}
+		\includegraphics[width=\textwidth]{../figures/desmos_dim_3_k_2.png}
+		\caption{(Scaled) Unit Sphere ($k=2$)}
 	\end{subfigure}
 
 	\begin{subfigure}{0.5\textwidth}
-		\includegraphics[width=\textwidth]{../figures/desmos_dim_3_unit_ball_and_single_approx.png}
-		\caption{(Scaled) Unit Ball and Single Convex Relaxation}
+		\includegraphics[width=\textwidth]{../figures/desmos_dim_3_k_4.png}
+		\caption{$k=4$}
 	\end{subfigure}
 
 	\begin{subfigure}{0.5\textwidth}
-		\includegraphics[width=\textwidth]{../figures/desmos_dim_3_poly_shape.png}
-		\caption{Full Convex Relaxation}
+		\includegraphics[width=\textwidth]{../figures/desmos_dim_3_k_8.png}
+		\caption{$k=8$}
 	\end{subfigure}
 \end{figure}
 
+\section{MTE Problem Approximation}
+Now we can try to do a similar relaxation for the original MTE problem.
+We look the following setting for the binary IV model:
+\begin{itemize}
+	\item Bernstein polynomials of order $k_b = 11$ as basis functions for the MTR functions;
+	\item sharp identified set ($\mathcal{S} = \{s(d,z) = I\{D=d\}I\{Z=z\}, d \in\{0,1\}, z \in \{0,1\}\}$);
+	\item no further shape restrictions.
+\end{itemize}
+The value function of this problem for a particular sequence of the complier LATE $\beta_s = \gamma_1^c - \gamma_0^c$ and fixed other parameters is plotted below.
 
+A Bernstein polynomial of order $k_b=11$ has $12$ basis functions. Hence, we have a problem of dimensions $2 \times 12 = 24$ (one polynomial for each MTR function).
+The linear constraint hence is $x\in[0,1]^{24}$.
+I consider the following convex relaxations:
+\begin{equation*}
+	\sum_{i=1}^{24} (x_i - 0.5)^k \leq c,
+\end{equation*}
+for different values of $k$.
+The equality constraints for the point-identified estimands remain the same.
+
+\begin{figure}
+	\centering
+	\caption{MTE with Bernstein}\label{fig:feasible_dim_3}
+
+	\begin{subfigure}{0.5\textwidth}
+		\includegraphics[width=\textwidth]{../figures/desmos_dim_3_k_2.png}
+		\caption{(Scaled) Unit Sphere ($k=2$)}
+	\end{subfigure}
+
+\end{figure}
 
 \section{Questions}
 
