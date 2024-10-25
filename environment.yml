@@ -24,6 +24,7 @@ dependencies:
   - numpy
   - pandas >=2.2
   - plotly >=5.2.0,<6
+  - matplotlib
 
   # R template project dependencies
   # Currently we are not using R hence we do not need to install these dependencies.

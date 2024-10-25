@@ -179,9 +179,9 @@ slopes = np.concatenate(
 class _Arguments(NamedTuple):
     slope: float
     path_to_results: Annotated[Path, Product]
-    num_sims: int = 500
+    num_sims: int = 200
     num_boot: int = 200
-    num_obs: int = 100
+    num_obs: int = 1000
     alpha: float = 0.05
 
 
@@ -192,7 +192,7 @@ ID_TO_KWARGS = {
             BLD / "data" / "relaxation_bootstrap" / f"results_{slope}.pkl"
         ),
     )
-    for slope in slopes
+    for slope in np.zeros(1)
 }
 
 for kwargs in ID_TO_KWARGS.values():

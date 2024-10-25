@@ -4,6 +4,16 @@ import numpy as np
 import optimagic as om  # type: ignore[import-untyped]
 
 
+def generate_sphere_constraint(num_dims: int, k: int) -> om.NonlinearConstraint:
+    """Generate a sphere constraint sum((x_i-c)**k) <= u tangent to unit box."""
+    upper_bound = num_dims * (0.5) ** k
+
+    return om.NonlinearConstraint(
+        func=lambda x: np.sum((x - 0.5) ** k),
+        upper_bound=upper_bound,
+    )
+
+
 def generate_poly_constraints(num_dims: int) -> list[om.NonlinearConstraint]:
     """Generate 4th-order polynomial that relax the (scaled and centered) unit cube.
 
