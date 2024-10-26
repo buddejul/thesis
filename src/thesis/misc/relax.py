@@ -1,10 +1,12 @@
 """Functions used for relaxation of problem."""
 
+import warnings
 from collections.abc import Callable
 from functools import partial
 
 import numpy as np
 import optimagic as om  # type: ignore[import-untyped]
+from jax import grad
 from pyvmte.classes import Estimand  # type: ignore[import-untyped]
 from pyvmte.config import (  # type: ignore[import-untyped]
     IV_SM,
@@ -14,6 +16,7 @@ from pyvmte.identification import identification  # type: ignore[import-untyped]
 from pyvmte.utilities import (  # type: ignore[import-untyped]
     generate_bernstein_basis_funcs,
 )
+from scipy.optimize import minimize as scipy_minimize  # type: ignore[import-untyped]
 
 from thesis.pyvmte.pyvmte_sims_config import Y0_AT, Y0_NT, Y1_AT, Y1_NT
 from thesis.utilities import make_mtr_binary_iv
@@ -51,10 +54,34 @@ def generate_sphere_constraint(num_dims: int, k: int) -> om.NonlinearConstraint:
     """Generate a sphere constraint sum((x_i-c)**k) <= u tangent to unit box."""
     upper_bound = num_dims * (0.5) ** k
 
+    def func(x):
+        return np.sum((x - 0.5) ** k)
+
     return om.NonlinearConstraint(
-        func=lambda x: np.sum((x - 0.5) ** k),
+        func=func,
         upper_bound=upper_bound,
+        derivative=grad(func),
     )
+
+
+def generate_sphere_constraint_scipy(
+    num_dims: int,
+    k: int,
+) -> dict[str, str | Callable]:
+    """Generate a sphere constraint sum((x_i-c)**k) <= u tangent to unit box."""
+    upper_bound = num_dims * (0.5) ** k
+
+    def func(x):
+        return np.sum((x - 0.5) ** k)
+
+    # return NonlinearConstraint(
+
+    return {
+        "type": "ineq",
+        "fun": lambda x: upper_bound - func(x),  # scipy uses <= 0 by default
+        "jac": grad(func),
+        "hess": grad(grad(func)),
+    }
 
 
 def generate_poly_constraints(num_dims: int) -> list[om.NonlinearConstraint]:
@@ -107,8 +134,9 @@ def solve_lp_convex(
     beta: float,
     algorithm: str,
     k_approximation: int,
-    k_bernstein: int = 11,
     return_optimizer: bool = False,  # noqa: FBT001, FBT002
+    k_bernstein: int = 11,
+    scipy: bool = False,  # noqa: FBT001, FBT002
 ) -> dict[str, float] | Callable:
     """Solve linear program and convex relaxation."""
     num_dims = (k_bernstein + 1) * 2
@@ -140,6 +168,8 @@ def solve_lp_convex(
     res = identification(**kwargs)
 
     if res.success[0] is False:
+        msg = "Identification failed. Skipping relaxation and returnin nan."
+        warnings.warn(msg, stacklevel=2)
         return {"lp": np.nan, "convex": np.nan}
 
     c = res.lp_inputs["c"]
@@ -159,19 +189,42 @@ def solve_lp_convex(
         for i in range(num_rows)
     ]
 
+    eq_constraints_scipy = [
+        {
+            "type": "eq",
+            "fun": lambda x, i=i: a_eq[i] @ x - b_eq[i],
+            "jac": lambda x, i=i: a_eq[i],  # noqa: ARG005
+        }
+        for i in range(num_rows)
+    ]
+
+    ineq_constraints_scipy = [
+        generate_sphere_constraint_scipy(num_dims=num_dims, k=k_approximation),
+    ]
+
     constraints.append(generate_sphere_constraint(num_dims=num_dims, k=k_approximation))
 
     params = res.lower_optres.x
 
     np.testing.assert_array_almost_equal(a_eq @ params, b_eq)
 
-    if return_optimizer:
+    if return_optimizer is True and scipy is True:
+        return partial(
+            scipy_minimize,
+            fun=objective,
+            x0=params,
+            jac=lambda x: c,  # noqa: ARG005
+            hess=lambda x: np.zeros((num_dims, num_dims)),  # noqa: ARG005
+            constraints=eq_constraints_scipy + ineq_constraints_scipy,
+        )
+
+    if return_optimizer is True:
         return partial(
             om.minimize,
             fun=objective,
             params=params,
-            algorithm=algorithm,
             constraints=constraints,
+            jac=lambda x: c,  # noqa: ARG005
         )
 
     res_convex = om.minimize(
@@ -179,6 +232,7 @@ def solve_lp_convex(
         params=params,
         algorithm=algorithm,
         constraints=constraints,
+        jac=lambda x: c,  # noqa: ARG005
     )
 
     return {"lp": res.lower_bound, "convex": res_convex.fun}

@@ -42,7 +42,7 @@ KWARGS = {
 
 for id_, kwargs in KWARGS.items():
 
-    @pytask.mark.relax_wip()
+    @pytask.mark.relax
     @task(name=id_, kwargs=kwargs)  # type: ignore[arg-type]
     def task_plot_relaxation_mte(
         path_to_results: list[Path],
@@ -51,8 +51,6 @@ for id_, kwargs in KWARGS.items():
         k_bernstein: int,
     ) -> None:
         """Task for solving original and relaxed convex problem."""
-        del k_bernstein  # For linting.
-
         # Load results from identification task
         results = []
         for path in path_to_results:
@@ -61,6 +59,8 @@ for id_, kwargs in KWARGS.items():
 
         # Merge the dataframes
         data = pd.concat(results)
+
+        data = data[data["k_bernstein"] == k_bernstein]
 
         # Plot the results by k_approximation
 

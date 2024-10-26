@@ -29,12 +29,12 @@ ID_TO_KWARGS = {
             f"relaxation_mte_k_bernstein_{k_bernstein}_"
             f"k_approximation_{k_approximation}.pkl"
         ),
-        num_points=1000,
+        num_points=2000,
         k_bernstein=k_bernstein,
         k_approximation=k_approximation,
     )
-    for k_bernstein in [11]
-    for k_approximation in [2, 4, 10, 20]
+    for k_bernstein in [5, 11]
+    for k_approximation in [2, 4, 10, 20, 40]
 }
 
 
