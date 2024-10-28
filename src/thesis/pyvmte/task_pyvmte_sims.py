@@ -32,7 +32,7 @@ grid_late_complier = np.linspace(lo_grid, hi_grid, num_grid_late)
 
 confidence_intervals_to_sim = ["bootstrap", "subsampling"]
 
-num_obs_to_sim = [1_000, 10_000]
+num_obs_to_sim = [10_000]
 bfuncs_to_sim = [
     # "constant",
     "bernstein",
