@@ -28,6 +28,8 @@
 *.toc
 *.snm
 *.nav
+*.lof
+*.lot
 
 # Jupyter notebooks
 *.ipynb
