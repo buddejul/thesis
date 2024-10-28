@@ -23,3 +23,11 @@ mkdir -p $DIR_TARGET
 
 # Copy the results from marvin
 scp -r $USER@marvin.hpc.uni-bonn.de:/lustre/scratch/data/$USER-thesis/thesis/bld/ $DIR_TARGET
+
+# Now compress
+tar -czvf $DIR_TARGET.tar.gz $DIR_TARGET
+
+echo "[$DATE] Copied results from marvin for job $JOBID"
+
+# Delete the directory
+rm -r $DIR_TARGET
