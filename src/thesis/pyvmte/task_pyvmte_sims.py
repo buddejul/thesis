@@ -19,7 +19,7 @@ from thesis.utilities import constraint_dict_to_string
 # We perform num_sims * num_iterations simulations.
 # The reason is to make tasks smaller to avoid long-running tasks on the cluster.
 num_sims = 100
-num_iterations = 4
+num_iterations = 8
 
 u_hi_extra = 0.2
 
@@ -197,7 +197,7 @@ for id_, kwargs in ID_TO_KWARGS.items():
     ) -> None:
         """Perform simulations for the simple model using pyvmte."""
         if tolerance_est is None:
-            tolerance_est = 1 / num_obs
+            tolerance_est = 1 / np.sqrt(num_obs)
 
         res = simulation_pyvmte(
             num_sims=num_sims,
