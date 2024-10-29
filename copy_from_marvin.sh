@@ -24,10 +24,11 @@ mkdir -p $DIR_TARGET
 # Copy the results from marvin
 scp -r -C $USER@marvin.hpc.uni-bonn.de:/lustre/scratch/data/$USER-thesis/thesis/bld/ $DIR_TARGET
 
-# Now compress
-tar -czf $DIR_TARGET.tar.gz $DIR_TARGET
+# Warning: Compression is not working properly
+# # Now compress
+# tar -czf $DIR_TARGET.tar.gz $DIR_TARGET
 
-echo "[$DATE] Copied results from marvin for job $JOBID"
+# echo "[$DATE] Copied results from marvin for job $JOBID"
 
-# Delete the directory
-rm -r $DIR_TARGET
+# # Delete the directory
+# rm -r $DIR_TARGET
