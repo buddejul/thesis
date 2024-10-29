@@ -21,6 +21,7 @@ class _Arguments(NamedTuple):
     problematic_region: np.ndarray
     path_to_plot: Annotated[Path, Product]
     path_to_plot_problematic_region: Annotated[Path, Product]
+    lp_tolerance: str
     path_to_plot_html: Annotated[Path, Product] | None = None
     path_to_plot_problematic_region_html: Annotated[Path, Product] | None = None
     confidence_interval: str | None = None
@@ -53,6 +54,7 @@ _constr_subtitle = {
 bfunc_types_to_plot = ["constant", "bernstein"]
 idestimands_to_plot = ["sharp"]
 constraints_to_plot = ["none", "mte_monotone", "monotone_response"]
+tolerances_to_plot = ["1/sqrt(num_obs)", "1/num_obs"]
 
 # --------------------------------------------------------------------------------------
 # Plot Coverage
@@ -61,20 +63,22 @@ constraints_to_plot = ["none", "mte_monotone", "monotone_response"]
 plot_dir = BLD / "figures" / "pyvmte_sims"
 
 ID_TO_KWARGS_COVERAGE = {
-    f"{idestimands}_{constraint}": _Arguments(
+    f"{idestimands}_{constraint}_{lp_tolerance}": _Arguments(
         idestimands=idestimands,
         constraint=constraint,  # type: ignore[arg-type]
         problematic_region=grid_by_constraint[constraint],
         path_to_plot=plot_dir
-        / f"sims_binary_iv_{idestimands}_{constraint}_coverage.png",
+        / f"sims_binary_iv_{idestimands}_{constraint}_coverage_{lp_tolerance}.png",
         path_to_plot_problematic_region=plot_dir
         / (
             f"sims_binary_iv_{idestimands}_{constraint}"
-            "_coverage_problematic_region.png"
+            f"_coverage_problematic_region_{lp_tolerance}.png"
         ),
+        lp_tolerance=lp_tolerance,
     )
     for idestimands in idestimands_to_plot
     for constraint in constraints_to_plot
+    for lp_tolerance in tolerances_to_plot
 }
 
 for id_, kwargs in ID_TO_KWARGS_COVERAGE.items():
@@ -97,10 +101,15 @@ for id_, kwargs in ID_TO_KWARGS_COVERAGE.items():
         path_to_plot_problematic_region: Annotated[Path, Product],
         path_to_plot_html: Annotated[Path, Product],
         path_to_plot_problematic_region_html: Annotated[Path, Product],
+        lp_tolerance: str,
         path_to_sims_combined: Path = BLD
         / "data"
         / "pyvmte_simulations"
         / "combined.pkl",
+        path_to_sims_combined_tol_sqrt_n: Path = BLD
+        / "data"
+        / "pyvmte_simulations"
+        / "combined_tol_sqrt_n.pkl",
         path_to_sols_combined: Path = BLD
         / "data"
         / "solutions"
@@ -111,11 +120,14 @@ for id_, kwargs in ID_TO_KWARGS_COVERAGE.items():
         """Plot simple model by LATE for different restrictions: coverage."""
         del confidence_interval
 
-        df_sims_combined = pd.read_pickle(path_to_sims_combined)
+        if lp_tolerance == "1/sqrt(num_obs)":
+            df_sims_combined = pd.read_pickle(path_to_sims_combined_tol_sqrt_n)
+        else:
+            df_sims_combined = pd.read_pickle(path_to_sims_combined)
+
         df_sols_combined = pd.read_pickle(path_to_sols_combined)
 
         alpha = 0.05
-        1 - alpha
 
         # ------------------------------------------------------------------------------
         # Plot simulation results
@@ -139,9 +151,11 @@ for id_, kwargs in ID_TO_KWARGS_COVERAGE.items():
         num_of_obs_to_dash = {1_000: "solid", 10_000: "dash"}
 
         for confidence_interval in ["bootstrap", "subsampling"]:
-            df_plot = df_sims_combined[
-                df_sims_combined["confidence_interval"] == confidence_interval
-            ]
+            idx = df_sims_combined["lp_tolerance_kappa"] == lp_tolerance
+
+            df_plot = df_sims_combined[idx]
+
+            df_plot = df_plot[df_plot["confidence_interval"] == confidence_interval]
 
             if constraint != "none":
                 df_plot = df_plot[df_plot[constraint] == _constr_vals[constraint]]
@@ -157,7 +171,6 @@ for id_, kwargs in ID_TO_KWARGS_COVERAGE.items():
 
             _k_bernstein = df_plot["k_bernstein"].unique()
             assert len(_k_bernstein) == 1
-            _k_bernstein = _k_bernstein[0]
 
             _legend_title_by_confidence_interval = {
                 "bootstrap": "Bootstrap",
@@ -313,7 +326,7 @@ for id_, kwargs in ID_TO_KWARGS_COVERAGE.items():
 # --------------------------------------------------------------------------------------
 
 ID_TO_KWARGS_MEANS = {
-    f"{idestimands}_{constraint}_{confidence_interval}": _Arguments(
+    f"{idestimands}_{constraint}_{confidence_interval}_{lp_tolerance}": _Arguments(
         confidence_interval=confidence_interval,
         idestimands=idestimands,
         constraint=constraint,  # type: ignore[arg-type]
@@ -321,17 +334,19 @@ ID_TO_KWARGS_MEANS = {
         path_to_plot=plot_dir
         / (
             f"sims_binary_iv_{idestimands}_{constraint}_means_"
-            f"{confidence_interval}.png"
+            f"{confidence_interval}_{lp_tolerance}.png"
         ),
         path_to_plot_problematic_region=plot_dir
         / (
             f"sims_binary_iv_{idestimands}_{constraint}_means_"
-            f"problematic_region_{confidence_interval}.png"
+            f"problematic_region_{confidence_interval}_{lp_tolerance}.png"
         ),
+        lp_tolerance=lp_tolerance,
     )
     for idestimands in idestimands_to_plot
     for constraint in constraints_to_plot
     for confidence_interval in ["bootstrap", "subsampling"]
+    for lp_tolerance in tolerances_to_plot
 }
 
 for id_, kwargs in ID_TO_KWARGS_MEANS.items():
@@ -351,6 +366,7 @@ for id_, kwargs in ID_TO_KWARGS_MEANS.items():
         idestimands: str,
         constraint: str,
         problematic_region: np.ndarray,
+        lp_tolerance: str,
         path_to_plot: Annotated[Path, Product],
         path_to_plot_problematic_region: Annotated[Path, Product],
         path_to_plot_html: Annotated[Path, Product],
@@ -359,6 +375,10 @@ for id_, kwargs in ID_TO_KWARGS_MEANS.items():
         / "data"
         / "pyvmte_simulations"
         / "combined.pkl",
+        path_to_sims_combined_tol_sqrt_n: Path = BLD
+        / "data"
+        / "pyvmte_simulations"
+        / "combined_tol_sqrt_n.pkl",
         path_to_solutions_combined: Path = BLD
         / "data"
         / "solutions"
@@ -366,7 +386,11 @@ for id_, kwargs in ID_TO_KWARGS_MEANS.items():
         bfunc_type="bernstein",
     ) -> None:
         """Plot simple model by LATE for different restrictions: means."""
-        df_sims_combined = pd.read_pickle(path_to_sims_combined)
+        if lp_tolerance == "1/sqrt(num_obs)":
+            df_sims_combined = pd.read_pickle(path_to_sims_combined_tol_sqrt_n)
+        else:
+            df_sims_combined = pd.read_pickle(path_to_sims_combined)
+
         df_sols_combined = pd.read_pickle(path_to_solutions_combined)
 
         alpha = 0.05
@@ -427,9 +451,14 @@ for id_, kwargs in ID_TO_KWARGS_MEANS.items():
 
         num_of_obs_to_dash = {1_000: "solid", 10_000: "dash"}
 
-        df_plot = df_sims_combined[
-            df_sims_combined["confidence_interval"] == confidence_interval
-        ]
+        # ------------------------------------------------------------------------------
+        # Select data
+        # ------------------------------------------------------------------------------
+        idx = df_sims_combined["lp_tolerance_kappa"] == lp_tolerance
+
+        df_plot = df_sims_combined[idx]
+
+        df_plot = df_plot[df_plot["confidence_interval"] == confidence_interval]
 
         if constraint != "none":
             df_plot = df_plot[df_plot[constraint] == _constr_vals[constraint]]
@@ -445,7 +474,6 @@ for id_, kwargs in ID_TO_KWARGS_MEANS.items():
 
         _k_bernstein = df_plot["k_bernstein"].unique()
         assert len(_k_bernstein) == 1
-        _k_bernstein = _k_bernstein[0]
 
         # Drop all rows where true_lower_bound and true_upper_bound are NaN
         df_plot = df_plot.dropna(subset=["true_lower_bound", "true_upper_bound"])

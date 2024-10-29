@@ -34,9 +34,6 @@ dependencies:
   # - r-yaml
   # - r-forcats
 
-  # Optimization
-  - optimagic
-
   # Install project
   - pip:
     - -e .
@@ -45,4 +42,3 @@ dependencies:
     - joblib
     - git+https://github.com/buddejul/pyvmte@fix_second_step_error
     - coptpy
-    # - optimagic
