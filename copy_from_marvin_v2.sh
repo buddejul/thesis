@@ -22,7 +22,7 @@ cd C:/Users/budde/projects/thesis/src/thesis/ || exit
 mkdir -p $DIR_TARGET
 
 # Copy the results from marvin
-scp -r -C $USER@marvin.hpc.uni-bonn.de:/lustre/scratch/data/$USER-thesis/thesis/bld/ $DIR_TARGET
+scp -r -C $USER@marvin.hpc.uni-bonn.de:/lustre/scratch/data/$USER-thesis/thesis_v2/thesis/bld/ $DIR_TARGET
 
 # Now compress
 tar -czf $DIR_TARGET.tar.gz $DIR_TARGET

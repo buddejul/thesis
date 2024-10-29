@@ -19,7 +19,7 @@ from thesis.utilities import constraint_dict_to_string
 # We perform num_sims * num_iterations simulations.
 # The reason is to make tasks smaller to avoid long-running tasks on the cluster.
 num_sims = 100
-num_iterations = 6
+num_iterations = 8
 
 u_hi_extra = 0.2
 
@@ -30,9 +30,9 @@ hi_grid = 1
 
 grid_late_complier = np.linspace(lo_grid, hi_grid, num_grid_late)
 
-confidence_intervals_to_sim = ["bootstrap", "subsampling"]
+confidence_intervals_to_sim = ["subsampling"]
 
-num_obs_to_sim = [1_000, 10_000]
+num_obs_to_sim = [10_000]
 bfuncs_to_sim = [
     # "constant",
     "bernstein",
@@ -41,10 +41,12 @@ id_estimands_to_sim = ["sharp"]
 
 alpha = 0.05
 
+subsample_size_to_sim = 0.05
+
 confidence_interval_options = {
     "n_boot": 2_000,
     "n_subsamples": 2_000,
-    "subsample_size": lambda n: 0.1 * n,
+    "subsample_size": lambda n: subsample_size_to_sim * n,
     "alpha": alpha,
 }
 
@@ -105,9 +107,11 @@ grid_by_constraint = {
 # Create a dictionary with constraints and late in grid for each type of constraint.
 constraints_and_late_for_sim: list[tuple] = []
 
+constraints_to_sim = ["none"]
+
 constraints_and_late_for_sim = [
     (constraints_by_type[constr], late)
-    for constr in ["none", "mte_monotone", "monotone_response"]
+    for constr in constraints_to_sim
     for late in grid_by_constraint[constr]
 ]
 
@@ -201,7 +205,7 @@ for id_, kwargs in ID_TO_KWARGS.items():
     ) -> None:
         """Perform simulations for the simple model using pyvmte."""
         if tolerance_est is None:
-            tolerance_est = 1 / num_obs
+            tolerance_est = 1 / np.sqrt(num_obs)
 
         res = simulation_pyvmte(
             num_sims=num_sims,

@@ -21,7 +21,7 @@ dependencies:
 
   # Python template project dependencies
   - statsmodels
-  - numpy
+  - numpy >= 2.0
   - pandas >=2.2
   - plotly >=5.2.0,<6
 
