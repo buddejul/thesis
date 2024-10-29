@@ -1,9 +1,9 @@
 #!/bin/bash
 #SBATCH --account=ag_ifs_freyberger
 #SBATCH --partition=intelsr_medium
-#SBATCH --time=18:00:00
-#SBATCH --ntasks=2
-#SBATCH --cpus-per-task=24
+#SBATCH --time=12:00:00
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=48
 #SBATCH --mem-per-cpu=400M
 
 # --------------------------------------------------------------------------------------
