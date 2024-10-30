@@ -53,7 +53,7 @@ _constr_subtitle = {
 
 confidence_intervals_to_plot = ["subsampling"]
 idestimands_to_plot = ["sharp"]
-constraints_to_plot = ["none", "mte_monotone", "monotone_response"]
+constraints_to_plot = ["none"]
 tolerances_to_plot = ["1/num_obs"]
 subsample_share_to_plot = [0.05, 0.1, 0.2]
 num_obs_to_plot = [10_000]
