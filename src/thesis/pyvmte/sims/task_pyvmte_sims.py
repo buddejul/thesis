@@ -48,6 +48,7 @@ confidence_interval_options = {
     "n_subsamples": 2_000,
     "subsample_size": lambda n: subsample_size_to_sim * n,
     "alpha": alpha,
+    "alpha_im_crit": False,
 }
 
 k_bernstein = 11
@@ -225,5 +226,7 @@ for id_, kwargs in ID_TO_KWARGS.items():
         )
 
         res["k_bernstein"] = k_bernstein
+
+        res["alpha_im_crit"] = confidence_interval_options["alpha_im_crit"]
 
         res.to_pickle(path_to_data)
