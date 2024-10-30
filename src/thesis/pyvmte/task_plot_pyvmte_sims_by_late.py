@@ -68,11 +68,13 @@ ID_TO_KWARGS_COVERAGE = {
         constraint=constraint,  # type: ignore[arg-type]
         problematic_region=grid_by_constraint[constraint],
         path_to_plot=plot_dir
-        / f"sims_binary_iv_{idestimands}_{constraint}_coverage_{lp_tolerance}.png",
+        / f"{lp_tolerance.replace('/', '')}"
+        / f"sims_binary_iv_{idestimands}_{constraint}_coverage.png",
         path_to_plot_problematic_region=plot_dir
+        / f"{lp_tolerance.replace('/', '')}"
         / (
             f"sims_binary_iv_{idestimands}_{constraint}"
-            f"_coverage_problematic_region_{lp_tolerance}.png"
+            f"_coverage_problematic_region.png"
         ),
         lp_tolerance=lp_tolerance,
     )
@@ -334,14 +336,16 @@ ID_TO_KWARGS_MEANS = {
         constraint=constraint,  # type: ignore[arg-type]
         problematic_region=grid_by_constraint[constraint],
         path_to_plot=plot_dir
+        / f"{lp_tolerance.replace('/', '')}"
         / (
             f"sims_binary_iv_{idestimands}_{constraint}_means_"
-            f"{confidence_interval}_{lp_tolerance}.png"
+            f"{confidence_interval}.png"
         ),
         path_to_plot_problematic_region=plot_dir
+        / f"{lp_tolerance.replace('/', '')}"
         / (
             f"sims_binary_iv_{idestimands}_{constraint}_means_"
-            f"problematic_region_{confidence_interval}_{lp_tolerance}.png"
+            f"problematic_region_{confidence_interval}.png"
         ),
         lp_tolerance=lp_tolerance,
     )

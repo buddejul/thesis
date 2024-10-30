@@ -769,10 +769,11 @@ Hence, in our case this will make use of $\gamma_1^{at}, \gamma_1^{c}, \gamma_0^
 
 \subsection{Variations}
 
-\begin{itemize}
-  \item Vary the sub-sampling size
-  \item
-\end{itemize}
+\paragraph{Subsampling Size}
+
+
+\paragraph{Linear Program Tolerance $\kappa_n$}
+
 
 \section{Convex Relaxation}
 Given the difficulty of inference evident in the simulation results of the previous section, we now provide some suggestions for a conservative inference approach.
@@ -852,6 +853,8 @@ Hence, the value function is also closer to the original linear program one, whi
 \paragraph{Monte Carlo}
 I study the performance of the proposed method in a simple Monte Carlo experiment.
 
+To solve the optimization problems I tried several optimization algorithms accessible via the \textit{optimagic} Python package~\citep{Gabler2024}.
+The most suited to this simple problem was found to be the \textit{scipy}~\citep{scipy} implementation of the COBYLA algorithm~\citep{cobyla_powell1994direct}.
 
 \section{Questions}
 
@@ -895,7 +898,7 @@ I study the performance of the proposed method in a simple Monte Carlo experimen
 
 \paragraph{Extensions}
 \begin{itemize}
-  \item Even sharp(er) identified set, see~\cite{marx2024sharp} (and another paper?).
+  \item Even sharp(er) identified set, see~\cite{marx2024sharp}(and another paper?).
   \item More complicated selection model, see~\cite{dutz2021selection}.
   \item Other inference approaches: Projection approach in~\cite{bei2023inference}.
 \end{itemize}
