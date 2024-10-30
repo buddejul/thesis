@@ -48,7 +48,7 @@ confidence_interval_options = {
     "n_subsamples": 2_000,
     "subsample_size": lambda n: subsample_size_to_sim * n,
     "alpha": alpha,
-    "alpha_im_crit": False,
+    "alpha_im_crit": True,
 }
 
 k_bernstein = 11
