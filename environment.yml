@@ -40,5 +40,5 @@ dependencies:
     - pdbp
     - kaleido==0.1.0post1
     - joblib
-    - git+https://github.com/buddejul/pyvmte@fix_second_step_error
+    - git+https://github.com/buddejul/pyvmte@im_crit
     - coptpy

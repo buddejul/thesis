@@ -221,6 +221,8 @@ def simulation_pyvmte(  # noqa: C901, PLR0915, PLR0912, PLR0913
     sim_ci_lower = np.zeros(num_sims)
     sim_ci_upper = np.zeros(num_sims)
 
+    alpha_for_ci = np.zeros(num_sims)
+
     for i in range(num_sims):
         _data = simulate_data_from_mtrs_binary_iv(
             mtr0=m0_for_sim,
@@ -253,6 +255,8 @@ def simulation_pyvmte(  # noqa: C901, PLR0915, PLR0912, PLR0913
         sim_ci_lower[i] = _res.ci_lower
         sim_ci_upper[i] = _res.ci_upper
 
+        alpha_for_ci[i] = _res.alpha_for_ci
+
     # Construct DataFrame
     df_res = pd.DataFrame(
         {
@@ -260,6 +264,7 @@ def simulation_pyvmte(  # noqa: C901, PLR0915, PLR0912, PLR0913
             "sim_upper_bound": sim_upper_bound,
             "sim_ci_lower": sim_ci_lower,
             "sim_ci_upper": sim_ci_upper,
+            "alpha_for_ci": alpha_for_ci,
         },
     )
 
