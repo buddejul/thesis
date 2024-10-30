@@ -52,6 +52,9 @@ def task_combine_pyvmte_sims(  # noqa: C901, PLR0912, PLR0915
     # Unzip files in res_files into a temporary directory
     tmp_dir = BLD / "marvin" / "_tmp"
 
+    # Remove tmp_dir if it exists to not have old files in there by accident
+    shutil.rmtree(tmp_dir, ignore_errors=True)
+
     for file in res_files_tar:
         with tarfile.open(file, "r:gz") as tar:
             tar.extractall(path=tmp_dir, filter="data")

@@ -79,6 +79,7 @@ ID_TO_KWARGS_COVERAGE = {
     for idestimands in idestimands_to_plot
     for constraint in constraints_to_plot
     for lp_tolerance in tolerances_to_plot
+    if not (constraint != "none" and lp_tolerance == "1/sqrt(num_obs)")
 }
 
 for id_, kwargs in ID_TO_KWARGS_COVERAGE.items():
@@ -171,6 +172,7 @@ for id_, kwargs in ID_TO_KWARGS_COVERAGE.items():
 
             _k_bernstein = df_plot["k_bernstein"].unique()
             assert len(_k_bernstein) == 1
+            _k_bernstein = _k_bernstein[0]
 
             _legend_title_by_confidence_interval = {
                 "bootstrap": "Bootstrap",
@@ -347,6 +349,7 @@ ID_TO_KWARGS_MEANS = {
     for constraint in constraints_to_plot
     for confidence_interval in ["bootstrap", "subsampling"]
     for lp_tolerance in tolerances_to_plot
+    if not (constraint != "none" and lp_tolerance == "1/sqrt(num_obs)")
 }
 
 for id_, kwargs in ID_TO_KWARGS_MEANS.items():
@@ -474,6 +477,7 @@ for id_, kwargs in ID_TO_KWARGS_MEANS.items():
 
         _k_bernstein = df_plot["k_bernstein"].unique()
         assert len(_k_bernstein) == 1
+        _k_bernstein = _k_bernstein[0]
 
         # Drop all rows where true_lower_bound and true_upper_bound are NaN
         df_plot = df_plot.dropna(subset=["true_lower_bound", "true_upper_bound"])
