@@ -19,7 +19,7 @@ from thesis.utilities import constraint_dict_to_string
 # We perform num_sims * num_iterations simulations.
 # The reason is to make tasks smaller to avoid long-running tasks on the cluster.
 num_sims = 100
-num_iterations = 8
+num_iterations = 10
 
 u_hi_extra = 0.2
 
@@ -30,7 +30,7 @@ hi_grid = 1
 
 grid_late_complier = np.linspace(lo_grid, hi_grid, num_grid_late)
 
-confidence_intervals_to_sim = ["subsampling"]
+confidence_intervals_to_sim = ["bootstrap", "subsampling"]
 
 num_obs_to_sim = [10_000]
 bfuncs_to_sim = [
@@ -41,7 +41,7 @@ id_estimands_to_sim = ["sharp"]
 
 alpha = 0.05
 
-subsample_size_to_sim = 0.05
+subsample_size_to_sim = 0.1
 
 confidence_interval_options = {
     "n_boot": 2_000,
