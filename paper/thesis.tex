@@ -647,7 +647,7 @@ A key difficulty in our setting is that the analytical form of the derivative is
 \section{Simulation Studies}\label{sec:simulation_studies}
 
 \subsection{Simulation Design}
-I provide simulations for the binary IV model presented in Section \ref{sec:simple_example}.
+I provide simulations for the binary IV model presented in Section~\ref{sec:simple_example}.
 The binary instrument $Z$ with support $\{0,1\}$ has PMF $P(Z=1) = P(Z=0) = 0.5$.
 The propensity score I use is $p(0) = 0.4 < p(1) = 0.6$.
 Hence, the IV slope coefficient identifies the LATE for the subpopulation with $u\in(0.4, 0.6]$.
@@ -787,7 +787,7 @@ Second, if this is not the case, existing results on the asymptotic distribution
 The disadvantage is replacing the easily solvable linear program with a more difficult nonlinear one.
 Asymptotic theory might be possible by letting the feasible region $\mathcal{A}$ shrink to $[0,1]^d$, probably at a sufficiently slow rate.
 
-The rest of the section spells out the idea in more detail and provides a ``proof-of-concept'' simulation for the most simple example.
+The rest of the section spells out the idea in more detail and provides a ``proof-of-concept'' simulation for a two-dimensional problem with box constraints.
 
 \paragraph{Convex Relexation of Linear Program}
 We want to perform inference on the value function of a linear program.
@@ -837,14 +837,12 @@ In particular, we have
 	(x_1-0.5)^k + (x_2-0.5)^k \leq c
 \end{equation*}
 where $c\in\mathbb{R}$ is a constant given by $c = 2(1-0.5)^k$ that ensures the unit square is included.
-\footnote{An alternative is to use the intersection of multiple lower order polynomials with varying slopes on the first coordinate. For example,
+\footnote{An alternative is to use the intersection of multiple lower order polynomials with varying slopes on one of the coordinates. For example,
 \begin{align}
-	& (x_1 - c')^4 + (x_2 - 0.5) \leq 0.5, \\
-	& (x_1 - (1-c'))^4 + (x_2 - 0.5) \leq 0.5, \\
-	& (x_1 - 0.5)^4 + (x_2 - c') \leq 0.5, \\
-	& (x_1 - 0.5)^4 + (x_2 - (1-c')) \leq 0.5,
+	& s(x_1 - 0.5)^4 + (x_2 - 0.5)^4 \leq u(s), \\
+	& (x_1 - 0.5)^4 + s(x_2 - 0.5)^4 \leq u(s), \\
 \end{align}
-where again $c'$ ensures $[0,1]^2$ is included.}
+where $s$ is now the tuning parameter with $s\to\infty$ implying $\mathcal{A} \to [0,1]^d$.}
 
 Figure~\ref{fig:convex_relax} plots the resulting solutions for $k\in\{2,4,10, 20\}$.
 The feasible region shrinks towards the unit square as $k$ increases.
@@ -883,13 +881,13 @@ The most suited to this simple problem was found to be the \textit{scipy}~\citep
       \begin{subfigure}[b]{0.49\textwidth}
         \centering
         \includegraphics[width=\textwidth]{../figures/relax/covers_lower_one_sided_by_method.png}
-        \caption{One-Sided CI: Coverage}\label{fig:convex_relax_ci_coverage}
+        \caption{One-Sided CI:\@ Coverage}\label{fig:convex_relax_ci_coverage}
       \end{subfigure}
       \hfill
       \begin{subfigure}[b]{0.49\textwidth}
         \centering
         \includegraphics[width=\textwidth]{../figures/relax/lower_ci_one_sided_by_method.png}
-      \caption{One-Sided CI: Length}\label{fig:convex_relax_ci_length}
+      \caption{One-Sided CI:\@ Length}\label{fig:convex_relax_ci_length}
   \end{subfigure}
 
 \end{figure}
@@ -898,7 +896,7 @@ The most suited to this simple problem was found to be the \textit{scipy}~\citep
 
 \paragraph{Extensions}
 \begin{itemize}
-  \item Even sharp(er) identified set, see~\cite{marx2024sharp}(and another paper?).
+  \item (More) Sharp identified set, see~\cite{marx2024sharp} (and another paper?).
   \item More complicated selection model, see~\cite{dutz2021selection}.
   \item Other inference approaches: Projection approach in~\cite{bei2023inference}.
 \end{itemize}
