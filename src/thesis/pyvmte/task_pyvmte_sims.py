@@ -201,7 +201,7 @@ for id_, kwargs in ID_TO_KWARGS.items():
     ) -> None:
         """Perform simulations for the simple model using pyvmte."""
         if tolerance_est is None:
-            tolerance_est = 1 / np.sqrt(num_obs)
+            tolerance_est = 1 / num_obs
 
         res = simulation_pyvmte(
             num_sims=num_sims,
