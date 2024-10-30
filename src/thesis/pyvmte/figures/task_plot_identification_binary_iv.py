@@ -16,7 +16,7 @@ from plotly.subplots import make_subplots  # type: ignore[import-untyped]
 from pytask import Product, task
 
 from thesis.config import BLD
-from thesis.pyvmte.task_solve_simple_model import num_gridpoints
+from thesis.pyvmte.solutions.task_solve_simple_model import num_gridpoints
 
 
 def _generate_color_by_x_number(num_bfuncs: int) -> dict[int, str]:

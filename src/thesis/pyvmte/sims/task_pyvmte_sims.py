@@ -10,7 +10,7 @@ from pytask import Product, task
 from pyvmte.config import IV_SM  # type: ignore[import-untyped]
 
 from thesis.config import BLD, NO_LONG_RUNNING_TASKS, RNG, SRC
-from thesis.pyvmte.pyvmte_sims import simulation_pyvmte
+from thesis.pyvmte.sims.pyvmte_sims import simulation_pyvmte
 from thesis.utilities import constraint_dict_to_string
 
 # --------------------------------------------------------------------------------------

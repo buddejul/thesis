@@ -29,6 +29,7 @@ JOBS = [
     17699039,
     17700618,
     17777546,
+    17778314,
 ]
 
 JOBS_SQRT_TOLERANCE = [
@@ -120,6 +121,7 @@ def task_combine_pyvmte_sims(  # noqa: C901, PLR0912, PLR0915
                 "shape_constraints",
                 "mte_monotone",
                 "monotone_response",
+                "subsample_size",
             ]
 
             _cols_to_collapse = [
@@ -141,7 +143,6 @@ def task_combine_pyvmte_sims(  # noqa: C901, PLR0912, PLR0915
                 "num_sims",
                 "n_boot",
                 "n_subsamples",
-                "subsample_size",
                 "iteration",
                 "jobid",
             ]
@@ -171,6 +172,7 @@ def task_combine_pyvmte_sims(  # noqa: C901, PLR0912, PLR0915
             "mte_monotone",
             "monotone_response",
             "late_complier",
+            "subsample_size",
         ]
         if df_combined.groupby([*_cols_unique, "iteration", "jobid"]).size().max() != 1:
             msg = "Not unique when 'iteration' and 'jobid' included."
@@ -240,6 +242,10 @@ def task_combine_pyvmte_sims(  # noqa: C901, PLR0912, PLR0915
         )
 
         df_combined["lp_tolerance_kappa"] = tolerance
+
+        df_combined["subsample_share"] = (
+            df_combined["subsample_size"] / df_combined["num_obs"]
+        )
 
         df_combined.to_pickle(path)
 

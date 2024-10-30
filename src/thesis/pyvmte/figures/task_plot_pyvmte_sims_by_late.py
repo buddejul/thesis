@@ -12,7 +12,7 @@ from plotly.io import write_image  # type: ignore[import-untyped]
 from pytask import Product, task
 
 from thesis.config import BLD
-from thesis.pyvmte.task_pyvmte_sims import grid_by_constraint
+from thesis.pyvmte.sims.task_pyvmte_sims import grid_by_constraint
 
 
 class _Arguments(NamedTuple):
@@ -55,6 +55,7 @@ bfunc_types_to_plot = ["constant", "bernstein"]
 idestimands_to_plot = ["sharp"]
 constraints_to_plot = ["none", "mte_monotone", "monotone_response"]
 tolerances_to_plot = ["1/sqrt(num_obs)", "1/num_obs"]
+subsample_share_to_plot = 0.1
 
 # --------------------------------------------------------------------------------------
 # Plot Coverage
@@ -155,8 +156,10 @@ for id_, kwargs in ID_TO_KWARGS_COVERAGE.items():
 
         for confidence_interval in ["bootstrap", "subsampling"]:
             idx = df_sims_combined["lp_tolerance_kappa"] == lp_tolerance
-
             df_plot = df_sims_combined[idx]
+
+            idx = df_sims_combined["subsample_share"] == subsample_share_to_plot
+            df_plot = df_plot[idx]
 
             df_plot = df_plot[df_plot["confidence_interval"] == confidence_interval]
 
@@ -462,8 +465,10 @@ for id_, kwargs in ID_TO_KWARGS_MEANS.items():
         # Select data
         # ------------------------------------------------------------------------------
         idx = df_sims_combined["lp_tolerance_kappa"] == lp_tolerance
-
         df_plot = df_sims_combined[idx]
+
+        idx = df_sims_combined["subsample_share"] == subsample_share_to_plot
+        df_plot = df_plot[idx]
 
         df_plot = df_plot[df_plot["confidence_interval"] == confidence_interval]
 
