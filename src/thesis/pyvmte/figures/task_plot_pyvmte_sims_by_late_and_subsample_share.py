@@ -126,10 +126,6 @@ for id_, kwargs in ID_TO_KWARGS_COVERAGE.items():
         / "data"
         / "pyvmte_simulations"
         / "combined.pkl",
-        path_to_sims_combined_tol_sqrt_n: Path = BLD
-        / "data"
-        / "pyvmte_simulations"
-        / "combined_tol_sqrt_n.pkl",
         path_to_sols_combined: Path = BLD
         / "data"
         / "solutions"
@@ -140,10 +136,7 @@ for id_, kwargs in ID_TO_KWARGS_COVERAGE.items():
         """Plot simple model by LATE for different restrictions: coverage."""
         del confidence_interval
 
-        if lp_tolerance == "1/sqrt(num_obs)":
-            df_sims_combined = pd.read_pickle(path_to_sims_combined_tol_sqrt_n)
-        else:
-            df_sims_combined = pd.read_pickle(path_to_sims_combined)
+        df_sims_combined = pd.read_pickle(path_to_sims_combined)
 
         df_sols_combined = pd.read_pickle(path_to_sols_combined)
 
@@ -276,18 +269,12 @@ for id_, kwargs in ID_TO_KWARGS_COVERAGE.items():
             warning = f"num_sims is not unique, got {counts}."
             warn(warning, stacklevel=2)
 
-        num_boot = df_plot["n_boot"].unique()
-        assert len(num_boot) == 1
-        num_boot = num_boot[0]
-
         num_subsamples = df_plot["n_subsamples"].unique()
         assert len(num_subsamples) == 1
         num_subsamples = num_subsamples[0]
 
         fig.add_annotation(
-            text=(
-                f"N Bootstrap Samples/Subsamples: {int(num_boot)}/{int(num_subsamples)}"
-            ),
+            text=(f"N Subsamples: {int(num_subsamples)}"),
             font={"size": 10},
             showarrow=False,
             xref="paper",
@@ -377,10 +364,6 @@ for id_, kwargs in ID_TO_KWARGS_MEANS.items():
         / "data"
         / "pyvmte_simulations"
         / "combined.pkl",
-        path_to_sims_combined_tol_sqrt_n: Path = BLD
-        / "data"
-        / "pyvmte_simulations"
-        / "combined_tol_sqrt_n.pkl",
         path_to_solutions_combined: Path = BLD
         / "data"
         / "solutions"
@@ -388,10 +371,7 @@ for id_, kwargs in ID_TO_KWARGS_MEANS.items():
         bfunc_type="bernstein",
     ) -> None:
         """Plot simple model by LATE for different restrictions: means."""
-        if lp_tolerance == "1/sqrt(num_obs)":
-            df_sims_combined = pd.read_pickle(path_to_sims_combined_tol_sqrt_n)
-        else:
-            df_sims_combined = pd.read_pickle(path_to_sims_combined)
+        df_sims_combined = pd.read_pickle(path_to_sims_combined)
 
         df_sols_combined = pd.read_pickle(path_to_solutions_combined)
 
