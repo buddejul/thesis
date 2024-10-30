@@ -54,7 +54,7 @@ _constr_subtitle = {
 bfunc_types_to_plot = ["constant", "bernstein"]
 idestimands_to_plot = ["sharp"]
 constraints_to_plot = ["none", "mte_monotone", "monotone_response"]
-tolerances_to_plot = ["1/sqrt(num_obs)", "1/num_obs"]
+tolerances_to_plot = ["1/sqrt(n)", "1/n"]
 subsample_share_to_plot = 0.1
 
 # --------------------------------------------------------------------------------------
@@ -82,7 +82,7 @@ ID_TO_KWARGS_COVERAGE = {
     for idestimands in idestimands_to_plot
     for constraint in constraints_to_plot
     for lp_tolerance in tolerances_to_plot
-    if not (constraint != "none" and lp_tolerance == "1/sqrt(num_obs)")
+    if not (constraint != "none" and lp_tolerance == "1/sqrt(n)")
 }
 
 for id_, kwargs in ID_TO_KWARGS_COVERAGE.items():
@@ -110,10 +110,6 @@ for id_, kwargs in ID_TO_KWARGS_COVERAGE.items():
         / "data"
         / "pyvmte_simulations"
         / "combined.pkl",
-        path_to_sims_combined_tol_sqrt_n: Path = BLD
-        / "data"
-        / "pyvmte_simulations"
-        / "combined_tol_sqrt_n.pkl",
         path_to_sols_combined: Path = BLD
         / "data"
         / "solutions"
@@ -124,10 +120,7 @@ for id_, kwargs in ID_TO_KWARGS_COVERAGE.items():
         """Plot simple model by LATE for different restrictions: coverage."""
         del confidence_interval
 
-        if lp_tolerance == "1/sqrt(num_obs)":
-            df_sims_combined = pd.read_pickle(path_to_sims_combined_tol_sqrt_n)
-        else:
-            df_sims_combined = pd.read_pickle(path_to_sims_combined)
+        df_sims_combined = pd.read_pickle(path_to_sims_combined)
 
         df_sols_combined = pd.read_pickle(path_to_sols_combined)
 
@@ -155,7 +148,7 @@ for id_, kwargs in ID_TO_KWARGS_COVERAGE.items():
         num_of_obs_to_dash = {1_000: "solid", 10_000: "dash"}
 
         for confidence_interval in ["bootstrap", "subsampling"]:
-            idx = df_sims_combined["lp_tolerance_kappa"] == lp_tolerance
+            idx = df_sims_combined["lp_tolerance"] == lp_tolerance
             df_plot = df_sims_combined[idx]
 
             idx = df_sims_combined["subsample_share"] == subsample_share_to_plot
@@ -176,7 +169,6 @@ for id_, kwargs in ID_TO_KWARGS_COVERAGE.items():
             df_plot = df_plot[df_plot["idestimands"] == idestimands]
 
             _k_bernstein = df_plot["k_bernstein"].unique()
-            assert len(_k_bernstein) == 1
             _k_bernstein = _k_bernstein[0]
 
             _legend_title_by_confidence_interval = {
@@ -356,7 +348,7 @@ ID_TO_KWARGS_MEANS = {
     for constraint in constraints_to_plot
     for confidence_interval in ["bootstrap", "subsampling"]
     for lp_tolerance in tolerances_to_plot
-    if not (constraint != "none" and lp_tolerance == "1/sqrt(num_obs)")
+    if not (constraint != "none" and lp_tolerance == "1/sqrt(n)")
 }
 
 for id_, kwargs in ID_TO_KWARGS_MEANS.items():
@@ -385,10 +377,6 @@ for id_, kwargs in ID_TO_KWARGS_MEANS.items():
         / "data"
         / "pyvmte_simulations"
         / "combined.pkl",
-        path_to_sims_combined_tol_sqrt_n: Path = BLD
-        / "data"
-        / "pyvmte_simulations"
-        / "combined_tol_sqrt_n.pkl",
         path_to_solutions_combined: Path = BLD
         / "data"
         / "solutions"
@@ -396,10 +384,7 @@ for id_, kwargs in ID_TO_KWARGS_MEANS.items():
         bfunc_type="bernstein",
     ) -> None:
         """Plot simple model by LATE for different restrictions: means."""
-        if lp_tolerance == "1/sqrt(num_obs)":
-            df_sims_combined = pd.read_pickle(path_to_sims_combined_tol_sqrt_n)
-        else:
-            df_sims_combined = pd.read_pickle(path_to_sims_combined)
+        df_sims_combined = pd.read_pickle(path_to_sims_combined)
 
         df_sols_combined = pd.read_pickle(path_to_solutions_combined)
 
@@ -464,7 +449,7 @@ for id_, kwargs in ID_TO_KWARGS_MEANS.items():
         # ------------------------------------------------------------------------------
         # Select data
         # ------------------------------------------------------------------------------
-        idx = df_sims_combined["lp_tolerance_kappa"] == lp_tolerance
+        idx = df_sims_combined["lp_tolerance"] == lp_tolerance
         df_plot = df_sims_combined[idx]
 
         idx = df_sims_combined["subsample_share"] == subsample_share_to_plot
@@ -575,9 +560,7 @@ for id_, kwargs in ID_TO_KWARGS_MEANS.items():
 
         if len(num_sims) != 1:
             # Get counts of num_sims
-            counts = df_plot["num_sims"].value_counts()
-            warning = f"num_sims is not unique, got {counts}."
-            warn(warning, stacklevel=2)
+            df_plot["num_sims"].value_counts()
         num_sims = np.max(num_sims)
 
         fig.add_annotation(
