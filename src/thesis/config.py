@@ -22,4 +22,4 @@ __all__ = ["BLD", "SRC", "TEST_DIR", "GROUPS"]
 
 RNG = np.random.default_rng()
 
-NO_LONG_RUNNING_TASKS = True
+NO_LONG_RUNNING_TASKS = False
