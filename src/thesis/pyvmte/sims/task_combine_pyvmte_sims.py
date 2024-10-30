@@ -35,6 +35,8 @@ JOBS = [
 JOBS_SQRT_TOLERANCE = [
     17699039,
     17700618,
+    17777546,
+    17778314,
 ]
 
 RES_FILES_TAR = [HPC_RES / f"{jobid}.tar.gz" for jobid in JOBS]
