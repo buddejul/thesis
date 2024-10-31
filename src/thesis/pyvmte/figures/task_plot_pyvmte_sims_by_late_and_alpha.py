@@ -176,8 +176,8 @@ for id_, kwargs in ID_TO_KWARGS_COVERAGE.items():
             _k_bernstein = _k_bernstein[0]
 
             _legend_title_by_confidence_interval = {
-                "subsampling": f"Subsampling (N = {num_obs_to_plot[0]})",
-                "bootstrap": f"Bootstrap (N = {num_obs_to_plot[0]})",
+                "subsampling": "Subsampling",
+                "bootstrap": "Bootstrap",
             }
 
             # Drop all rows where true_lower_bound and true_upper_bound are NaN
@@ -221,6 +221,27 @@ for id_, kwargs in ID_TO_KWARGS_COVERAGE.items():
                         ),
                     )
 
+                    # Plot average alpha_for_ci on yaxis = y2
+                    fig.add_trace(
+                        go.Scatter(
+                            x=_df["late_complier"],
+                            y=_df["alpha_for_ci"],
+                            mode="lines",
+                            name="Alpha",
+                            legendgroup=confidence_interval,
+                            legendgrouptitle={
+                                "text": _legend_title_by_confidence_interval[
+                                    confidence_interval
+                                ],
+                            },
+                            line={
+                                "color": "rgba(0, 0, 0, 0.2)",
+                                "dash": alpha_im_crit_to_dash[alpha_im_crit],
+                            },
+                            yaxis="y2",
+                        ),
+                    )
+
         # ------------------------------------------------------------------------------
         # Add true bounds
         # ------------------------------------------------------------------------------
@@ -259,7 +280,7 @@ for id_, kwargs in ID_TO_KWARGS_COVERAGE.items():
 
         _subtitle = (
             f" <br><sup> Identified Estimands: {idestimands.capitalize()},"
-            f" Nominal Coverage = {1- alpha} </sup>"
+            f" Nominal Coverage = {1- alpha} , N = {num_obs_to_plot[0]} </sup>"
             f" <br><sup> Shape constraints: {_constr_subtitle[constraint]} </sup>"
         )
 

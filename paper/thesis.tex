@@ -771,8 +771,64 @@ Hence, in our case this will make use of $\gamma_1^{at}, \gamma_1^{c}, \gamma_0^
 
 \paragraph{Subsampling Size}
 
+\paragraph{Critical Value}
+A potential concern with the confidence intervals presented above is poor finite sample coverage whenever we are close to point-identification.
+Clearly, with point-identification using $c_\alpha$ instead of the usual $c_{\alpha/2}$ will result in a too small confidence interval.
+More generally, as pointed out by~\cite{imbens2004confidence}, using the one-sided critival value $c_\alpha$ has a uniformity issue that can translate into poor finite sample coverage.
+In missing data setting, they show that while for every fixed interval length, using $c_\alpha$ is asymptotically justified, for any fixed $N$ it is possible to find a DGP that results in finite sample coverage approaching $1-2\alpha$.
+
+To remedy this issue they propose an adjusted $\tilde{c}\in[c_{\alpha}, c_{\alpha/2}]$ that depends on the length of the confidence interval.
+Let $\Delta$ denote the length of the identified set, $\sigma_l$ and $\sigma_u$ the asymptotic variances of the estimators for the upper and lower bound.
+Then the proposed adjusted critival value $\tilde{c}$ is defined by
+\begin{equation}\label{eq:imbens_manski_crit}
+  \Phi\left(\tilde{c} + \sqrt{N}\frac{\hat{\Delta}}{\max(\hat{\sigma}_l, \hat{\sigma}_u)}\right) - \Phi\left(-\tilde{c}\right) = 1 - \alpha.
+\end{equation}
+Here, $\hat{\cdot}$ denote estimators of their corresponding population quantities.
+~\cite{imbens2004confidence} provide conditions under which a confidence interval using this critival value has uniform coverage.
+However, their particular assumptions are unlikely to hold in the current setting.
+For example, their Assumption 1(i) requires the estimators for the lower and upper bounds to be asymptotically normal, which, as discussed, is unlikely to hold in the present setting.
+However, their construction still provides a way to derive quantiles for the bootstrap that lie somewhere between $\alpha$ and $\alpha/2$ and depend on the length of the confidence interval.
+
+I implement their idea as follows:
+The goal is to derive a level $\tilde{\alpha}$ between $\alpha = 0.05$ and $\alpha = 0.025$.
+I estimate the interval length by $\hat{\Delta} = \hat{\overline{\beta}^*} - \hat{\underline{\beta}^*}$.
+I estimate the variances using the simulated standard deviation of the bootstrap distribution, $\hat{\sigma}_l^*$ and $\hat{\sigma}_u^*$.
+I then solve equation~\ref{eq:imbens_manski_crit} for $\tilde{c}$.
+Lastly, I take $\tilde{\alpha} = 1 - \Phi(\tilde{c})$ to determine the bootstrap percentiles for constructing the confidence interval.
+
+Appendix Figure [TODO: Insert Figures] reports coverage probabilities using bootstrap percentiles based on one-sided critival values and Imbens-Manski critical values.
+There is almost no difference in the coverage rates.
+Looking at the implied (average) $\tilde{\alpha}$, this results from $\tilde{\alpha} \approx 0.05$.
+To illustrate, the typical bootstrapped standard deviations are of order $1-10$.
+Hence, with $N = 10,000$ and taking $\max(\sigma_l, \sigma_u)=10$ (larger sigma result in smaller $\tilde{\alpha}$), we have
+\begin{equation*}
+  \Phi\left(\tilde{c} + 100\Delta\right) - \Phi\left(-\tilde{c}\right) = 1 - 0.05.
+\end{equation*}
+For $\delta=0.1$, the solution would be $\tilde{\alpha} = 0.046$, for $\delta=0.01$, which is far smaller than any of the estimated lengths, we would get $\tilde{\alpha} = 0.028$.
+Hence, based on this simple heuristic we shouldn't expect the coverage problems above to result from convergence to point-identification.
+
 
 \paragraph{Linear Program Tolerance $\kappa_n$}
+MST provide no discussion for the linear program tolerance $\kappa_n$ in their paper.
+The only requirement stated in the main text is that $\kappa_n \to 0$ at an ``appropriate rate''.
+The proof in the appendix is provided for a more general convex loss function and distinguishes between the rate of convergence of $\hat{\Gamma}, \hat{\beta}$ and a tolerance parameter $\tilde{\kappa}_n$ (which I denote differently for clarity).
+The requirement is $\frac{\tilde{\kappa}_n}{r_n} \to 0$ and $\tilde{\kappa_n}\to \infty$. Hence, if $r_n = \sqrt{n}$, $\tilde{\kappa}_n$ may diverge at $n^\delta$ for $\delta \in (0, 1/2)$.
+Hence, $\kappa_n = \frac{1}{n^{1/2 - \delta}}$ and the upper bound is given by $\frac{1}{n^{1/2}}$.
+
+~\cite{shea2023ivmte} take the tuning parameter as a scalar of the minimal deviations from the first step program, namely $\kappa_n = \sigma \hat{\mu}$. They set $\sigma = 10^4$ as the default.
+This does not comply with the asymptotic requirement since this converges as $1/\sqrt{r_n}$ to zero.
+Note that this sets the tolerance to zero whenever the minimal deviations are zero, that is, whenever there is an exact solution satisfying the equality constraints.
+They also provide no further discussion on this choice.
+
+In practice, for the simulations I performed I found $\kappa_n = \frac{1}{n}$ used in all previous simulations to perform reasonably well.
+In addition, I also consider $\kappa_n = \frac{1}{\sqrt{n}}$ and $\kappa_n = \frac{1}{n^2}$.
+For the larger tolerance $\frac{1}{\sqrt{n}}$, the set of feasible solutions is larger, hence we expect smaller estimates for the lower bound and larger estimates for the upper bound.
+The reverse should hold for the smaller tolerance $\kappa_n = \frac{1}{n^2}$.
+Results for simulations using these tolerances are reported in % Appendix Figure~\ref{app_fig:}.
+
+Clearly, for the larger tolerance, the estimator performs considerably worse with mean estimates being too wide.
+Hence, the resulting coverage probabability is typically equal to one.
+[TODO: describe square root and maybe 0.]
 
 
 \section{Convex Relaxation}
@@ -853,6 +909,10 @@ I study the performance of the proposed method in a simple Monte Carlo experimen
 
 To solve the optimization problems I tried several optimization algorithms accessible via the \textit{optimagic} Python package~\citep{Gabler2024}.
 The most suited to this simple problem was found to be the \textit{scipy}~\citep{scipy} implementation of the COBYLA algorithm~\citep{cobyla_powell1994direct}.
+
+\begin{itemize}
+  \item Look for a relaxation that approximates more closely far away from kink but is more smoothed out at the kinks.
+\end{itemize}
 
 \section{Questions}
 
@@ -978,6 +1038,13 @@ The most suited to this simple problem was found to be the \textit{scipy}~\citep
       \caption{Decreasing MTE ($k=11$)}\label{app_fig:id_set_binary_iv_bernstein_k_11_mte_monotone_sharp}
   \end{subfigure}
 \end{figure}
+
+\clearpage
+\newpage
+
+\section{Additional Simulation Results}
+
+\subsection{Coverage by Tolerance}
 
 \clearpage
 \newpage
@@ -1296,10 +1363,10 @@ All shape constraints are similar to the identification part, except for additio
 In particular, all of these constraints are non-random.
 
 
-\subsection{Illustration: Binary IV Model with Point-Identified LATE}
+% \subsection{Illustration: Binary IV Model with Point-Identified LATE}
 
 
-\subsection{Illustration: Binary IV Model with Sharp Identified Set}
+% \subsection{Illustration: Binary IV Model with Sharp Identified Set}
 
 
 \end{document}
