@@ -180,7 +180,7 @@
 	Similar issues arise when a parametric approximation to the MTR functions is used.
   Second, I discuss potential solutions proposed in the literature and show how they might be adjusted to typical use-cases where bounds have to be calculated by the means of linear programming.
 	Third, for a number of empirically relevant settings I conduct novel simulation studies for the MTE model comparing competing inference methods.
-  Lastly, I provide a suggestions for a conservative inference approach to the value of a linear program by a strict convex relaxation of the constrain set.
+  Lastly, I suggest a conservative inference approach to the value of a linear program by a strict convex relaxation of the constraint set.
   I illustrate the performance of this method in a simple Monte Carlo experiment.
 \end{abstract}
 
@@ -776,29 +776,29 @@ Hence, in our case this will make use of $\gamma_1^{at}, \gamma_1^{c}, \gamma_0^
 \paragraph{Critical Value}
 A potential concern with the confidence intervals presented above is poor finite sample coverage whenever we are close to point-identification.
 Clearly, with point-identification using $c_\alpha$ instead of the usual $c_{\alpha/2}$ will result in a too small confidence interval.
-More generally, as pointed out by~\cite{imbens2004confidence}, using the one-sided critival value $c_\alpha$ has a uniformity issue that can translate into poor finite sample coverage.
+More generally, as pointed out by~\cite{imbens2004confidence}, using the one-sided critical value $c_\alpha$ has a uniformity issue that can translate into poor finite sample coverage.
 In missing data setting, they show that while for every fixed interval length, using $c_\alpha$ is asymptotically justified, for any fixed $N$ it is possible to find a DGP that results in finite sample coverage approaching $1-2\alpha$.
 
 To remedy this issue they propose an adjusted $\tilde{c}\in[c_{\alpha}, c_{\alpha/2}]$ that depends on the length of the confidence interval.
 Let $\Delta$ denote the length of the identified set, $\sigma_l$ and $\sigma_u$ the asymptotic variances of the estimators for the upper and lower bound.
-Then the proposed adjusted critival value $\tilde{c}$ is defined by
+Then the proposed adjusted critical value $\tilde{c}$ is defined by
 \begin{equation}\label{eq:imbens_manski_crit}
   \Phi\left(\tilde{c} + \sqrt{N}\frac{\hat{\Delta}}{\max(\hat{\sigma}_l, \hat{\sigma}_u)}\right) - \Phi\left(-\tilde{c}\right) = 1 - \alpha.
 \end{equation}
 Here, $\hat{\cdot}$ denote estimators of their corresponding population quantities.
-~\cite{imbens2004confidence} provide conditions under which a confidence interval using this critival value has uniform coverage.
+~\cite{imbens2004confidence} provide conditions under which a confidence interval using this critical value has uniform coverage.
 However, their particular assumptions are unlikely to hold in the current setting.
 For example, their Assumption 1(i) requires the estimators for the lower and upper bounds to be asymptotically normal, which, as discussed, is unlikely to hold in the present setting.
 However, their construction still provides a way to derive quantiles for the bootstrap that lie somewhere between $\alpha$ and $\alpha/2$ and depend on the length of the confidence interval.
 
-I implement their idea as follows:
-The goal is to derive a level $\tilde{\alpha}$ between $\alpha = 0.05$ and $\alpha = 0.025$.
-I estimate the interval length by $\hat{\Delta} = \hat{\overline{\beta}^*} - \hat{\underline{\beta}^*}$.
-I estimate the variances using the simulated standard deviation of the bootstrap distribution, $\hat{\sigma}_l^*$ and $\hat{\sigma}_u^*$.
+The idea is implemented as follows:
+First, I estimate the interval length by $\hat{\Delta} = \hat{\overline{\beta}^*} - \hat{\underline{\beta}^*}$.
+Similarly, the variances are estimated using the simulated standard deviation of the bootstrap distribution, $\hat{\sigma}_l^*$ and $\hat{\sigma}_u^*$.
+\footnote{Clearly, these estimators are not consistent if the bootstrap is not consistent, but might have at least the right order of magnitude.}
 I then solve equation~\ref{eq:imbens_manski_crit} for $\tilde{c}$.
 Lastly, I take $\tilde{\alpha} = 1 - \Phi(\tilde{c})$ to determine the bootstrap percentiles for constructing the confidence interval.
 
-Appendix Figure [TODO: Insert Figures] reports coverage probabilities using bootstrap percentiles based on one-sided critival values and Imbens-Manski critical values.
+Appendix Figure [TODO Insert Figures] reports coverage probabilities using bootstrap percentiles based on one-sided critical values and Imbens-Manski critical values.
 There is almost no difference in the coverage rates.
 Looking at the implied (average) $\tilde{\alpha}$, this results from $\tilde{\alpha} \approx 0.05$.
 To illustrate, the typical bootstrapped standard deviations are of order $1-10$.
@@ -811,7 +811,7 @@ Hence, based on this simple heuristic we shouldn't expect the coverage problems 
 
 
 \paragraph{Linear Program Tolerance $\kappa_n$}
-MST provide no discussion for the linear program tolerance $\kappa_n$ in their paper.
+~\cite{mogstad2018using} provide no discussion for the linear program tolerance $\kappa_n$ in their paper.
 The only requirement stated in the main text is that $\kappa_n \to 0$ at an ``appropriate rate''.
 The proof in the appendix is provided for a more general convex loss function and distinguishes between the rate of convergence of $\hat{\Gamma}, \hat{\beta}$ and a tolerance parameter $\tilde{\kappa}_n$ (which I denote differently for clarity).
 The requirement is $\frac{\tilde{\kappa}_n}{r_n} \to 0$ and $\tilde{\kappa_n}\to \infty$. Hence, if $r_n = \sqrt{n}$, $\tilde{\kappa}_n$ may diverge at $n^\delta$ for $\delta \in (0, 1/2)$.
@@ -829,14 +829,14 @@ The reverse should hold for the smaller tolerance $\kappa_n = \frac{1}{n^2}$.
 Results for simulations using these tolerances are reported in % Appendix Figure~\ref{app_fig:}.
 
 Clearly, for the larger tolerance, the estimator performs considerably worse with mean estimates being too wide.
-Hence, the resulting coverage probabability is typically equal to one.
-[TODO: describe square root and maybe 0.]
+Hence, the resulting coverage probability is typically equal to one.
+[TODO describe square root and maybe 0.]
 
-While not pursued further here, a heuristic for $\kappa_n$ might be based on the distributoin of the minimal deviations $\hat{\mu}$.
+While not pursued further here, a heuristic for $\kappa_n$ might be based on the distribution of the minimal deviations $\hat{\mu}$.
 
 \section{Convex Relaxation}
 Given the difficulty of inference evident in the simulation results of the previous section, we now provide some suggestions for a conservative inference approach.
-The main idea, is to provide a conservative approximation to the solutoins of the linear program $\overline{\beta^*}, \underline{\beta^*}$ by solving a slightly relaxed, but nonlinear program.
+The main idea, is to provide a conservative approximation to the solutions of the linear program $\overline{\beta^*}, \underline{\beta^*}$ by solving a slightly relaxed, but nonlinear program.
 In particular, we will replace the box constraint $x\in[0,1]^d$ on the basis coefficients by a larger and strictly convex set $\mathcal{A}$.
 \footnote{In the following, I will drop the \textit{strict} qualifier and refer to this as convex relaxation. The set $[0,1]^d$ is of course also convex (but not strictly so).}
 
@@ -848,7 +848,7 @@ Asymptotic theory might be possible by letting the feasible region $\mathcal{A}$
 
 The rest of the section spells out the idea in more detail and provides a ``proof-of-concept'' simulation for a two-dimensional problem with box constraints.
 
-\paragraph{Convex Relexation of Linear Program}
+\paragraph{Convex Relaxation of Linear Program}
 We want to perform inference on the value function of a linear program.
 \begin{equation}
 	\min_{x\in [0,1]^2} c'x.
@@ -883,14 +883,14 @@ However, this is a convex optimization problem for which solution methods exist 
 Figure~\ref{fig:convex_relax_value} $(k=2)$ shows the resulting value function.
 Since the feasible region is larger, the value lies below the value of the linear program.
 Also, the solution no longer features a kink.
-Intuitively, solutions are now at points of tangency between the level curves of the objective and and the border of the circle.
+Intuitively, solutions are now at points of tangency between the level curves of the objective and the border of the circle.
 Since we smoothed out the edges, points of tangency now continuously change when $c$ changes.
-This smooth transitions is also evident in the solutions in Figure~\ref{fig:convex_relax_solution}.
+This smooth transition is also evident in the solutions in Figure~\ref{fig:convex_relax_solution}.
 
 However, the solution is visibly smaller (or in our interpretation: too conservative).
 So maybe $\mathcal{A}$ is too large a relaxation to be useful.
 
-To construct a tighter strictly convex set containing $[0,1]^2$ we can taky any other higher $l_p$ norm and recenter it.
+To construct a tighter strictly convex set containing $[0,1]^2$ we can take any other higher $l_p$ norm and recenter it.
 In particular, we have
 \begin{equation*}
 	(x_1-0.5)^k + (x_2-0.5)^k \leq c
@@ -908,12 +908,11 @@ The feasible region shrinks towards the unit square as $k$ increases.
 Hence, the value function is also closer to the original linear program one, while still being smooth.
 
 \paragraph{Monte Carlo}
-I study the performance of the proposed method in a simple Monte Carlo experiment.
-I use the settings as described above with $c_2=1$.
-I treat $c_1$ as unknown, but we have data $X_i \sim N(c_1, 1)$ so $\hat{c_1} = \frac{1}{N}\sum_i X_i$ is a consistent estimator.
+I study the performance of the proposed method in a simple Monte Carlo experiment, using the setting as described above with $c_2=1$.
+$c_1$ is treated as unknown, but we have noisy measurements $X_i \sim N(c_1, 1)$ so $\hat{c_1} = \frac{1}{N}\sum_i X_i$ is a consistent estimator.
 
 To solve the optimization problems I tried several algorithms accessible via the \textit{optimagic} Python package~\citep{Gabler2024}.
-The most suited to this simple problem was found to be the \textit{scipy}~\citep{scipy} implementation of the COBYLA algorithm~\citep{cobyla_powell1994direct}.
+The most suited to this simple problem was found to be the \textit{SciPy}~\citep{scipy} implementation of the COBYLA algorithm~\citep{cobyla_powell1994direct}.
 As an initial parameter guess for the nonlinear problems I use the linear program solution.
 
 Confidence intervals are constructed based on the non-parametric bootstrap both for the linear program and for its convex relaxation.
@@ -923,7 +922,7 @@ For the convex relaxation, the bootstrap is justified if the value function is s
 Of course, as $\mathcal{A}\to [0,1]^d$ we would expect similar issues to arise with the value function of the relaxed program.
 If the value function is not fully differentiable, an alternative might be to perform inference based on a functional delta method derived by~\cite{shapiro1991asymptotic} (see below).
 
-Figures~\ref{fig:convex_relax_ci_coverage} and~\ref{fig:convex_relax_ci_mean} report simulated coverage probabilities and mean confindence intervals.
+Figures~\ref{fig:convex_relax_ci_coverage} and~\ref{fig:convex_relax_ci_mean} report simulated coverage probabilities and mean confidence intervals.
 I focus on the region $[-0.2, 0.2]$ around the kink and for a nominal coverage of $95\%$.
 First, a confidence interval
 For $k=2$ and $k=4$, inference is clearly too conservative as both confidence intervals have coverage probability one and are much smaller than the bootstrap interval throughout.
@@ -932,7 +931,7 @@ However, for $k=20$, the feasible region is potentially to close to the original
 
 \begin{figure}
 
-  \caption{Convex Relexation: Value Functions, Solutions, CI Coverage and Mean}\label{fig:convex_relax}
+  \caption{Convex Relaxation: Value Functions, Solutions, CI Coverage and Mean}\label{fig:convex_relax}
 
   \centering
   \begin{subfigure}[b]{0.49\textwidth}
@@ -966,7 +965,7 @@ The foregone illustration already points to several of the weaknesses of this ap
 
 \paragraph{Inference on the Approximation}
 The essential idea is to provide a (slightly) conservative approximation, for which we can perform inference.
-However, even in this two-dimensonal case, whenever $c_2=0$, the value function will feature a kink.
+However, even in this two-dimensional case, whenever $c_2=0$, the value function will feature a kink.
 When $c_2=0$, level curves of the objective are parallel to the $x_2$-axis.
 If $c_1 > 0$, the point of tangency is at the boundary of the feasible region where $x_1$ is minimal, for $c_1 < 0$ at the boundary where $x_1$ is maximal.
 These points occur at $x_2=0.5$.
@@ -978,7 +977,7 @@ Specifically, in our case, choosing a relevant target parameter should always en
 In the simple example, this would only include the situation where both $p(0) \approx p(1)$ and $\overline{u} \approx 0$, but the latter is chosen by the researcher.
 
 More generally,~\cite{shapiro1991asymptotic} Section 3 discusses several adjustments of the delta method for inference on the objective function in mathematical programming.
-In particular, Theorem 3.1 provides the Hadamard directional derivative for the value function when only the objective has a stochstic component.
+In particular, Theorem 3.1 provides the Hadamard directional derivative for the value function when only the objective has a stochastic component.
 Further, it is noted that if the solution is unique, then this derivative is linear and the value function is hence \textit{fully} differentiable.
 In that case, as expected, if the asymptotic distribution of the stochastic part of the value function is normal, so is the optimal value.
 This would be the case in our example since $\sqrt{N}(\hat{c_1} - c_1) \to_d N(0,\sigma^2)$ then $\sqrt{N}(\hat{\phi}_n - \phi_0) \to_d N(0,\sigma^2)$.
@@ -986,7 +985,7 @@ For the result see Theorem 3.3 and the preceding discussion.
 If we exclude $c=0$ from the parameter space, then the example problem above has a unique solution everywhere and hence the above theorem applies.
 \footnote{We also require $\mathcal{A}$ to be compact, which is true since it is closed and bounded.
 Further, (a) $g(x, \omega) = \hat{c_1}x_0$ is measurable for all $x \in \mathcal{A}$, (b) it has a finite second moment, and (c) there exists a dominating function since $g$ is linear in $x$.}
-[TODO: Is this so relevant here?]
+[TODO Is this so relevant here?]
 
 If all or some of the constraints are unknown, equivalent asymptotic results can be derived in settings with convex inequality constraints.
 See Theorems 3.4 for the directional derivative and Theorem 3.5 for the asymptotic distribution.
@@ -1001,7 +1000,7 @@ The solution is too far away from the linear solution away from the kink, but ch
 Even given a set $\mathcal{A}$ that has desirable properties, the main challenge is motivating the tuning parameter, e.g. $k$ above.
 While asymptotic theory probably puts some requirements on the rate of convergence to points of non-differentiability (probably slow ``enough'' relative to estimation rates), it is unclear how to motivate this choice in finite sample.
 How useful such an approach would be in practice hinges on the ability to motivate a tuning parameter choice, which, for example, is the main problem with subsampling.
-One potential source of information could be solving the estimation problem at hand under increasing relaxations as well as comparing the degree of conservativeness to an initial (biased) bootstrap estimate of the standard errormm.
+One potential source of information could be solving the estimation problem at hand under increasing relaxations as well as comparing the degree of conservativeness to an initial (biased) bootstrap estimate of the standard error.
 
 \paragraph{Optimization Problem}
 Linear programs can be solved reliably and fast to global optimally, in particular in many relevant applications of the MTE method.
@@ -1010,10 +1009,10 @@ In particular, numerical instability can be a concern when $\mathcal{A}$ is defi
 Also setting up the problem correctly takes more care and different optimizers with different strategies have to be employed on a case-by-case basis.
 
 To illustrate these difficulties, I consider one of the MTE problems studied in Section~\ref{sec:simple_example}, namely a Bernstein polynomial of degree 11 with no shape restrictions, implying $2*12=24$ parameters.
-Four equality constraints for the point-identified estimands reduce the number of free parameters to $20$; reparametrization is performed in the background by \textit{optimagic}.
+Four equality constraints for the point-identified estimands reduce the number of free parameters to $20$; reparameterization is performed in the background by \textit{optimagic}.
 The unit box $[0,1]^{24}$ is the only other constraint and I again relax it by the recentered norms of degree $k$.
 Appendix Figure [TODO] plots the resulting approximations to the lower bound.
-Subfigure (a) provides approximations for varying $k$, while subfigure (b) considers solutions for $k=20$ with multiple algorithms.
+Sub-figure (a) provides approximations for varying $k$, while sub-figure (b) considers solutions for $k=20$ with multiple algorithms.
 Notably, to get a close enough approximation, $k=20$ or $k=40$ is required. However, the solution is visibly unstable, pointing to optimization issues.
 Further, different optimization routines result in partly vastly different solutions, pointing to convergence issues.
 This is not meant to show, that this approach is generally not viable for higher dimensional problems, but to point out that several additional optimization difficulties are introduced by relaxing the constraint.

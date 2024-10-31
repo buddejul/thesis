@@ -7,3 +7,4 @@
 {"rule":"MASS_AGREEMENT","sentence":"^\\QMST maintain the following assumptions, which guarantee a “valid” instrument\\E$"}
 {"rule":"HE_VERB_AGR","sentence":"^\\QTo address this, MST propose a two-way estimator that is guaranteed to exist.\\E$"}
 {"rule":"NO_COMMA_BEFORE_INDIRECT_QUESTION","sentence":"^\\QIn particular, we know \\E(?:Dummy|Ina|Jimmy-)[0-9]+\\Q, where \\E(?:Dummy|Ina|Jimmy-)[0-9]+\\Q is easy to estimate.\\E$"}
+{"rule":"MORFOLOGIK_RULE_EN_US","sentence":"^\\QOne potential source of information could be solving the estimation problem at hand under increasing relaxations as well as comparing the degree of conservativeness to an initial (biased) bootstrap estimate of the standard error.\\E$"}
