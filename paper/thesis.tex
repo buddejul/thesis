@@ -180,6 +180,8 @@
 	Similar issues arise when a parametric approximation to the MTR functions is used.
   Second, I discuss potential solutions proposed in the literature and show how they might be adjusted to typical use-cases where bounds have to be calculated by the means of linear programming.
 	Third, for a number of empirically relevant settings I conduct novel simulation studies for the MTE model comparing competing inference methods.
+  Lastly, I provide a suggestions for a conservative inference approach to the value of a linear program by a strict convex relaxation of the constrain set.
+  I illustrate the performance of this method in a simple Monte Carlo experiment.
 \end{abstract}
 
 \clearpage
@@ -830,6 +832,7 @@ Clearly, for the larger tolerance, the estimator performs considerably worse wit
 Hence, the resulting coverage probabability is typically equal to one.
 [TODO: describe square root and maybe 0.]
 
+While not pursued further here, a heuristic for $\kappa_n$ might be based on the distributoin of the minimal deviations $\hat{\mu}$.
 
 \section{Convex Relaxation}
 Given the difficulty of inference evident in the simulation results of the previous section, we now provide some suggestions for a conservative inference approach.
@@ -862,7 +865,7 @@ Whenever $c_1\neq0, c_2\neq0$ we have a unique solution that appears at one of t
 Assume $c_i, c_j \neq 0$ so we have a unique solution.
 The first panel in Figure~\ref{fig:convex_relax_value} plots the value function for the linear program with a box constraint and several strictly convex constraints, to be described below.
 We fix $c_2 = 1$ and plot the value function as a function of $c_1$ only.
-Figures~\ref{fig:convex_relax_value} and~\ref{fig:convx_relax_solution} plot the value function and corresponding solution.
+Figures~\ref{fig:convex_relax_value} and~\ref{fig:convex_relax_solution} plot the value function and corresponding solution.
 The associated value function exhibits a clear kink at $c_1 = 0$: Whenever $c_1 > 0$, $x = (0, 0)$ is optimal, whenever, $c_1 < 0$, $x=(1,0)$ is optimal.
 
 Now the idea is, to slightly enlarge the box $[0,1]^2$ to a set $\mathcal{A}$ that is strictly convex.
@@ -882,7 +885,7 @@ Since the feasible region is larger, the value lies below the value of the linea
 Also, the solution no longer features a kink.
 Intuitively, solutions are now at points of tangency between the level curves of the objective and and the border of the circle.
 Since we smoothed out the edges, points of tangency now continuously change when $c$ changes.
-This smooth transitions is also evident in the solutions in Figure~\ref{fig:convx_relax_solution}.
+This smooth transitions is also evident in the solutions in Figure~\ref{fig:convex_relax_solution}.
 
 However, the solution is visibly smaller (or in our interpretation: too conservative).
 So maybe $\mathcal{A}$ is too large a relaxation to be useful.
@@ -892,7 +895,7 @@ In particular, we have
 \begin{equation*}
 	(x_1-0.5)^k + (x_2-0.5)^k \leq c
 \end{equation*}
-where $c\in\mathbb{R}$ is a constant given by $c = 2(1-0.5)^k$ that ensures the unit square is included.
+where $c = 2(1-0.5)^k$ ensures the unit square is included.
 \footnote{An alternative is to use the intersection of multiple lower order polynomials with varying slopes on one of the coordinates. For example,
 \begin{align}
 	& s(x_1 - 0.5)^4 + (x_2 - 0.5)^4 \leq u(s), \\
@@ -900,30 +903,36 @@ where $c\in\mathbb{R}$ is a constant given by $c = 2(1-0.5)^k$ that ensures the 
 \end{align}
 where $s$ is now the tuning parameter with $s\to\infty$ implying $\mathcal{A} \to [0,1]^d$.}
 
-Figure~\ref{fig:convex_relax} plots the resulting solutions for $k\in\{2,4,10, 20\}$.
+Figure~\ref{fig:convex_relax} additionally plots the resulting solutions for $k\in\{4, 10, 20\}$.
 The feasible region shrinks towards the unit square as $k$ increases.
 Hence, the value function is also closer to the original linear program one, while still being smooth.
 
 \paragraph{Monte Carlo}
 I study the performance of the proposed method in a simple Monte Carlo experiment.
+I use the settings as described above with $c_2=1$.
+I treat $c_1$ as unknown, but we have data $X_i \sim N(c_1, 1)$ so $\hat{c_1} = \frac{1}{N}\sum_i X_i$ is a consistent estimator.
 
-To solve the optimization problems I tried several optimization algorithms accessible via the \textit{optimagic} Python package~\citep{Gabler2024}.
+To solve the optimization problems I tried several algorithms accessible via the \textit{optimagic} Python package~\citep{Gabler2024}.
 The most suited to this simple problem was found to be the \textit{scipy}~\citep{scipy} implementation of the COBYLA algorithm~\citep{cobyla_powell1994direct}.
+As an initial parameter guess for the nonlinear problems I use the linear program solution.
 
-\begin{itemize}
-  \item Look for a relaxation that approximates more closely far away from kink but is more smoothed out at the kinks.
-\end{itemize}
+Confidence intervals are constructed based on the non-parametric bootstrap both for the linear program and for its convex relaxation.
+For the linear program, the bootstrap is inconsistent at $c_1=0$ because the value function is not fully differentiable.
+Hence, we would expect poor finite sample performance at and around the kink.
+For the convex relaxation, the bootstrap is justified if the value function is smooth.
+Of course, as $\mathcal{A}\to [0,1]^d$ we would expect similar issues to arise with the value function of the relaxed program.
+If the value function is not fully differentiable, an alternative might be to perform inference based on a functional delta method derived by~\cite{shapiro1991asymptotic} (see below).
 
-\section{Questions}
-
-\begin{itemize}
-	\item Can we get something that is aymptotically exact by letting the approximating feasible region converge? What would the rate requirements be?
-	\item Under what conditions is the value function guaranteed to be smooth? For example, $c_2 = 0$ above would not result in a smooth value function.
-\end{itemize}
+Figures~\ref{fig:convex_relax_ci_coverage} and~\ref{fig:convex_relax_ci_mean} report simulated coverage probabilities and mean confindence intervals.
+I focus on the region $[-0.2, 0.2]$ around the kink and for a nominal coverage of $95\%$.
+First, a confidence interval
+For $k=2$ and $k=4$, inference is clearly too conservative as both confidence intervals have coverage probability one and are much smaller than the bootstrap interval throughout.
+For tighter approximations $k=10$ and $k=20$, on the other hand, coverage probabilities are higher than for the bootstrap with much larger average confidence intervals.
+However, for $k=20$, the feasible region is potentially to close to the original linear program, and for $N=1000$ we again have coverage below the nominal level close to the kink.
 
 \begin{figure}
 
-  \caption{Convex Relexation: Value Functions, Solutions, CI Coverage and Length}\label{fig:convex_relax}
+  \caption{Convex Relexation: Value Functions, Solutions, CI Coverage and Mean}\label{fig:convex_relax}
 
   \centering
   \begin{subfigure}[b]{0.49\textwidth}
@@ -935,7 +944,7 @@ The most suited to this simple problem was found to be the \textit{scipy}~\citep
       \begin{subfigure}[b]{0.49\textwidth}
         \centering
         \includegraphics[width=\textwidth]{../figures/relax/solutions_by_constraint_set_dim_2.png}
-        \caption{Solutions}\label{fig:convx_relax_solution}
+        \caption{Solutions}\label{fig:convex_relax_solution}
       \end{subfigure}
 
       \begin{subfigure}[b]{0.49\textwidth}
@@ -947,10 +956,68 @@ The most suited to this simple problem was found to be the \textit{scipy}~\citep
       \begin{subfigure}[b]{0.49\textwidth}
         \centering
         \includegraphics[width=\textwidth]{../figures/relax/lower_ci_one_sided_by_method.png}
-      \caption{One-Sided CI:\@ Length}\label{fig:convex_relax_ci_length}
+      \caption{One-Sided CI:\@ Mean}\label{fig:convex_relax_ci_mean}
   \end{subfigure}
 
 \end{figure}
+
+\subsection{Discussion}
+The foregone illustration already points to several of the weaknesses of this approach, which will be discussed in the following.
+
+\paragraph{Inference on the Approximation}
+The essential idea is to provide a (slightly) conservative approximation, for which we can perform inference.
+However, even in this two-dimensonal case, whenever $c_2=0$, the value function will feature a kink.
+When $c_2=0$, level curves of the objective are parallel to the $x_2$-axis.
+If $c_1 > 0$, the point of tangency is at the boundary of the feasible region where $x_1$ is minimal, for $c_1 < 0$ at the boundary where $x_1$ is maximal.
+These points occur at $x_2=0.5$.
+Call these values $x_1^{\min}, x_1^{\max}$.
+The value function is then given by $I\{c_1 \leq 0\} c_1 x_1^{\max} + I\{c_1 > 0\} c_1 x_1^{\min} < 0$.
+Since $x_1^{\max} > |x_1^{\min}|$, the value function has a kink at $c_0$.
+However, $c = 0$ should be excluded in most applications of interest.
+Specifically, in our case, choosing a relevant target parameter should always ensure that $c$ is bounded away from zero.
+In the simple example, this would only include the situation where both $p(0) \approx p(1)$ and $\overline{u} \approx 0$, but the latter is chosen by the researcher.
+
+More generally,~\cite{shapiro1991asymptotic} Section 3 discusses several adjustments of the delta method for inference on the objective function in mathematical programming.
+In particular, Theorem 3.1 provides the Hadamard directional derivative for the value function when only the objective has a stochstic component.
+Further, it is noted that if the solution is unique, then this derivative is linear and the value function is hence \textit{fully} differentiable.
+In that case, as expected, if the asymptotic distribution of the stochastic part of the value function is normal, so is the optimal value.
+This would be the case in our example since $\sqrt{N}(\hat{c_1} - c_1) \to_d N(0,\sigma^2)$ then $\sqrt{N}(\hat{\phi}_n - \phi_0) \to_d N(0,\sigma^2)$.
+For the result see Theorem 3.3 and the preceding discussion.
+If we exclude $c=0$ from the parameter space, then the example problem above has a unique solution everywhere and hence the above theorem applies.
+\footnote{We also require $\mathcal{A}$ to be compact, which is true since it is closed and bounded.
+Further, (a) $g(x, \omega) = \hat{c_1}x_0$ is measurable for all $x \in \mathcal{A}$, (b) it has a finite second moment, and (c) there exists a dominating function since $g$ is linear in $x$.}
+[TODO: Is this so relevant here?]
+
+If all or some of the constraints are unknown, equivalent asymptotic results can be derived in settings with convex inequality constraints.
+See Theorems 3.4 for the directional derivative and Theorem 3.5 for the asymptotic distribution.
+Again, for a unique solution, this distribution is normal, with variance equal to the variance of the Lagrangian evaluated at the optimal solution.
+Hence, this takes into account uncertainty both in the objective function and the constraints.
+Since the $l_1$ norm in the MTE estimation linear program is convex, replacing the box constraint by a convex relaxation would give such a program.
+
+\paragraph{Choosing $\mathcal{A}$}
+Figure~\ref{fig:convex_relax_solution} shows a potential problem with norm-based relaxations $\mathcal{A}$:
+The solution is too far away from the linear solution away from the kink, but changes too quickly at the kink, especially for high $k$.
+
+Even given a set $\mathcal{A}$ that has desirable properties, the main challenge is motivating the tuning parameter, e.g. $k$ above.
+While asymptotic theory probably puts some requirements on the rate of convergence to points of non-differentiability (probably slow ``enough'' relative to estimation rates), it is unclear how to motivate this choice in finite sample.
+How useful such an approach would be in practice hinges on the ability to motivate a tuning parameter choice, which, for example, is the main problem with subsampling.
+One potential source of information could be solving the estimation problem at hand under increasing relaxations as well as comparing the degree of conservativeness to an initial (biased) bootstrap estimate of the standard errormm.
+
+\paragraph{Optimization Problem}
+Linear programs can be solved reliably and fast to global optimally, in particular in many relevant applications of the MTE method.
+The nonlinear problem resulting from the convex relaxation is, however, more difficult to solve in general.
+In particular, numerical instability can be a concern when $\mathcal{A}$ is defined by a large $k$.
+Also setting up the problem correctly takes more care and different optimizers with different strategies have to be employed on a case-by-case basis.
+
+To illustrate these difficulties, I consider one of the MTE problems studied in Section~\ref{sec:simple_example}, namely a Bernstein polynomial of degree 11 with no shape restrictions, implying $2*12=24$ parameters.
+Four equality constraints for the point-identified estimands reduce the number of free parameters to $20$; reparametrization is performed in the background by \textit{optimagic}.
+The unit box $[0,1]^{24}$ is the only other constraint and I again relax it by the recentered norms of degree $k$.
+Appendix Figure [TODO] plots the resulting approximations to the lower bound.
+Subfigure (a) provides approximations for varying $k$, while subfigure (b) considers solutions for $k=20$ with multiple algorithms.
+Notably, to get a close enough approximation, $k=20$ or $k=40$ is required. However, the solution is visibly unstable, pointing to optimization issues.
+Further, different optimization routines result in partly vastly different solutions, pointing to convergence issues.
+This is not meant to show, that this approach is generally not viable for higher dimensional problems, but to point out that several additional optimization difficulties are introduced by relaxing the constraint.
+
 
 \section{Conclusion}
 
