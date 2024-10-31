@@ -164,7 +164,12 @@ def extract_and_aggregate_result(jobid: int):
 
         _df["iteration"] = iteration
 
-        # TODO: Add alpha_for_ci and alpha_im_crit if not in the dataframe
+        # All early jobs where run with alpha_im_crit = False and alpha_for_ci = alpha
+        if "alpha_for_ci" not in _df.columns:
+            _df["alpha_for_ci"] = _df["alpha"]
+
+        if "alpha_im_crit" not in _df.columns:
+            _df["alpha_im_crit"] = False
 
         assert _df["true_param_pos"].unique() == "lower"
 
