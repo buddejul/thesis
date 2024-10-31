@@ -71,6 +71,11 @@ confidence_interval_to_color = {
     "subsampling": "rgba(0, 0, 255, 1)",
 }
 
+name_by_alpha_im_crit = {
+    False: "Alpha Critival Value",
+    True: "IM Critival Value",
+}
+
 # --------------------------------------------------------------------------------------
 # Plot Coverage
 # --------------------------------------------------------------------------------------
@@ -193,7 +198,7 @@ for id_, kwargs in ID_TO_KWARGS_COVERAGE.items():
                             x=_df["late_complier"],
                             y=_df["covers_true_param"],
                             mode="markers+lines",
-                            name=f"Imbens Manski Alpha = {alpha_im_crit}",
+                            name=f"{name_by_alpha_im_crit[alpha_im_crit]}",
                             legendgroup=confidence_interval,
                             legendgrouptitle={
                                 "text": _legend_title_by_confidence_interval[
@@ -311,3 +316,7 @@ for id_, kwargs in ID_TO_KWARGS_COVERAGE.items():
 
         write_image(fig, path_to_plot_problematic_region, scale=2)
         fig.write_html(path_to_plot_problematic_region_html)
+
+
+# --------------------------------------------------------------------------------------
+# Plot Average
