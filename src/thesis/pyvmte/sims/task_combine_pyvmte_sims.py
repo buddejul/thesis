@@ -32,6 +32,7 @@ JOBS = [
     17778314,
     17782509,
     17782513,
+    17783454,
 ]
 
 JOBS_SQRT_TOLERANCE = [
@@ -39,6 +40,12 @@ JOBS_SQRT_TOLERANCE = [
     17700618,
     17777546,
     17778314,
+]
+
+JOBS_SQUARE_TOLERANCE = []
+
+JOBS_IM_CRIT = [
+    17783454,
 ]
 
 RES_FILES_TAR = [HPC_RES / f"{jobid}.tar.gz" for jobid in JOBS]
