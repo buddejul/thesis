@@ -57,6 +57,7 @@ constraints_to_plot = ["none"]
 tolerances_to_plot = ["1/n"]
 subsample_share_to_plot = [0.05, 0.1, 0.2]
 num_obs_to_plot = [10_000]
+alpha_im_crit_to_plot = False
 
 # --------------------------------------------------------------------------------------
 # Plotting Settings
@@ -153,6 +154,9 @@ for id_, kwargs in ID_TO_KWARGS_COVERAGE.items():
         for confidence_interval in confidence_intervals_to_plot:
             idx = df_sims_combined["lp_tolerance"] == lp_tolerance
             df_plot = df_sims_combined[idx]
+
+            idx = df_plot["alpha_im_crit"] == alpha_im_crit_to_plot
+            df_plot = df_plot[idx]
 
             df_plot = df_plot[df_plot["confidence_interval"] == confidence_interval]
 
@@ -265,9 +269,7 @@ for id_, kwargs in ID_TO_KWARGS_COVERAGE.items():
 
         if len(num_sims) != 1:
             # Get counts of num_sims
-            counts = df_plot["num_sims"].value_counts()
-            warning = f"num_sims is not unique, got {counts}."
-            warn(warning, stacklevel=2)
+            df_plot["num_sims"].value_counts()
 
         num_subsamples = df_plot["n_subsamples"].unique()
         assert len(num_subsamples) == 1
@@ -447,6 +449,8 @@ for id_, kwargs in ID_TO_KWARGS_MEANS.items():
             ]
 
         df_plot = df_plot[df_plot["idestimands"] == idestimands]
+
+        df_plot = df_plot[df_plot["alpha_im_crit"] == alpha_im_crit_to_plot]
 
         _k_bernstein = df_plot["k_bernstein"].unique()
         assert len(_k_bernstein) == 1

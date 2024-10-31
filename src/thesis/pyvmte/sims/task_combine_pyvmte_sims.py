@@ -65,6 +65,7 @@ constant_cols = [
     "num_sims",
     "n_boot",
     "n_subsamples",
+    "alpha_im_crit",
 ]
 
 cols_to_average = [
@@ -75,6 +76,7 @@ cols_to_average = [
     "true_lower_bound",
     "true_upper_bound",
     "true_param",
+    "alpha_for_ci",
 ]
 
 cols_coverage = [
