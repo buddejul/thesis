@@ -54,7 +54,7 @@ _constr_subtitle = {
 confidence_intervals_to_plot = ["subsampling"]
 idestimands_to_plot = ["sharp"]
 constraints_to_plot = ["none"]
-tolerances_to_plot = ["1/num_obs"]
+tolerances_to_plot = ["1/n"]
 subsample_share_to_plot = [0.05, 0.1, 0.2]
 num_obs_to_plot = [10_000]
 
@@ -151,7 +151,7 @@ for id_, kwargs in ID_TO_KWARGS_COVERAGE.items():
         num_of_obs_to_dash = {1_000: "solid", 10_000: "dash"}
 
         for confidence_interval in confidence_intervals_to_plot:
-            idx = df_sims_combined["lp_tolerance_kappa"] == lp_tolerance
+            idx = df_sims_combined["lp_tolerance"] == lp_tolerance
             df_plot = df_sims_combined[idx]
 
             df_plot = df_plot[df_plot["confidence_interval"] == confidence_interval]
@@ -431,7 +431,7 @@ for id_, kwargs in ID_TO_KWARGS_MEANS.items():
         # ------------------------------------------------------------------------------
         # Select data
         # ------------------------------------------------------------------------------
-        idx = df_sims_combined["lp_tolerance_kappa"] == lp_tolerance
+        idx = df_sims_combined["lp_tolerance"] == lp_tolerance
         df_plot = df_sims_combined[idx]
 
         df_plot = df_plot[df_plot["confidence_interval"] == confidence_interval]
