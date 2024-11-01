@@ -203,11 +203,37 @@
 \newpage
 
 \section{Introduction}\label{sec:introduction}
+Causal inference using instrumental variables is part of the toolkit of almost all applied economists.
+One particular prominent result is that of~\cite{imbens_angrist1994ecma}, who show that instruments can identify a certain local average treatment effect, namely for those people who respond to the treatment.
+While clarifying the estimation of the point-identified estimand typically reported in many studies, this provides no guidance in formally reasoning about other parameters of interest, like the average treatment effect or treatment effect for other subpopulations, that are generally not point-identified.
+There are several intuitive approaches to make progress, that can be found throughout the literature, but many of them are unappealing, at least on their own:
+Homogeneity assumptions are likely to be wrong. After all, some individuals did not select into treatment, although they could have and one reason might be knowledge about a negative treatment effect.
+Using only bounds on the outcome for partial identification typically leave wide intervals and implies unappealing discontinuities in the treatment response.
+Other assumptions might be possible to enforce on a case-by-case basis, but this can quickly get unwieldy.
+
+\cite{mogstad2018using} seek to remedy this problem by providing a unifying framework that allows to transparently combine
+(a) information in the data and (b) theoretical assumptions into an identified interval for many target parameters of interest.
+In particular, they rely on a characterization of the underlying population by a latent variable describing heterogeneity or, in economic terms, resistance to treatment.
+The model can then be reformulated in terms of \textit{marginal} treatment effects for a particular resistance to treatment.
+This characterization allows to combine many assumptions previously imposed in the literature (like a decreasing treatment effect or a monotone treatment response), but also to incorporate smoothness and parametric assumptions.
+
+The usefulness of any such method for applied researchers also depends on the ease with which statistical uncertainty can be accounted for.
+That is, how difficult it is to construct valid confidence intervals.
+However, inference seems to have gained less attention in the existing literature, possibly due to the lack of theoretical results and the relative difficulty of implementation compared to traditional methods.
+While the working paper version~\cite{mogstad2017using_nber} contain a potential procedure for constructing confidence intervals, it is not implemented in their own later implementation \citep{shea2023ivmte} and no simulation results are available.
+\footnote{The steps necessary for the inference procedure are described on p. 87 of~\cite{mogstad2017using_nber}.
+In addition to constructing the usual sample analogue estimators it involves: (1) Solving two mixed integer linear programs for each bootstrap draw for tuning parameter choice, followed by (2) solving a bilinear maximization problem for each bootstrap draw.}
+Instead,~\cite{shea2023ivmte} implement several resampling techniques, which will also be studied here, but report not simulations.
 
 \section{Bootstrap Invalidity: A Simple Example}\label{sec:simple_example}
 I first illustrate the invalidity of the bootstrap in a simple example with a binary instrument where we only use the point-identified LATE for the instrument-compliers as the basis for extrapolation.
 While this will not best we can do in this case --- there are more moments in the data we can point-identify --- it helps to illustrate the type of inference issues that can also arise in more complex setups.
-In particular, we can calculate explicit solutions for the upper and lower viewed as functions of the point-identified complier LATE.\@
+In particular, we can calculate explicit solutions for the upper and lower bound viewed as functions of the point-identified complier LATE.\@
+
+
+This study seeks to fill this gap by conducting Monte Carlo experiments and provides some suggestions on potential inference approaches other than the bootstrap.
+
+[TODO Briefly explain what I am not doing:~\cite{bei2023inference},~\cite{bhattacharya2009inferring},~\cite{freyberger2015identification}].
 
 \subsection{Setup}
 We first introduce some basic notation and key ingredients of the MTE model.
@@ -382,9 +408,11 @@ Figure~\ref{fig:id_set_binary_iv_bernstein} plots the solution to the lower boun
 In addition to the lower bound, the figure also shows the basis function coefficients that solve the linear program separately for $m_0$ and $m_1$.
 The corresponding solution for the upper bound is symmetric, since no other shape restrictions are placed on the problem. Hence, I focus on the lower bound only for clarity.
 
-Notably, while still continuous, these solutions again exhibit kinks, this time even without any shape restrictions.
+While still continuous, these solutions again exhibit kinks, this time even without any shape restrictions.
 While also visually notable, I estimate the position of the kinks by checking for discontinuities in estimated second derivatives.
 These positions are indicated by gray lines and align well with the visual kinks.
+% TODO: Think about this - solutions are always at corner! Equality constraints cut through space --> that's why some coefficients change.
+% Kink is generated by cuts changing smoothly, but cutting through spaces which imply different slopes.
 From the lower subplots it is easy to see, that the kinks are associated with corner solutions of the linear programs, where coefficients start to increase from 0 or decrease from 1.
 This feature is present for both reported degrees, $k=3$ and $k=11$.
 
@@ -413,9 +441,21 @@ If we think of an increasing sequence $k$, this could indicate a failure of Lips
 \end{figure}
 
 \paragraph{Shape Constraints}
-When adding shape constraints, the qualitative features of the solution that can pose problems for inference do not change.
-[Construct Appendix Figures under shape constraints.]
+When adding shape constraints, the qualitative features of the solution that can pose problems for inference do not change, see Appendix Figure~\ref{app_fig:id_set_binary_iv_bernstein_shape_restrictions}.
 However, adding further shape constraints typically reduces the solution space and hence can increase
+
+\paragraph{Sharp Identified Set}
+While only using $\beta_s$ is illuminating for illustration, in practice we would always use specifications with more point-identified parameters.
+In fact, we can use all specifications $E[YI\{Z=z\}I\{D=d\}]$, which is the sharp identified set in the sense of~\cite{mogstad2018using} (see Section~\ref{sec:general_mte}).
+While it can be shown that this avoids kink issues in the constant splines model, the Bernstein polynomial model still exhibits notable kinks, as can be seen in~\ref{app_fig:id_set_binary_iv_bernstein_shape_restrictions_sharp}.
+
+In this setting, the parameter space is $[-1,1]^4$, ignoring the nuisance parameter $\omega$.
+To construct the figure I fix two parameters --- $\gamma_1^{at}$ and $\gamma_0^{nt}$ --- and vary the complier responses such that
+$\gamma_1^c = 0.5 + \beta_s/2$ and $\gamma_0^c = 0.5 - \beta_s/2$. Hence, we can plot the lower bound again as a function of $\beta_s$.
+
+Note that kinks in this plot also correspond to points of non-differentiability in the parameter space $[-1,1]^d$.
+That is, approaching a point of non-differentiability from the left and the right when viewed in terms of $\beta_s$ implies two sequences in $[-1, 1]^4$ that have result in different slopes of the value function.
+
 
 To summarize, in this section I considered a simple binary IV model which already exhibits some problems for inference in the MTE model:
 First, many solutions to the MTE problem exhibit \textit{kinks} when viewed as a function of the point-identified parameters.
@@ -425,6 +465,7 @@ Second, for Bernstein polynomials, the slope of the solutions close to the bound
 This could potentially indicate a failure of Lipschitz continuity.
 Lastly, introducing shape restrictions, in particular monotonicity and sign constraints on the implied MTE function $m_1(u) - m_0(u)$, can significantly reduce the parameter space consistent with the model.
 This can lead to parameter at the boundary issues, as, for example, discussed in~\cite{andrews1999estimation}.
+
 
 \subsection{Simulation: Bootstrap and Adjusted Delta Methods}
 This section presents some simple Monte Carlo evidence on the failure of the nonparametric bootstrap in the case of constant splines (``nonparametric'' bounds) with the restriction of increasing MTR functions.
@@ -505,7 +546,7 @@ Notably,~\cite{hong2018numerical} find several instances in their simulations wh
 
 \paragraph{Results}
 Figure~\ref{fig:sims_simple_model} presents the resulting coverage probability for the three inference approaches and $N\in\{1000, 10000\}$ over a grid $\beta_s$.
-I focus on the coverage and length around the kink. Note that away from the kinkcoverage should converge to $0.9$ since I use confidence intervals using $c_\alpha$ critival values (i.e.\ for a one-sided test).
+I focus on the coverage and length around the kink. Note that away from the kink coverage should converge to $0.9$ since I use confidence intervals using $c_\alpha$ critical values (i.e.\ for a one-sided test).
 Apart from this convergence issue that nominal coverage should be $95\%$.
 
 The nonparametric bootstrap clearly exhibits a dip in the coverage probability at the kink $\beta_s = 0$, also for the large sample size $N=10000$.
@@ -896,7 +937,7 @@ Figure~\ref{fig:simulation_binary_iv_bernstein} reports the main simulation resu
 
 \paragraph{Subsampling Size}
 The tuning parameter for subsampling is the size of the subsample.
-Beyond the conditions required for asmymptotic theory, namely that the subsample size needs to diverge, but no faster than $N$ so that $B/N \to 0$, little further guidance seems to be available.
+Beyond the conditions required for asymptotic theory, namely that the subsample size needs to diverge, but no faster than $N$ so that $B/N \to 0$, little further guidance seems to be available.
 In our case, we are resampling a ratio estimator for $\beta_s$ and which is known to have poor behavior in small samples.
 Hence, using $s = \frac{B}{N}$ too small should yield worse coverage, since any sample of size $B$ is a poor approximation to a sample of size $N$.
 
@@ -1149,6 +1190,16 @@ This is not meant to show, that this approach is generally not viable for higher
 
 \section{Conclusion}
 
+\begin{itemize}
+  \item Implement~\cite{bei2023inference}
+  \item Linear program value function inference in~\cite{}
+  \item For simple examples, explicitly calculating the solution of the model and applying the analytical delta method seems to be a good idea
+  \item If the point of the MTE framework is to incorporate non-parametric restrictions, then the bootstrap does not seem advisable.
+  \item~\cite{bhattacharya2009inferring} and~\cite{freyberger2015identification}
+  \item Convex relaxation
+\end{itemize}
+
+
 \paragraph{Extensions}
 \begin{itemize}
   \item (More) Sharp identified set, see~\cite{marx2024sharp} (and another paper?).
@@ -1260,7 +1311,7 @@ This is not meant to show, that this approach is generally not viable for higher
 
 \begin{figure}
 
-  \caption{Simulation Results for the Binary-IV Model with Bernstein Polynomial MTRs --- Imbens-Manski Critival Values}\label{app_fig:sims_add_alpha_im_crit}
+  \caption{Simulation Results for the Binary-IV Model with Bernstein Polynomial MTRs --- Imbens-Manski Critical Values}\label{app_fig:sims_add_alpha_im_crit}
   \centering
   \includegraphics[width=\textwidth]{../../bld/figures/pyvmte_sims/plot_by_im_alpha_crit/sims_binary_iv_sharp_none_coverage_problematic_region_by_alpha.png}
 
@@ -1271,8 +1322,6 @@ This is not meant to show, that this approach is generally not viable for higher
 
 \section{Linear Programs}\label{app_sec:linear_programs}
 This section presents the exact formulation of the linear programs corresponding to how most solvers specify linear programs.
-I illustrate the actual programs in the case of binary IV model with an identified complier LATE/IV slope coefficient.
-[Add programs for sharp identified set?]
 
 \subsection{Identification}
 
