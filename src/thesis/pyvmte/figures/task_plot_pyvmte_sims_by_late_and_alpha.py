@@ -72,8 +72,8 @@ confidence_interval_to_color = {
 }
 
 name_by_alpha_im_crit = {
-    False: "Alpha Critival Value",
-    True: "IM Critival Value",
+    False: "Alpha Default",
+    True: "Alpha IM",
 }
 
 # --------------------------------------------------------------------------------------
@@ -314,16 +314,6 @@ for id_, kwargs in ID_TO_KWARGS_COVERAGE.items():
             y=-0.21,
             # Right aligned
             align="right",
-        )
-
-        # Draw horizontal line at 1 - alpha
-        fig.add_shape(
-            type="line",
-            x0=0,
-            y0=1 - alpha,
-            x1=1,
-            y1=1 - alpha,
-            line={"color": "rgba(0, 0, 0, 0.2)", "width": 2},
         )
 
         # Make x-axis from 0 to 1

@@ -443,6 +443,7 @@ In particular, the Wald estimator $\sqrt{N}(\hat{\beta_s} - \beta_s) \to_d N(0, 
 Hence, $\sqrt{N}(\hat{\overline{\beta}^*} - \overline{\beta}^*) \to_d N(0, \overline{\sigma}^2)$ where $\overline{\sigma}^2 = I\{\beta_s \geq 0\}\omega^2\sigma^2_s + I\{\beta_s < 0\}\sigma^2_s$.
 
 However, to study the performance of the bootstrap I consider estimates of the quantiles of $\overline{G}$ using the non-parametric bootstrap.
+A more detailed description of the construction is given in Section~\ref{sec:inference_methods}.
 In addition, I construct confidence intervals using the analytical delta method suggested by~\cite{fang2019infdirdiff} and the numerical delta method~\cite{hong2018numerical}.
 Instead of directly bootstrapping $\hat{\overline{\beta*}(\beta_s)}$, these methods bootstrap $\hat{\beta_s}$ (and $\hat{\omega}$) and then apply difference estimators of the (directional) derivative.
 
@@ -503,7 +504,14 @@ For the simulations I performed, $s_n = \frac{1}{\sqrt{n}}$ eventually worked be
 Notably,~\cite{hong2018numerical} find several instances in their simulations where tuning parameter choices violating asymptotic requirements perform best.
 
 \paragraph{Results}
+Figure~\ref{fig:sims_simple_model} presents the resulting coverage probability for the three inference approaches and $N\in\{1000, 10000\}$ over a grid $\beta_s$.
+I focus on the coverage and length around the kink. Note that away from the kinkcoverage should converge to $0.9$ since I use confidence intervals using $c_\alpha$ critival values (i.e.\ for a one-sided test).
+Apart from this convergence issue that nominal coverage should be $95\%$.
 
+The nonparametric bootstrap clearly exhibits a dip in the coverage probability at the kink $\beta_s = 0$, also for the large sample size $N=10000$.
+The two adjusted delta methods --- analytical and numerical --- on the other hand are conservative, with coverage probabilities exceeding the nominal level, at least around the kink.
+Looking at the average length of the confidence interval, for $N=1000$ these methods result in much larger intervals.
+For $N=10000$, however, they come close to the length of the bootstrap interval, which is consistent off the kink, while appropriately increasing the length of the confidence interval at the kink.
 
 
 
@@ -540,7 +548,7 @@ Notably,~\cite{hong2018numerical} find several instances in their simulations wh
 
 \end{figure}
 
-After presenting the general MTE model setup, the rest of the paper is concerned with presenting inference approaches, that can potentially address these concerns (Section~\ref{sec:inference_methods}) and comparing their performance in a Monte Carlo simulation.
+After presenting the general MTE model setup, the rest of the paper is concerned with presenting inference approaches, that can potentially address the previously raised concerns and comparing their performance in a Monte Carlo simulation.
 
 \section{General MTE Setup}\label{sec:general_mte}
 In this section I restate the MTE problem and the approaches to identification and estimation presented in~\cite{mogstad2018using}.
@@ -668,7 +676,7 @@ As pointed out in the literature, there is a difference between constructing con
 Intuitively, coverage for the true parameter is less demanding, since the true parameter can never be at the lower and upper bound \textit{simultaneously}.
 
 As shown by~\cite{imbens2004confidence} it might hence be sufficient to construct the confidence interval from one-sided critical values of level $\alpha$, as opposed to $\alpha/2$, which is typically required for a $(1-\alpha)\%$ coverage.
-\footnote{\cite{imbens_angrist1994ecma} also, however, note a uniformity issue with this confidence interval in their example: When the identified set converges to a point, using one-sided critical values will undercover.
+\footnote{\cite{imbens2004confidence} also, however, note a uniformity issue with this confidence interval in their example: When the identified set converges to a point, using one-sided critical values will undercover.
 They hence propose to use adjust critical values that take into account the ``degree'' of point-identification.
 At this point I do not pursue this any further, but potential poor finite sample performance when the identified set approaches a point might be explained by this.}
 
@@ -698,8 +706,8 @@ where $\sigma^2$ is easy to estimate.
 Hence, after appropriate standardization we can use the quantiles of $\Phi$, that standard normal CDF, to construct a confidence interval.
 
 However, in those cases where $\overline{\beta_s}^*(\beta_s)$ exhibits kinks, the asymptotic distribution depends on the unknown point-identified parameter $\beta_s$, in the sense that the slope of the true upper bound, and hence the plug-in estimator, changes at $\beta_s=0$.
-While this might be easily addressed by a pre-test for $\beta_s=0$, as shown below, it would be desirable to have inference methods that do not depend on knowing the form of $\overline{\beta}^*(\beta_s)$ explicitly.
-After all, the point of the linear program procedure is to compute identified sets with non-obvious solutions.
+While this might be easily addressed by a pre-test for $\beta_s=0$, as explained earlier, it would be desirable to have inference methods that do not depend on knowing the form of $\overline{\beta}^*(\beta_s)$ explicitly.
+The point of the linear program procedure is to compute identified sets with non-obvious solutions.
 The following sections survey some potentially applicably inference methods.
 
 \subsection{Resampling Methods: Nonparametric Bootstrap and Subsampling}
@@ -730,7 +738,7 @@ The goal is then to show, that under appropriate conditions, this distribution i
 Hence, we can use the quantiles of the bootstrap distribution to conduct inference.
 If $B\to\infty$, we can find these quantiles exactly.
 
-[Discuss usual general conditions? For example check Andrews papers or Lehman and Romano.]
+% [Discuss usual general conditions? For example check Andrews papers or Lehman and Romano.]
 
 \paragraph{Differentiability and the Bootstrap}
 It is easy to establish the bootstrap consistency for estimators $\hat{\beta}_s$ and $\hat{\omega}$, at least if we ignore potential weak identification issues for the 2SLS slope coefficient.
@@ -840,6 +848,7 @@ This is the set that uses all conditional moments of $Y$.
 Hence, in our case this will make use of $\gamma_1^{at}, \gamma_1^{c}, \gamma_0^{c}$ and $\gamma_0^{nt}$.
 
 \subsection{Simulation Results}
+Figure~\ref{fig:simulation_binary_iv_bernstein} reports the main simulation results.
 
 \begin{figure}
 
@@ -848,37 +857,37 @@ Hence, in our case this will make use of $\gamma_1^{at}, \gamma_1^{c}, \gamma_0^
   \centering
   \begin{subfigure}[b]{0.49\textwidth}
       \centering
-      % \includegraphics[width=\textwidth]{../../bld/figures/pyvmte_sims/sims_simple_model_by_late_sharp_none_coverage.png}
+      \includegraphics[width=\textwidth]{../../bld/figures/pyvmte_sims/1n/sims_binary_iv_sharp_none_coverage.png}
       \caption{No Shape Restrictions}\label{fig:simulation_coverage_none}
   \end{subfigure}
   \hfill
   \begin{subfigure}[b]{0.49\textwidth}
       \centering
-      % \includegraphics[width=\textwidth]{../../bld/figures/pyvmte_sims/sims_simple_model_by_late_sharp_none_coverage_problematic_region.png}
+      \includegraphics[width=\textwidth]{../../bld/figures/pyvmte_sims/1n/sims_binary_iv_sharp_none_coverage_problematic_region.png}
       \caption{Problematic Region}\label{fig:simulation_coverage_none_problematic}
   \end{subfigure}
 
   \begin{subfigure}[b]{0.49\textwidth}
       \centering
-      % \includegraphics[width=\textwidth]{../../bld/figures/pyvmte_sims/sims_simple_model_by_late_sharp_monotone_response_coverage.png}
+      \includegraphics[width=\textwidth]{../../bld/figures/pyvmte_sims/1n/sims_binary_iv_sharp_monotone_response_coverage.png}
       \caption{Monotone Response}\label{fig:simulation_coverage_monotone_response}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.49\textwidth}
       \centering
-      % \includegraphics[width=\textwidth]{../../bld/figures/pyvmte_sims/sims_simple_model_by_late_sharp_monotone_response_coverage_problematic_region.png}
+      \includegraphics[width=\textwidth]{../../bld/figures/pyvmte_sims/1n/sims_binary_iv_sharp_monotone_response_coverage_problematic_region.png}
       \caption{Problematic Region}\label{fig:simulation_coverage_monotone_response_problematic}
   \end{subfigure}
 
   \begin{subfigure}[b]{0.49\textwidth}
       \centering
-      % \includegraphics[width=\textwidth]{../../bld/figures/pyvmte_sims/sims_simple_model_by_late_sharp_mte_monotone_coverage.png}
+      \includegraphics[width=\textwidth]{../../bld/figures/pyvmte_sims/1n/sims_binary_iv_sharp_mte_monotone_coverage.png}
       \caption{MTE Decreasing}\label{fig:simulation_coverage_mte_monotone}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.49\textwidth}
       \centering
-      % \includegraphics[width=\textwidth]{../../bld/figures/pyvmte_sims/sims_simple_model_by_late_sharp_mte_monotone_coverage_problematic_region.png}
+      \includegraphics[width=\textwidth]{../../bld/figures/pyvmte_sims/1n/sims_binary_iv_sharp_mte_monotone_coverage_problematic_region.png}
       \caption{Problematic Region}\label{fig:simulation_coverage_mte_monotone_problematic}
   \end{subfigure}
 \end{figure}
@@ -886,6 +895,37 @@ Hence, in our case this will make use of $\gamma_1^{at}, \gamma_1^{c}, \gamma_0^
 \subsection{Variations}
 
 \paragraph{Subsampling Size}
+The tuning parameter for subsampling is the size of the subsample.
+Beyond the conditions required for asmymptotic theory, namely that the subsample size needs to diverge, but no faster than $N$ so that $B/N \to 0$, little further guidance seems to be available.
+In our case, we are resampling a ratio estimator for $\beta_s$ and which is known to have poor behavior in small samples.
+Hence, using $s = \frac{B}{N}$ too small should yield worse coverage, since any sample of size $B$ is a poor approximation to a sample of size $N$.
+
+Appendix Figure~\ref{app_fig:sims_add_subsample_share} reports simulation results in the case without shape restrictions using different subsample share $s \in \{0.05, 0.1, 0.2\}$.
+In general, the coverage probability seems to be increasing in $s$, with slightly worse coverage for $s=0.05$ and slightly better one for $s=0.2$ compared to the default.
+However, the differences are only small and the subsample share hence cannot explain the coverage probabilities far below the nominal level.
+
+\paragraph{Linear Program Tolerance $\kappa_n$}
+~\cite{mogstad2018using} provide no discussion for the linear program tolerance $\kappa_n$ in their paper.
+The only requirement stated in the main text is that $\kappa_n \to 0$ at an ``appropriate rate''.
+The proof in the appendix is provided for a more general convex loss function and distinguishes between the rate of convergence of $\hat{\Gamma}, \hat{\beta}$ and a tolerance parameter $\tilde{\kappa}_n$ (which I denote differently for clarity).
+The requirement is $\frac{\tilde{\kappa}_n}{r_n} \to 0$ and $\tilde{\kappa_n}\to \infty$. Hence, if $r_n = \sqrt{n}$, $\tilde{\kappa}_n$ may diverge at $n^\delta$ for $\delta \in (0, 1/2)$.
+Hence, $\kappa_n = \frac{1}{n^{1/2 - \delta}}$ and the upper bound is given by $\frac{1}{n^{1/2}}$.
+
+~\cite{shea2023ivmte} take the tuning parameter as a scalar of the minimal deviations from the first step program, namely $\kappa_n = \sigma \hat{\mu}$. They set $\sigma = 10^4$ as the default.
+This does not comply with the asymptotic requirement since this converges as $1/\sqrt{r_n}$ to zero.
+Note that this sets the tolerance to zero whenever the minimal deviations are zero, that is, whenever there is an exact solution satisfying the equality constraints.
+They also provide no further discussion on this choice.
+
+In practice, for the simulations above I found $\kappa_n = \frac{1}{n}$ to perform reasonably well.
+In addition, I also consider $\kappa_n = \frac{1}{\sqrt{n}}$ and $\kappa_n = \frac{1}{n^2}$.
+For the larger tolerance $\frac{1}{\sqrt{n}}$, the set of feasible solutions is larger, hence we expect smaller estimates for the lower bound and larger estimates for the upper bound.
+The reverse should hold for the smaller tolerance $\kappa_n = \frac{1}{n^2}$.
+Results for simulations using these tolerances are reported in Appendix Figure~\ref{app_fig:sims_add_subsample_share_tolerance}.
+
+Clearly, for the larger tolerance, the estimator performs considerably worse with mean estimates being too wide.
+Hence, the resulting coverage probability is typically equal to one.
+Using $\frac{1}{n^2}$, which comes close to the default tolerance of $0$ implicit in~\cite{shea2023ivmte}, no systematic changes to using $\frac{1}{n}$ are evident.
+Hence, the coverage issue does not seem to result from choosing an inappropriate tuning parameter.
 
 \paragraph{Critical Value}
 A potential concern with the confidence intervals presented above is poor finite sample coverage whenever we are close to point-identification.
@@ -912,7 +952,7 @@ Similarly, the variances are estimated using the simulated standard deviation of
 I then solve equation~\ref{eq:imbens_manski_crit} for $\tilde{c}$.
 Lastly, I take $\tilde{\alpha} = 1 - \Phi(\tilde{c})$ to determine the bootstrap percentiles for constructing the confidence interval.
 
-Appendix Figure [TODO Insert Figures] reports coverage probabilities using bootstrap percentiles based on one-sided critical values and Imbens-Manski critical values.
+Appendix Figure~\ref{app_fig:sims_add_alpha_im_crit} reports coverage probabilities using bootstrap percentiles based on one-sided critical values and Imbens-Manski critical values.
 There is almost no difference in the coverage rates.
 Looking at the implied (average) $\tilde{\alpha}$, this results from $\tilde{\alpha} \approx 0.05$.
 To illustrate, the typical bootstrapped standard deviations are of order $1-10$.
@@ -922,31 +962,6 @@ Hence, with $N = 10,000$ and taking $\max(\sigma_l, \sigma_u)=10$ (larger sigma 
 \end{equation*}
 For $\delta=0.1$, the solution would be $\tilde{\alpha} = 0.046$, for $\delta=0.01$, which is far smaller than any of the estimated lengths, we would get $\tilde{\alpha} = 0.028$.
 Hence, based on this simple heuristic we shouldn't expect the coverage problems above to result from convergence to point-identification.
-
-
-\paragraph{Linear Program Tolerance $\kappa_n$}
-~\cite{mogstad2018using} provide no discussion for the linear program tolerance $\kappa_n$ in their paper.
-The only requirement stated in the main text is that $\kappa_n \to 0$ at an ``appropriate rate''.
-The proof in the appendix is provided for a more general convex loss function and distinguishes between the rate of convergence of $\hat{\Gamma}, \hat{\beta}$ and a tolerance parameter $\tilde{\kappa}_n$ (which I denote differently for clarity).
-The requirement is $\frac{\tilde{\kappa}_n}{r_n} \to 0$ and $\tilde{\kappa_n}\to \infty$. Hence, if $r_n = \sqrt{n}$, $\tilde{\kappa}_n$ may diverge at $n^\delta$ for $\delta \in (0, 1/2)$.
-Hence, $\kappa_n = \frac{1}{n^{1/2 - \delta}}$ and the upper bound is given by $\frac{1}{n^{1/2}}$.
-
-~\cite{shea2023ivmte} take the tuning parameter as a scalar of the minimal deviations from the first step program, namely $\kappa_n = \sigma \hat{\mu}$. They set $\sigma = 10^4$ as the default.
-This does not comply with the asymptotic requirement since this converges as $1/\sqrt{r_n}$ to zero.
-Note that this sets the tolerance to zero whenever the minimal deviations are zero, that is, whenever there is an exact solution satisfying the equality constraints.
-They also provide no further discussion on this choice.
-
-In practice, for the simulations I performed I found $\kappa_n = \frac{1}{n}$ used in all previous simulations to perform reasonably well.
-In addition, I also consider $\kappa_n = \frac{1}{\sqrt{n}}$ and $\kappa_n = \frac{1}{n^2}$.
-For the larger tolerance $\frac{1}{\sqrt{n}}$, the set of feasible solutions is larger, hence we expect smaller estimates for the lower bound and larger estimates for the upper bound.
-The reverse should hold for the smaller tolerance $\kappa_n = \frac{1}{n^2}$.
-Results for simulations using these tolerances are reported in % Appendix Figure~\ref{app_fig:}.
-
-Clearly, for the larger tolerance, the estimator performs considerably worse with mean estimates being too wide.
-Hence, the resulting coverage probability is typically equal to one.
-[TODO describe square root and maybe 0.]
-
-While not pursued further here, a heuristic for $\kappa_n$ might be based on the distribution of the minimal deviations $\hat{\mu}$.
 
 \section{Convex Relaxation}
 Given the difficulty of inference evident in the simulation results of the previous section, we now provide some suggestions for a conservative inference approach.
@@ -1145,20 +1160,21 @@ This is not meant to show, that this approach is generally not viable for higher
 \newpage
 
 
-\bibliographystyle{abbrvnat}
+\bibliographystyle{abbrvnat_my_version}
 \bibliography{refs.bib}
+
+\clearpage
+\newpage
 
 % \printbibliography % use this for biblatex
 
 \appendix
 \counterwithin{figure}{section}
 
-
 \section{Binary IV Model: Solutions}
-\subsection{Identified Estimands: Complier LATE}
 \begin{figure}
 
-  \caption{Identified Sets for the Binary-IV-Bernstein: Shape Restrictions}\label{app_fig:id_set_binary_iv_bernstein_shape_restrictions}
+  \caption{Identified Sets Binary-IV-Bernstein: Shape Restrictions (Complier LATE Only)}\label{app_fig:id_set_binary_iv_bernstein_shape_restrictions}
 
   \centering
   \begin{subfigure}[b]{0.49\textwidth}
@@ -1188,10 +1204,9 @@ This is not meant to show, that this approach is generally not viable for higher
 
 \end{figure}
 
-\subsection{Identified Estimands: Sharp Identified Set}
 \begin{figure}
 
-  \caption{Identified Sets for the Binary-IV-Bernstein: Shape Restrictions}\label{app_fig:id_set_binary_iv_bernstein_shape_restrictions_sharp}
+  \caption{Identified Sets for the Binary-IV-Bernstein: Shape Restrictions (Sharp Set)}\label{app_fig:id_set_binary_iv_bernstein_shape_restrictions_sharp}
 
   \centering
   \begin{subfigure}[b]{0.49\textwidth}
@@ -1224,7 +1239,32 @@ This is not meant to show, that this approach is generally not viable for higher
 
 \section{Additional Simulation Results}
 
-\subsection{Coverage by Tolerance}
+\begin{figure}
+
+  \caption{Simulation Results for the Binary-IV Model with Bernstein Polynomial MTRs (1)}\label{app_fig:sims_add_subsample_share_tolerance}
+
+  \centering
+  \begin{subfigure}[b]{0.95\textwidth}
+      \centering
+      \includegraphics[width=\textwidth]{../../bld/figures/pyvmte_sims/plot_by_subsample_share/sims_binary_iv_sharp_none_coverage_problematic_region_by_subsample_share.png}
+      \caption{By Subsampling Share}\label{app_fig:sims_add_subsample_share}
+  \end{subfigure}
+
+  \begin{subfigure}[b]{0.95\textwidth}
+      \centering
+      \includegraphics[width=\textwidth]{../../bld/figures/pyvmte_sims/plot_by_tolerance/sims_binary_iv_sharp_none_coverage_problematic_region_by_tolerance.png}
+      \caption{By LP Tolerance $\kappa_n$}\label{app_fig:sims_add_tolerance}
+  \end{subfigure}
+
+\end{figure}
+
+\begin{figure}
+
+  \caption{Simulation Results for the Binary-IV Model with Bernstein Polynomial MTRs --- Imbens-Manski Critival Values}\label{app_fig:sims_add_alpha_im_crit}
+  \centering
+  \includegraphics[width=\textwidth]{../../bld/figures/pyvmte_sims/plot_by_im_alpha_crit/sims_binary_iv_sharp_none_coverage_problematic_region_by_alpha.png}
+
+\end{figure}
 
 \clearpage
 \newpage
@@ -1543,10 +1583,26 @@ All shape constraints are similar to the identification part, except for additio
 In particular, all of these constraints are non-random.
 
 
-% \subsection{Illustration: Binary IV Model with Point-Identified LATE}
+\section{Relaxation MTE Problem}
+
+\begin{figure}
+
+  \caption{Convex Relaxation: MTE Problem with Degree 11 Bernstein Polynomial}\label{app_fig:convex_relax_mte_bernstein_11}
+
+  \centering
+  \begin{subfigure}[b]{0.95\textwidth}
+      \centering
+        \includegraphics[width=\textwidth]{../figures/relax/relaxation_mte_k_bernstein_11_scipy_slsqp.png}
+        \caption{Approximation by $k$}\label{app_fig:convex_relax_mte_by_k}
+      \end{subfigure}
+
+      \begin{subfigure}[b]{0.95\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../figures/relax/relaxation_mte_k_bernstein_11_k_20_by_algorithm.png}
+        \caption{Algorithms ($k=20$)}\label{app_fig:convex_relax_solmte_by_algorithm}
+      \end{subfigure}
 
 
-% \subsection{Illustration: Binary IV Model with Sharp Identified Set}
-
+\end{figure}
 
 \end{document}
