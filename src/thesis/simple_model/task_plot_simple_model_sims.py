@@ -5,6 +5,7 @@ from typing import Annotated
 
 import pandas as pd  # type: ignore[import-untyped]
 import plotly.graph_objects as go  # type: ignore[import-untyped]
+import pytask
 from pytask import Product
 
 from thesis.config import BLD
@@ -24,6 +25,7 @@ KAPPA_TO_PLOT = "np.sqrt(np.log(n))"
 # TODO(@buddejul): Put graphs below in a loop, currently there is a lot of copy/paste.
 # TODO(@buddejul): Include true parameters in plots.
 # TODO(@buddejul): Split tasks, function is too complex, see noqa below.
+@pytask.mark.simple_model_sims
 def task_plot_simple_model_sims(  # noqa: C901, PLR0912, PLR0915
     path_to_data: Path = BLD / "simple_model" / "sim_results_combined.pkl",
     path_to_plot_coverage: Annotated[Path, Product] = Path(
@@ -63,8 +65,11 @@ def task_plot_simple_model_sims(  # noqa: C901, PLR0912, PLR0915
         raise ValueError(msg)
     n_boot = data.n_boot.unique()[0]
 
+    alpha = 0.95
+
     subtitle = (
-        f"<br><sup>Simulations = {n_sims}, Bootstrap Repetitions = {n_boot}</sup>"
+        f"<br><sup>Simulations = {n_sims}, Bootstrap Repetitions = {n_boot}, "
+        f"Nominal Coverage = {alpha} </sup>"
     )
 
     color_by_bootstrap_method = {
@@ -112,11 +117,10 @@ def task_plot_simple_model_sims(  # noqa: C901, PLR0912, PLR0915
                     go.Scatter(
                         x=data_sub.late_complier,
                         y=data_sub[col_to_plot],
-                        name=f"n_obs={n_obs}",
+                        name=f"N = {n_obs}",
                         legendgroup=f"{bootstrap_method}",
                         legendgrouptitle_text=(
                             f"{bootstrap_method.replace('_', ' ').capitalize()} "
-                            "Bootstrap"
                         ),
                         line={
                             "color": color_by_bootstrap_method[bootstrap_method],

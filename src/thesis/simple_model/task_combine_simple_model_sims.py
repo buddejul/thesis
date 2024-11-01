@@ -1,12 +1,15 @@
 """Task for combining simulation results into dataset."""
 
+import shutil
+import tarfile
 from pathlib import Path
 from typing import Annotated
 
 import pandas as pd  # type: ignore[import-untyped]  # type: ignore[import-untyped]
+import pytask
 from pytask import Product
 
-from thesis.config import BLD, PATH_TO_SIM_RESULTS
+from thesis.config import BLD, HPC_RES
 from thesis.simple_model.task_simple_model_sims import (
     EPS_FUNS_NUMERICAL_DELTA,
 )
@@ -18,11 +21,14 @@ KAPPA_FUNS_STRINGS = [
 ]
 
 # Find all files in PATH_TO_SIM_RESULTS including all subdirectories.
-files = list(Path(PATH_TO_SIM_RESULTS).rglob("*.pkl"))
+jobids = [17195484]
+
+files = [HPC_RES / f"{jobid}.tar.gz" for jobid in jobids]
 
 
+@pytask.mark.simple_model_sims
 def task_combine_sim_results(
-    sim_results: list[Path] = files,
+    sim_results_tar: list[Path] = files,
     path_to_data: Annotated[Path, Product] = Path(
         BLD / "simple_model" / "sim_results_combined.pkl",
     ),
@@ -38,6 +44,14 @@ def task_combine_sim_results(
     # The final DataFrame will be saved as a pickle file at path_to_data.
 
     sr_to_combine = []
+
+    tmp_dir = HPC_RES / "tmp"
+
+    for file in sim_results_tar:
+        with tarfile.open(file, "r:gz") as tar:
+            tar.extractall(tmp_dir)
+
+    sim_results = list(tmp_dir.rglob("**/*.pkl"))
 
     for file in sim_results:
         _res = pd.read_pickle(file)
@@ -78,6 +92,8 @@ def task_combine_sim_results(
         data[col] = data[col].astype(int)
 
     data.to_pickle(path_to_data)
+
+    shutil.rmtree(tmp_dir)
 
 
 def _clean_lambda_string(funstr: str) -> str:

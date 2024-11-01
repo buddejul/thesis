@@ -426,6 +426,40 @@ This could potentially indicate a failure of Lipschitz continuity.
 Lastly, introducing shape restrictions, in particular monotonicity and sign constraints on the implied MTE function $m_1(u) - m_0(u)$, can significantly reduce the parameter space consistent with the model.
 This can lead to parameter at the boundary issues, as, for example, discussed in~\cite{andrews1999estimation}.
 
+\subsection{Simulation: Bootstrap and Adjusted Delta Methods}
+
+\begin{figure}
+
+  \caption{Monte Carlo Simulation: Simple Kink Example}\label{fig:sims_simple_model}
+
+  \centering
+  \begin{subfigure}[b]{0.49\textwidth}
+      \centering
+      \includegraphics[width=\textwidth]{../../bld/simple_model/figures/coverage.png}
+      \caption{Coverage}\label{fig:sims_simple_model_coverage}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[b]{0.49\textwidth}
+      \centering
+      \includegraphics[width=\textwidth]{../../bld/simple_model/figures/length.png}
+      \caption{Length}\label{fig:sims_simple_model_length}
+  \end{subfigure}
+
+  % \begin{subfigure}[b]{0.49\textwidth}
+  %     \centering
+  %     \includegraphics[width=\textwidth]{../../bld/figures/binary_iv/id_bernstein_2_mte_monotone_late.png}
+  %     \caption{Decreasing MTE ($k=2$)}\label{fig:id_set_binary_iv_bernstein_k_2_mte_monotone}
+  % \end{subfigure}
+  % \hfill
+  % \begin{subfigure}[b]{0.49\textwidth}
+  %     \centering
+  %     \includegraphics[width=\textwidth]{../../bld/figures/binary_iv/id_bernstein_11_mte_monotone_late.png}
+  %     \caption{Decreasing MTE ($k=11$)}\label{fig:id_set_binary_iv_bernstein_k_11_mte_monotone}
+  % \end{subfigure}
+
+
+\end{figure}
+
 After presenting the general MTE model setup, the rest of the paper is concerned with presenting inference approaches, that can potentially address these concerns (Section~\ref{sec:inference_methods}) and comparing their performance in a Monte Carlo simulation.
 
 \section{General MTE Setup}\label{sec:general_mte}
