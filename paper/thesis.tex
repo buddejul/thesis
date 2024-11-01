@@ -458,7 +458,7 @@ The directional derivative in our case is given by
   \end{cases}.
 \end{align}
 Hence, the slope is $\omega$ to the right and $1$ to the left of the kink.
-When approaching the kink, the derivative depends on the sign of $h$, i.e.\@ the direction:
+When approaching the kink, the derivative depends on the sign of $h$, i.e.\ the direction:
 Approaching from the right ($h>0$) gives slope $\omega$, approaching from the left ($h<0$) gives slope $1$.
 
 This motivates a simple estimator, which effectively boils down to a pre-test, since we have an estimate of $\beta_s$.
@@ -475,7 +475,7 @@ where $\hat{\sigma_s}$ is an estimator of the asymptotic standard deviation of $
 Here, $\kappa_n$ is a tuning parameter that diverges at a rate slower than $\sqrt{N}$.
 Then, whenever $\beta_s > 0$, $\sqrt{N}\frac{\hat{\beta_s}}{\hat{\sigma_s}}$ diverges more quickly than $\kappa_n$, hence we select the first condition with probability approaching one (equivalently when $\beta_s < 0$ we select the third condition).
 When $\beta_s = 0$, $\sqrt{N}\frac{\hat{\beta_s}}{\hat{\sigma_s}}$ is stochastically bounded hence we select the middle equation with probability approaching one.
-Importantly, tuning parameter choice in this context can be motivated by a type-1 error control, which separates this approach from many other approaches discussed later on (e.g. the numerical delta method and subsampling).
+Importantly, tuning parameter choice in this context can be motivated by a type-1 error control, which separates this approach from many other approaches discussed later on (e.g.\ the numerical delta method and subsampling).
 In the simulations below I take $\kappa_n = \sqrt{\ln(n)}$ which gives $\kappa_n(1000) = 2.63$ and $\kappa_n(10000) = 3.03$ resulting in fairly conservative error control.
 
 This estimator, however, does not take into account the estimation error in using $\hat{\omega}$.

@@ -30,7 +30,11 @@ confidence_intervals_to_plot = ["bootstrap"]
 idestimands_to_plot = ["sharp"]
 constraints_to_plot = ["none"]
 num_obs_to_plot = [10_000]
-alpha_im_crit_to_plot = False
+alpha_im_crit_to_plot = {
+    "1/n": False,
+    "1/sqrt(n)": False,
+    "1/n**2": True,
+}
 tolerance_to_plot = ["1/n", "1/sqrt(n)", "1/n**2"]
 
 # --------------------------------------------------------------------------------------
@@ -88,6 +92,7 @@ for id_, kwargs in ID_TO_KWARGS_COVERAGE.items():
     @task(id=id_, kwargs=kwargs)  # type: ignore[arg-type]
     def task_plot_pyvmte_sims_by_late_and_tolerance_coverage(
         idestimands: str,
+        constraint: str,
         problematic_region: np.ndarray,
         path_to_plot: Annotated[Path, Product],
         path_to_plot_problematic_region: Annotated[Path, Product],
@@ -105,7 +110,7 @@ for id_, kwargs in ID_TO_KWARGS_COVERAGE.items():
         confidence_interval: str | None = None,
     ) -> None:
         """Plot simple model by LATE for different restrictions: coverage."""
-        del confidence_interval
+        del confidence_interval, constraint
 
         df_sims_combined = pd.read_pickle(path_to_sims_combined)
 
@@ -122,8 +127,7 @@ for id_, kwargs in ID_TO_KWARGS_COVERAGE.items():
         num_of_obs_to_dash = {1_000: "solid", 10_000: "dash"}
 
         for confidence_interval in confidence_intervals_to_plot:
-            idx = df_sims_combined["alpha_im_crit"] == alpha_im_crit_to_plot
-            df_plot = df_sims_combined[idx]
+            df_plot = df_sims_combined
 
             df_plot = df_plot[df_plot["confidence_interval"] == confidence_interval]
 
@@ -152,6 +156,10 @@ for id_, kwargs in ID_TO_KWARGS_COVERAGE.items():
                     _df = df_plot[idx]
 
                     _df = _df[_df["num_obs"] == num_obs]
+
+                    idx = _df["alpha_im_crit"] == alpha_im_crit_to_plot[tolerance]
+                    _df = _df[idx]
+
                     _df = _df.sort_values("late_complier")
 
                     fig.add_trace(
@@ -278,16 +286,16 @@ ID_TO_KWARGS_MEANS = {
         constraint=constraint,  # type: ignore[arg-type]
         problematic_region=grid_by_constraint[constraint],
         path_to_plot=plot_dir
-        / "plot_by_tolerance_share"
+        / "plot_by_tolerance"
         / (
             f"sims_binary_iv_{idestimands}_{constraint}_means_"
-            f"{confidence_interval}_by_tolerance_share.png"
+            f"{confidence_interval}_by_tolerance.png"
         ),
         path_to_plot_problematic_region=plot_dir
-        / "plot_by_tolerance_share"
+        / "plot_by_tolerance"
         / (
             f"sims_binary_iv_{idestimands}_{constraint}_means_"
-            f"problematic_region_{confidence_interval}_by_tolerance_share.png"
+            f"problematic_region_{confidence_interval}_by_tolerance.png"
         ),
     )
     for idestimands in idestimands_to_plot
@@ -310,6 +318,7 @@ for id_, kwargs in ID_TO_KWARGS_MEANS.items():
     def task_plot_pyvmte_sims_by_late_and_tolerance_means(
         confidence_interval: str,
         idestimands: str,
+        constraint: str,
         problematic_region: np.ndarray,
         path_to_plot: Annotated[Path, Product],
         path_to_plot_problematic_region: Annotated[Path, Product],
@@ -326,6 +335,8 @@ for id_, kwargs in ID_TO_KWARGS_MEANS.items():
         bfunc_type="bernstein",
     ) -> None:
         """Plot simple model by LATE for different restrictions: means."""
+        del constraint
+
         df_sims_combined = pd.read_pickle(path_to_sims_combined)
 
         df_sols_combined = pd.read_pickle(path_to_solutions_combined)
@@ -399,8 +410,6 @@ for id_, kwargs in ID_TO_KWARGS_MEANS.items():
 
         df_plot = df_plot[df_plot["idestimands"] == idestimands]
 
-        df_plot = df_plot[df_plot["alpha_im_crit"] == alpha_im_crit_to_plot]
-
         _k_bernstein = df_plot["k_bernstein"].unique()
         assert len(_k_bernstein) == 1
         _k_bernstein = _k_bernstein[0]
@@ -416,6 +425,9 @@ for id_, kwargs in ID_TO_KWARGS_MEANS.items():
                     _df = df_plot[idx]
 
                     _df = _df[_df["num_obs"] == num_obs]
+
+                    idx = _df["alpha_im_crit"] == alpha_im_crit_to_plot[tolerance]
+                    _df = _df[idx]
 
                     _df = _df.sort_values("late_complier")
 
