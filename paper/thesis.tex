@@ -174,9 +174,9 @@
 
 \begin{abstract}
 	I study inference in the marginal treatment effect model when used to partially-identify a target parameter of interest.
-	First, I demonstrate the invalidity of the non-parametric bootstrap in a simple, but common binary IV model.
+	First, I demonstrate the invalidity of the nonparametric bootstrap in a simple, but common binary IV model.
 	In specific settings, the bounds of the identified set have an easy to calculate solution.
-	These solutions exhibit points of non-differentiability when viewed as functions of the point-identified parameters hence rendering the non-parametric bootstrap invalid.
+	These solutions exhibit points of non-differentiability when viewed as functions of the point-identified parameters hence rendering the nonparametric bootstrap invalid.
 	Similar issues arise when a parametric approximation to the MTR functions is used.
   Second, I discuss potential solutions proposed in the literature and show how they might be adjusted to typical use-cases where bounds have to be calculated by the means of linear programming.
 	Third, for a number of empirically relevant settings I conduct novel simulation studies for the MTE model comparing competing inference methods.
@@ -248,9 +248,9 @@ Usually, this \textit{identified set} will be a closed interval on the real line
 \end{equation*}
 where we emphasize the dependence of the upper and lower bound of the identified set on the point-identified parameter $\beta_s$.
 
-\subsection{Solution: Non-parametric Bounds}
+\subsection{Solution: Nonparametric Bounds}
 While the identified set is usually computed via a linear program, in the simple case considered here with a single point-identified parameter the identified set has an intuitive and easy to compute form.
-Note the following solutions are referred to as \textit{non-parametric} in~\cite{mogstad2018using}, that is, they do not impose any parametric assumptions on the underlying MTR functions.
+Note the following solutions are referred to as \textit{nonparametric} in~\cite{mogstad2018using}, that is, they do not impose any parametric assumptions on the underlying MTR functions.
 The corresponding linear program solution can be achieved by using constant splines defined on the grid $[0, p(0), p(1), p(1) + \overline{u}, 1]$.
 
 Denote by $\beta_{\overline{u}}$ the LATE for the population of never-takers for which we want to extend the treatment, i.e.
@@ -266,7 +266,7 @@ Finding the identified set then amounts to finding bounds on $\beta_{\overline{u
 
 
 
-\paragraph{Non-parametric Bounds}
+\paragraph{Nonparametric Bounds}
 Without any further restrictions, the only bounds we can give follow from the support of $Y_i$.
 Since $Y_i\in[0,1]$ we have $\beta_{\overline{u}} \in [0,1]$ and hence
 \begin{equation*}
@@ -276,7 +276,7 @@ We can already see that this is a continuous and differentiable function of $\be
 Hence, if estimation for $\beta_s$ and $\omega$ is standard, the usual delta method could be applied.
 This is the case here, since $\beta_s$ can be consistently estimated using the Wald estimator which --- assuming no weak identification issues --- is asymptotically normal.
 $\omega$ is a function of sample moments and can be estimated consistently.
-Therefore, also the non-parametric bootstrap is valid in this case.
+Therefore, also the nonparametric bootstrap is valid in this case.
 \footnote{The only issue would arise at the boundary of the parameter space, that is when $\underline{\beta^*}(\beta_s)=-1$ or $\overline{\beta^*}(\beta_s)=1$.
 These cases are of less interest practically, hence I disregard them. However, a similar issue arises under shape restrictions discussed below.}
 
@@ -292,7 +292,7 @@ If the MTE function is decreasing, we know $\beta_{\overline{u}} \leq \beta_s$ a
 In this case, inference is again standard. Note we have point identification when $\beta_s=-1$.
 \footnote{Convergence to point-identification can pose problems to the type of confidence intervals considered by~\cite{imbens2004confidence} and considered later here.
 In particular, coverage does not hold uniformly over parameter sequence implying convergence to point-identification.
-While~\cite{imbens2004confidence} propose a fix to this, later on I focus on cases ``far enough'' away from point-identification.}
+~\cite{imbens2004confidence} propose a simple adjustment that I discuss in more detail in Section~\ref{sec:simulation_studies}.}
 
 
 \paragraph{Monotone Treatment Response}
@@ -313,16 +313,16 @@ This case is close to the stylized example analyzed in~\cite{andrews1999estimati
 
 \paragraph{Decreasing Marginal Treatment Responses}
 A last restriction considered by~\cite{mogstad2018using} are monotonicity restrictions on the MTR functions $m_d(u) = E[Y(d)|U=u]$.
-We consider the case of decreasing MTR functions also considered in their paper.
+We consider the case of increasing MTR functions.
 Imposing restrictions on these functions is also the general approach discussed in Section~\ref{sec:general_mte}, since this allows to exploit other moments for identification.
 For example, in our model also $E[Y(1)|\text{always-taker}]$ and $E[Y(0)|\text{never-taker}]$ are identified and can help in tightening the identified set.
 
-While generally not impossible, with the restriction that $m_0(u), m_1(u)$ are decreasing in $u$, the computation of the identified set becomes less immediate.
-Figure [REF] illustrates the solution using constant spline basic functions defined separately over the intervals implied by $[0, p(0), p(1), p(1) + \overline{u}, 1]$.
-Essentially, since both the identified and target parameter are averages over the MTR (or MTE) function with constant weights on each sub-interval, taking constant splines on these sub-intervals as basis functions does not impose any restrictions.
+While generally not impossible, with the restriction that $m_0(u), m_1(u)$ are increasing in $u$, the computation of the identified set becomes less immediate.
+% Figure [TODO REF] illustrates the solution using constant spline basic functions defined separately over the intervals implied by $[0, p(0), p(1), p(1) + \overline{u}, 1]$.
+Essentially, since both the identified and target parameter are averages over the MTR (or MTE) function with constant weights on each sub-interval, taking constant splines on these sub-intervals as basis functions does not impose any additional restrictions.
 
 The solution in this case is given by:
-\begin{equation}
+\begin{equation}\label{eq:solution_cs_increasing_mtr_upper}
 	\overline{\beta^*}(\beta_s)=
 	\begin{cases}
 		\omega \beta_s + (1 - \omega),& \quad \text{if } \beta_s \geq 0\\
@@ -330,7 +330,7 @@ The solution in this case is given by:
 	\end{cases}
 \end{equation}
 and
-\begin{equation}
+\begin{equation}\label{eq:solution_cs_increasing_mtr_lower}
 	\underline{\beta^*}(\beta_s)=
 	\begin{cases}
 		\beta_s - (1 - \omega),& \quad \text{if } \beta_s \geq 0\\
@@ -339,13 +339,13 @@ and
 \end{equation}
 
 Hence, both bounds exhibit a kink at $\beta_s=0$.
-In these cases, as was shown in~\cite{dumbgen1993nondifferentiable} and later~\cite{fang2019infdirdiff}, non-differentiability at the kink renders the non-parametric bootstrap invalid.
+In these cases, as was shown in~\cite{dumbgen1993nondifferentiable} and later~\cite{fang2019infdirdiff}, non-differentiability at the kink renders the nonparametric bootstrap invalid.
 However, other methods have been devised for this case. For example,~\cite{fang2019infdirdiff} and~\cite{hong2018numerical} extend the delta method to the case of functions that are only directionally differentiable, such as the ones with a kink shown above.
 Further, subsampling is theoretically justified as long as the bounds of the identified set have \textit{any} limiting distribution.
-I consider these methods as well as the non-parametric bootstrap in more detail in Section~\ref{sec:inference_methods} and provide simulation evidence in a realistic setting in Section~\ref{sec:simulation_studies}.
+I consider these methods as well as the nonparametric bootstrap in more detail in Section~\ref{sec:inference_methods} and provide simulation evidence in a realistic setting in Section~\ref{sec:simulation_studies}.
 
-\subsection{Solutions: Bounds with Bernstein Polynomials}
-In most applications, the non-parametric identified set resulting from constant splines will feature solutions, i.e. MTR functions, that exhibit jump discontinuities.
+\subsection{Solution: Bounds with Bernstein Polynomials}
+In most applications, the nonparametric identified set resulting from constant splines will feature solutions, i.e. MTR functions, that exhibit jump discontinuities.
 [Maybe put a solution in the appendix similar to Bernstein figures?].
 The appeal of the MST framework is, that the MTR functions have direct economic interpretations that allow to place theoretical restrictions about which meaningful discussions are possible.
 In particular, in most cases a certain degree of smoothness in these functions seems reasonable.
@@ -367,7 +367,7 @@ For example, for $k=2$, we have
 Using these basis polynomials, it is easy to construct a linear program such that the implied MTR functions are smooth over $[0,1]$ and have images in $[0,1]$ (or any other interval, for that matter).
 However, the value function of the linear program, that is the upper or lower bound of the identified set, can still be \textit{non-smooth} and feature kinks.
 
-To illustrate, I return to the binary-IV example discussed above for non-parametric bounds.
+To illustrate, I return to the binary-IV example discussed above for nonparametric bounds.
 Because the analytical solution is non-trivial to characterize for polynomials of degree $\geq2$, I instead repeatedly solve the linear program over a range of parameter values for the compliers LATE $\beta_s$.
 \footnote{For a precise statement of the problem see Section~\ref{sec:general_mte} and Appendix Section~\ref{app_sec:linear_programs} for the linear program.}
 I report results for a lower-order, meaning more restrictive, polynomial of degree $2$ as well as a $11$th order polynomial similar to the numerical example in~\cite{mogstad2018using}.
@@ -419,14 +419,94 @@ However, adding further shape constraints typically reduces the solution space a
 
 To summarize, in this section I considered a simple binary IV model which already exhibits some problems for inference in the MTE model:
 First, many solutions to the MTE problem exhibit \textit{kinks} when viewed as a function of the point-identified parameters.
-Kinks are present under certain shape restrictions for the non-parametric identified set using constant splines and are a general feature when using Bernstein polynomials.
-Non-differentiability generally renders typical inference approaches like the non-parametric bootstrap inconsistent, as observed by~\cite{dumbgen1993nondifferentiable}.
+Kinks are present under certain shape restrictions for the nonparametric identified set using constant splines and are a general feature when using Bernstein polynomials.
+Non-differentiability generally renders typical inference approaches like the nonparametric bootstrap inconsistent, as observed by~\cite{dumbgen1993nondifferentiable}.
 Second, for Bernstein polynomials, the slope of the solutions close to the boundary of the parameter space exhibits increasing slopes over the degree $k$.
 This could potentially indicate a failure of Lipschitz continuity.
 Lastly, introducing shape restrictions, in particular monotonicity and sign constraints on the implied MTE function $m_1(u) - m_0(u)$, can significantly reduce the parameter space consistent with the model.
 This can lead to parameter at the boundary issues, as, for example, discussed in~\cite{andrews1999estimation}.
 
 \subsection{Simulation: Bootstrap and Adjusted Delta Methods}
+This section presents some simple Monte Carlo evidence on the failure of the nonparametric bootstrap in the case of constant splines (``nonparametric'' bounds) with the restriction of increasing MTR functions.
+\footnote{All simulations in the present paper where performed on the Marvin High-Performance-Computing Cluster at the University of Bonn.}
+I take the target $LATE(0.4, 0.8)$ and a binary instrument $Z$ with propensity scores $p(0) = 0.4 < 0.6 = p(1)$ and $P(Z=0)=P(Z=1)=0.5$.
+The outcome data is generated as $Y(d) = \gamma_d^g + \varepsilon$ where $\varepsilon \sim N(0,\sigma^2)$ with $\sigma=0.1$ and $g=g(u)$ refers to the three subpopulations (complier, never-taker, always-taker).
+We treat only the complier late $\gamma_1^c - \gamma_0^c$ as point-identified and the remaining parameters are chosen such that the true parameter is at the upper bound of the identified set.
+
+I construct confidence intervals by estimating the quantiles of the asymptotic distribution of the estimated upper bound denoted by
+\begin{equation}
+  \sqrt{N}(\hat{\overline{\beta}^*} - \overline{\beta}^*) \to_d \overline{G},
+\end{equation}
+where $\overline{\beta}^*$ is the sample analogue of Equation~\ref{eq:solution_cs_increasing_mtr_upper}, and analogously for the lower bound.
+In the current case, given the closed form solution it is easy to show using a CLT and Slutsky's theorem, that this estimator is asymptotically normal.
+In particular, the Wald estimator $\sqrt{N}(\hat{\beta_s} - \beta_s) \to_d N(0, \sigma^2_s)$ and $\hat{\omega} = \frac{\hat{p(1)} - \hat{p(0)}}{\hat{p(1)} + \overline{u} - \hat{p(0)}} \to_p \omega$.
+Hence, $\sqrt{N}(\hat{\overline{\beta}^*} - \overline{\beta}^*) \to_d N(0, \overline{\sigma}^2)$ where $\overline{\sigma}^2 = I\{\beta_s \geq 0\}\omega^2\sigma^2_s + I\{\beta_s < 0\}\sigma^2_s$.
+
+However, to study the performance of the bootstrap I consider estimates of the quantiles of $\overline{G}$ using the non-parametric bootstrap.
+In addition, I construct confidence intervals using the analytical delta method suggested by~\cite{fang2019infdirdiff} and the numerical delta method~\cite{hong2018numerical}.
+Instead of directly bootstrapping $\hat{\overline{\beta*}(\beta_s)}$, these methods bootstrap $\hat{\beta_s}$ (and $\hat{\omega}$) and then apply difference estimators of the (directional) derivative.
+
+\paragraph{Analytical delta method} The analytical delta method constructs a derivative based on the analytical form of the derivative.
+Our case is in fact very similar to Example 1 considered in~\cite{fang2019infdirdiff}, who consider the $\max(0, \theta)$, which has a kink at $\theta=0$.
+The directional derivative in our case is given by
+\begin{align}
+  \overline{\beta^*}'(h) =
+  \begin{cases}
+    \omega h  &\text{if } \beta_s > 0 \\
+    \max\{\omega h, -h\} & \text{if } \beta_s = 0 \\
+    h         & \text{if } \beta_s < 0\\
+  \end{cases}.
+\end{align}
+Hence, the slope is $\omega$ to the right and $1$ to the left of the kink.
+When approaching the kink, the derivative depends on the sign of $h$, i.e.\@ the direction:
+Approaching from the right ($h>0$) gives slope $\omega$, approaching from the left ($h<0$) gives slope $1$.
+
+This motivates a simple estimator, which effectively boils down to a pre-test, since we have an estimate of $\beta_s$.
+In particular, consider the estimator
+\begin{align*}
+  \hat{\overline{\beta^*}}'(h) =
+  \begin{cases}
+    \hat{\omega} h  &\text{if } \sqrt{N}\frac{\hat{\beta_s}}{\hat{\sigma_s}} > \kappa_n \\
+    \max\{\hat{\omega} h, -h\} & \text{if } |\sqrt{N}\frac{\hat{\beta_s}}{\hat{\sigma_s}}| \leq \kappa_n \\
+    h         & \text{if } \sqrt{N}\frac{\hat{\beta_s}}{\hat{\sigma_s}} < -\kappa_n\\
+  \end{cases},
+\end{align*}
+where $\hat{\sigma_s}$ is an estimator of the asymptotic standard deviation of $\hat{\beta_s}$.
+Here, $\kappa_n$ is a tuning parameter that diverges at a rate slower than $\sqrt{N}$.
+Then, whenever $\beta_s > 0$, $\sqrt{N}\frac{\hat{\beta_s}}{\hat{\sigma_s}}$ diverges more quickly than $\kappa_n$, hence we select the first condition with probability approaching one (equivalently when $\beta_s < 0$ we select the third condition).
+When $\beta_s = 0$, $\sqrt{N}\frac{\hat{\beta_s}}{\hat{\sigma_s}}$ is stochastically bounded hence we select the middle equation with probability approaching one.
+Importantly, tuning parameter choice in this context can be motivated by a type-1 error control, which separates this approach from many other approaches discussed later on (e.g. the numerical delta method and subsampling).
+In the simulations below I take $\kappa_n = \sqrt{\ln(n)}$ which gives $\kappa_n(1000) = 2.63$ and $\kappa_n(10000) = 3.03$ resulting in fairly conservative error control.
+
+This estimator, however, does not take into account the estimation error in using $\hat{\omega}$.
+Hence, I construct the following estimator which takes into account both variability in estimating $\beta_s$ and $\omega$:
+\begin{align*}
+  \hat{\overline{\beta^*}}'(h, w) =
+  \begin{cases}
+    \hat{\omega} h + \hat{\beta_s} \omega + w &\text{if } \sqrt{N}\frac{\hat{\beta_s}}{\hat{\sigma_s}} > \kappa_n \\
+    I\{h > 0\}(\hat{\omega} h + \hat{\beta_s} \omega) + I\{h<0\} h + w & \text{if } |\sqrt{N}\frac{\hat{\beta_s}}{\hat{\sigma_s}}| \leq \kappa_n \\
+    h + w         & \text{if } \sqrt{N}\frac{\hat{\beta_s}}{\hat{\sigma_s}} < - \kappa_n\\
+  \end{cases}.
+\end{align*}
+The distribution of interest $\overline{G}$ is then approximated by $\hat{\overline{\beta^*}}'(H^*, W^*)$ where $H^*,W^*$ are the (consistent) bootstrap estimates of the asymptotic distributions of $\hat{\beta_s}, \hat{\omega}$.
+
+\paragraph{Numerical Delta Method}
+~\cite{hong2018numerical} instead propose to approximate the derivative using a numerical estimator.
+In particular, we use
+\begin{equation*}
+  \hat{\overline{\beta^*}}'_{s_n}(h, w) = \frac{1}{s_n} \{\overline{\beta^*}(\hat{\beta_s} + s_n h, \hat{\omega} + s_n w) - \overline{\beta^*}({\hat{\beta^*}, \hat{\omega}})\}.
+\end{equation*}
+We can then again approximate $\overline{G}$ by $\hat{\overline{\beta^*}}'_{s_n}(H^*, W^*)$.
+The tuning parameter in this case is the step size $s_n$, which needs to converge to $0$ more slowly than $\sqrt{n}$.
+Other than that, there seems to be no more guidance on tuning parameter choice in this case.
+For the simulations I performed, $s_n = \frac{1}{\sqrt{n}}$ eventually worked best, although this is convergence is slightly too fast.
+Notably,~\cite{hong2018numerical} find several instances in their simulations where tuning parameter choices violating asymptotic requirements perform best.
+
+\paragraph{Results}
+
+
+
+
 
 \begin{figure}
 
@@ -622,15 +702,15 @@ While this might be easily addressed by a pre-test for $\beta_s=0$, as shown bel
 After all, the point of the linear program procedure is to compute identified sets with non-obvious solutions.
 The following sections survey some potentially applicably inference methods.
 
-\subsection{Resampling Methods: Non-parametric Bootstrap and Subsampling}
+\subsection{Resampling Methods: Nonparametric Bootstrap and Subsampling}
 
-\textbf{Non-parametric Bootstrap}
+\textbf{Nonparametric Bootstrap}
 A typical procedure applied in situations where the asymptotic distribution is known to be normal, but the asymptotic variance is hard to characterize explicitly.
-The qualification non-parametric (or sometimes ``standard'') derives from the fact, that the empirical distribution function is used to generate the bootstrap samples, as opposed to say a normal parametrization with an estimated mean and variance.
+The qualification nonparametric (or sometimes ``standard'') derives from the fact, that the empirical distribution function is used to generate the bootstrap samples, as opposed to say a normal parametrization with an estimated mean and variance.
 While wildly applicable, and even potentially advantageous in some situations, the bootstrap has many known limitations, which has been shown at various places in the literature.
 Some relevant limitations are outlined below.
 
-The non-parametric bootstrap in our case would proceed as follows.
+The nonparametric bootstrap in our case would proceed as follows.
 Our goal is to approximate the asymptotic distribution of
 \begin{equation*}
   \sqrt{n}\left(\hat{\overline{\beta}^*} - \overline{\beta}^*\right),
@@ -949,7 +1029,7 @@ To solve the optimization problems I tried several algorithms accessible via the
 The most suited to this simple problem was found to be the \textit{SciPy}~\citep{scipy} implementation of the COBYLA algorithm~\citep{cobyla_powell1994direct}.
 As an initial parameter guess for the nonlinear problems I use the linear program solution.
 
-Confidence intervals are constructed based on the non-parametric bootstrap both for the linear program and for its convex relaxation.
+Confidence intervals are constructed based on the nonparametric bootstrap both for the linear program and for its convex relaxation.
 For the linear program, the bootstrap is inconsistent at $c_1=0$ because the value function is not fully differentiable.
 Hence, we would expect poor finite sample performance at and around the kink.
 For the convex relaxation, the bootstrap is justified if the value function is smooth.
@@ -1195,7 +1275,7 @@ The program can easily be transformed to standard form by: (1) taking the negati
 \texttt{SciPy}, for example, performs these operations in addition to other pre-solve checks for potential simplifications in the background.
 It then passes the standard form program to a solver and post-processes the result to a solution of the original problem.
 
-For simplicity, in the following we take $K_0 = K_1 = K$. This is the case for non-parametric exact bounds using constant splines and also parametric cases there seems little reason to have different numbers of basis polynomials.
+For simplicity, in the following we take $K_0 = K_1 = K$. This is the case for nonparametric exact bounds using constant splines and also parametric cases there seems little reason to have different numbers of basis polynomials.
 Further, it simplifies the formulation of shape restrictions.
 
 The choice variables are the basis function coefficients

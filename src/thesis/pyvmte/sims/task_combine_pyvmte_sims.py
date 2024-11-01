@@ -35,6 +35,7 @@ JOBS = [
     17782509,
     17782513,
     17783454,
+    17784364,
 ]
 
 JOBS_SQRT_TOLERANCE = [
@@ -44,10 +45,28 @@ JOBS_SQRT_TOLERANCE = [
     17778314,
 ]
 
+JOBS_SQUARE_TOLERANCE = [
+    17784364,
+]
+
 
 JOBS_IM_CRIT = [
     17783454,
 ]
+
+
+# Create dictionary with jobid as key and tolerance as value
+# tolerance is "1/sqrt(n)" if jobid in JOBS_SQRT_TOLERANCE
+# tolerance is "1/n**2" if jobid in JOBS_SQUARE_TOLERANCE
+# tolerance is "1/n" otherwise
+def _get_tolerance(jobid):
+    if jobid in JOBS_SQRT_TOLERANCE:
+        return "1/sqrt(n)"
+    if jobid in JOBS_SQUARE_TOLERANCE:
+        return "1/n**2"
+
+    return "1/n"
+
 
 RES_FILES_TAR = [HPC_RES / f"{jobid}.tar.gz" for jobid in JOBS]
 constant_cols = [
@@ -221,7 +240,7 @@ def extract_and_aggregate_result(jobid: int):
 
     df_combined = df_combined.sort_values(cols_uniquely_sorted)
 
-    df_combined["lp_tolerance"] = "1/sqrt(n)" if jobid in JOBS_SQRT_TOLERANCE else "1/n"
+    df_combined["lp_tolerance"] = _get_tolerance(jobid)
 
     assert df_combined.set_index(cols_uniquely_sorted).index.is_unique
 

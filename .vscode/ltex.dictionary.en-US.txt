@@ -30,3 +30,6 @@ optimagic
 COBYLA
 Imbens-Manski
 reparameterization
+
+nonparametric
+Nonparametric
