@@ -225,11 +225,11 @@ However, inference seems to have gained less attention in the existing literatur
 While the working paper version~\cite{mogstad2017using_nber} contain a potential procedure for constructing confidence intervals, it is not implemented in their own later implementation \citep{shea2023ivmte} and no simulation results are available.
 \footnote{The steps necessary for the inference procedure are described on p. 87 of~\cite{mogstad2017using_nber}.
 In addition to constructing the usual sample analogue estimators it involves: (1) Solving two mixed integer linear programs for each bootstrap draw for tuning parameter choice, followed by (2) solving a bilinear maximization problem for each bootstrap draw.}
-Instead,~\cite{shea2023ivmte} implement several resampling techniques, which will also be studied here, but report not simulations.
+Instead,~\cite{shea2023ivmte} implement several resampling techniques, which will also be studied here, but report no simulations.
 
 This study seeks to fill this gap by conducting Monte Carlo experiments and provides some suggestions on potential inference approaches other than the bootstrap.
-[TODO Add Overview.]
-[TODO Briefly explain what I am not doing:~\cite{bei2023inference},~\cite{bhattacharya2009inferring},~\cite{freyberger2015identification}].
+I consider a delta method for inference on directionally differentiable functions suggested in~\cite{fang2019infdirdiff} and~\cite{hong2018numerical} for a simple example with explicit solutions.
+For more complicated settings, the performance of the nonparametric bootstrap as well as subsampling are studied.
 
 \section{Background: MTE Model and Inference Methods}\label{sec:general_mte}
 As a background for the results in the following sections, I restate the MTE approach presented in~\cite{mogstad2018using} as well as different approaches to inference.
@@ -338,10 +338,16 @@ The program, here for the upper bound, can be stated as follows:
   &\text{subject to} \qquad \sum_{k=1}^{K_0}\theta_{0k}\Gamma_{0s}(b_{0k}) + \sum_{k=1}^{K_1}\theta_{1k}\Gamma_{1s}(b_{1k}) = \beta_s \text{ for } s \in \mathcal{S}.
 \end{align}
 For a translation into a standard matrix form including an explanation for handling shape constraints, see Appendix~\ref{app_sec:linear_programs}.
+
 Proposition 4 in MST shows that the identified set can be recovered exactly in cases where the $Z$ is discrete, and the target weights are piecewise constant in $u$.
 Then, partitioning $[0,1]$ into a finite number of intervals defined by the discontinuities in the weights and the support of the propensity score, constant splines on these intervals are sufficient to recover the exact identified set.
 This will be referred to as the \textit{nonparametric} bounds, since no further parametric assumptions are placed on $\mathcal{M}$.
 Apart from constant splines, Sections~\ref{sec:simple_example} and~\ref{sec:simulation_studies} will consider Bernstein polynomials as basis functions, which are recommended by MST and allow to easily enforce certain shape restrictions.
+
+Lastly, a \textit{sharp} identified set, in the sense of exploiting all information in the conditional means of $Y$, can be constructed (see Proposition 3 in MST).
+For this, we can take $\mathcal{S} = \{I\{d=d', z=z'\} \text{ for } z'\in Supp_Z, d'\in\{0,1\}\}$.
+This is also the sense in which \textit{sharp} is used throughout this study.
+See the discussion following Proposition 4 for an application for continuous $Z$ and~\cite{marx2024sharp} for sets, that use other features of the data beyond the conditional first moments.
 
 \paragraph{Estimation}
 Estimation is complicated by the fact, that the equality constraints in~\ref{eq:lp_identification} might not hold with probability one in finite samples.
@@ -360,7 +366,7 @@ Then the second step program solves the following problem, here again for the up
 \end{align}
 where $\kappa_n$ is a tolerance chosen by the researcher, that needs to converge to $0$ with the sample size.
 
-Note, that in many applications, like the one in Section~\ref{sec:simple_example}, $\hat{\mu} = 0$, sine there are more free parameters than identified estimands.
+Note, that in many applications, like the one in Section~\ref{sec:simple_example}, $\hat{\mu} = 0$, since there are more free parameters than identified estimands.
 In particular, with $4\times2=8$ constant splines for the partition $U = [0, p(0), p(1), p(1) + \overline{u}]$, we can match the four point-identified moments $\gamma_1^{at}, \gamma_1^c, \gamma_0^c, \gamma_0^{nt}$ exactly, at least without any further shape restrictions.
 With shape restrictions, like decreasing MTR or MTE functions, this might not generally be true.
 In this case, $\hat{\mu}$ can be used for specification tests as pointed out by MST as well as~\cite{shea2023ivmte}.
@@ -592,7 +598,7 @@ We consider the case of increasing MTR functions.
 % For example, in our model also $E[Y(1)|g=at]$ and $E[Y(0)|g=nt]$ are identified and can help in tightening the identified set.
 
 With the restriction that $m_0(u), m_1(u)$ are increasing in $u$, the computation of the identified set becomes less immediate.
-% Figure [TODO REF] illustrates the solution using constant spline basic functions defined separately over the intervals implied by $[0, p(0), p(1), p(1) + \overline{u}, 1]$.
+% Figure [MAYBEDO REF] illustrates the solution using constant spline basic functions defined separately over the intervals implied by $[0, p(0), p(1), p(1) + \overline{u}, 1]$.
 
 The solution in this case is given by:
 \begin{equation}\label{eq:solution_cs_increasing_mtr_upper}
@@ -615,12 +621,10 @@ Hence, both bounds exhibit a kink at $\beta_s=0$.
 In these cases, as was shown in~\cite{dumbgen1993nondifferentiable} and later~\cite{fang2019infdirdiff}, non-differentiability at the kink renders the nonparametric bootstrap invalid.
 However, other methods have been devised for this case. For example,~\cite{fang2019infdirdiff} and~\cite{hong2018numerical} extend the delta method to the case of functions that are only directionally differentiable, such as the ones with a kink shown above.
 Further, subsampling is theoretically justified as long as the bounds of the identified set have \textit{any} limiting distribution.
-% TODO - Need to adjust this based on the structure of the following sections.
-% I consider these methods as well as the nonparametric bootstrap in more detail in Section~\ref{sec:inference_methods} and provide simulation evidence in a realistic setting in Section~\ref{sec:simulation_studies}.
 
 \subsection{Solution: Bounds with Bernstein Polynomials}
 In most applications, the nonparametric identified set resulting from constant splines will feature solutions, i.e. MTR functions, that exhibit jump discontinuities.
-% [TODO - Maybe put a solution in the appendix similar to Bernstein figures?].
+% [MAYBEDO - Maybe put a solution in the appendix similar to Bernstein figures?].
 The appeal of the MST framework is, that the MTR functions have direct economic interpretations that allow to place theoretical restrictions about which meaningful discussions are possible.
 In particular, in most cases a certain degree of smoothness in these functions seems reasonable.
 
@@ -698,11 +702,8 @@ It also shifts the area featuring many kinks to settings of potentially higher e
 \paragraph{Sharp Identified Set}
 While only using $\beta_s$ is illuminating for illustration, in practice we would always use specifications with more point-identified parameters.
 For example, we can use all specifications $E[YI\{Z=z\}I\{D=d\}]$, which is the sharp identified set in the sense of~\cite{mogstad2018using}.
-% TODO - Add explanation of their sharp set to Section 2?
 While it can be shown that this avoids kink issues in the constant splines model, the Bernstein polynomial model still exhibits notable kinks, as can be seen in Appendix Figure~\ref{app_fig:id_set_binary_iv_bernstein_shape_restrictions_sharp}.
-% TODO - Explain \footnote{For example, the bounds in ~\ref{solution_cs_increasing_mtr_upper} do not exhibit a discontinuity.
-%To see this, note that using all conditional moments not only fixes the difference $\gamma_1^c - \gamma_0^c$ but their levels.
-%Hence, }
+\footnote{For example, the bounds in~\ref{eq:solution_cs_increasing_mtr_upper} do not exhibit a discontinuity because using all conditional moments not only fixes the difference $\gamma_1^c - \gamma_0^c$ but their levels.}
 
 In this setting, the parameter space for the point-identified estimands is $[-1,1]^4$, not counting the nuisance parameter $\omega$.
 The relevant parameters are the conditional means of the potential outcomes for each group, in particular $\gamma_1^{at}, \gamma_1^c, \gamma_0^c$ and $\gamma_0^{nt}$ where $\gamma_d^g := E[Y_d|g(U) = g]$.
@@ -722,7 +723,7 @@ Second, for Bernstein polynomials, the slope of the solutions close to the bound
 This could potentially indicate a failure of Lipschitz continuity.
 Lastly, introducing shape restrictions, in particular monotonicity and sign constraints on the implied MTE function $m_1(u) - m_0(u)$, can significantly reduce the parameter space consistent with the model.
 This can lead to parameter at the boundary issues, as, for example, discussed in~\cite{andrews1999estimation}.
-% TODO Is Lipschitz continuity important?
+% MAYBEDO Is Lipschitz continuity important?
 % TODO Say we are not focusing on the boundary issues.
 
 
@@ -808,17 +809,13 @@ Notably,~\cite{hong2018numerical} find several instances in their simulations wh
 Figure~\ref{fig:sims_simple_model} presents the resulting coverage probability for the three inference approaches and $N\in\{1000, 10000\}$ over a grid $\beta_s$.
 I focus on the coverage and length around the kink. To construct a 95\% confidence interval for the parameter I construct one-sided confidence intervals for the upper and lower bound.
 Since we are interested in coverage for the true parameter, I use one-sided critical values, i.e.\ using $\alpha=0.05$ instead of $\alpha=0.025$.
-% Note that away from the kink coverage should converge to $0.9$ since I use confidence intervals using $c_\alpha$ critical values (i.e.\ for a one-sided test).
-% --> No this is not true since we don't have point-identification under these shape restrictions I think.
-
-% TODO Provide some discussion. How useful is this? --> Analytical delta method for small cases.
 
 The nonparametric bootstrap clearly exhibits a dip in the coverage probability at the kink $\beta_s = 0$, also for the large sample size $N=10000$.
 The two adjusted delta methods --- analytical and numerical --- on the other hand are conservative, with coverage probabilities exceeding the nominal level, at least around the kink.
 Looking at the average length of the confidence interval, for $N=1000$ these methods result in much larger intervals.
 For $N=10000$, however, they come close to the length of the bootstrap interval, which is consistent off the kink, while appropriately increasing the length of the confidence interval at the kink.
 
-
+% MAYBEDO Provide some discussion. How useful is this? --> Analytical delta method for small cases.
 
 
 \begin{figure}
@@ -853,10 +850,8 @@ For $N=10000$, however, they come close to the length of the bootstrap interval,
 
 \end{figure}
 
-% TODO Check: After presenting the general MTE model setup, the rest of the paper is concerned with presenting inference approaches, that can potentially address the previously raised concerns and comparing their performance in a Monte Carlo simulation.
-
 \section{Simulation Studies: Polynomial Bases and Shape Restrictions}\label{sec:simulation_studies}
-% TODO Write intro: Focus on more interesting example. Explain why only bootstrap and subsampling.
+% MAYBEDO Proofread
 This section provides a simulation study for confidence interval construction with a setting close to actual applications.
 That is, we focus on the sharp identified set (in the sense of~\cite{mogstad2018using}), use a flexible polynomial to enforce smoothness of the MTR functions, and impose various shape restrictions.
 In this case, solving the linear program algorithmically is necessary, and no explicit solutions are available.
@@ -1270,19 +1265,20 @@ This study was concerned with statistical inference in the MTE model, when point
 While the study of inference methods is yet incomplete, some conclusions can be drawn:
 First, in the most simple models it might be worthwhile to derive explicit formulas for the identified set instead of blindly bootstrapping the linear program.
 Depending on the exact setting, the solutions will feature kinks in the identified parameters and other boundary issues might arise.
-For the cases where explicit solutions are known, inference might be adjusted based on forms of the directional derivative as suggested by~\citep{fang2019infdirdiff}.
+For the cases where explicit solutions are known, inference might be adjusted based on forms of the directional derivative as suggested by~\cite{fang2019infdirdiff}.
 
-If the setting is more complex, because we want to employ more point-identified parameters, and place flexible parametric as well as shape restrictions, more care seems to be required.
+If the setting is more complex, for example because we want to employ more point-identified parameters, and place flexible parametric as well as shape restrictions, more care seems to be required.
 The simulation studies here show, that the bootstrap as well as subsampling can lead to coverage rates far below the nominal level whenever a flexible parametric specification is used.
 
 However, the current simulations are also missing some promising inference methods:
 ~\cite{bei2023inference} proposes conservative inference based on a projection approach.~\cite{bhattacharya2009inferring} and~\cite{freyberger2015identification} provide asymptotic results on the value function of a linear program.
-Ideas in~\cite{de_wolf_smeers2021generalized} might be used to approximate the gradient of the value function and use a delta method in the spirit of~\cite{shapiro1991asymptotic} and~\cite{fang2019infdirdiff}.
+Ideas in~\cite{de_wolf_smeers2021generalized} might be used to approximate the gradient of the value function and use a delta method in the spirit of~\cite{shapiro1991asymptotic},~\cite{fang2019infdirdiff}.
 In the context of the model, it might be worthwhile thinking about heuristics for the choice of $\kappa_n$.
 Slightly relaxing the tolerance $\frac{1}{n}$ but not as far as $\frac{1}{n^2}$, which was considered here, might provide conservative inference at the sake of a slightly slower convergence of the estimator.
 Alternatively, it might be possible to make the convex relaxation approach work also for larger problems.
 This would require a better construction for the relaxed feasible region and, more importantly so, guidance for the tuning parameter choice.
-Lastly, inference could be considered for identification approaches using more information of the data, see~\cite{marx2024sharp}, or models of multidimensional heterogeneity~\cite{dutz2021selection}.
+Lastly, inference could be considered for identification approaches using more information of the data, see~\cite{marx2024sharp} for ways to construct smaller identified sets, or models of multidimensional heterogeneity as considered in~\cite{dutz2021selection}.
+\footnote{\cite{marx2024sharp} also provides a different characterization of the identified set, which might be useful for inference.}
 
 \clearpage
 \newpage
@@ -1769,10 +1765,11 @@ All simulations for the more complicated MTE model settings are performed using 
 The implementation in the form of the \textit{pyvmte} module can be found under \url{https://github.com/buddejul/pyvmte}.
 This implementation grew out of a programming class at the University of Bonn.
 The only other existing implementation is provided by~\cite{shea2023ivmte} in the form of an R-package called \textit{ivmte}.
-Writing an implementation was partly motivated by the fact, that the \textit{ivmte} was too slow to perform bootstrap simulations.
+Writing an implementation was partly motivated by the fact, that \textit{ivmte} was too slow to perform bootstrap simulations.
 \footnote{For typical datasets the ivmte simulation would take up to $100\times$ longer.
-Most of this, however, }
-Another motivation where the availability of many open-source optimizer implementations in the \textit{SciPy} ecosystem, which avoids the needs for licenses such as Gurobi or similar.
+After profiling the core function calls, however, most of this came down to an inefficient way of computing the point-identified estimands.
+Hence, this should in principle be possible to fix.}
+Another motivation was the availability of many open-source optimizer implementations in the \textit{SciPy} ecosystem, which avoids the needs for licenses such as Gurobi or similar.
 After all, the linear programs in this context seem easy enough to solve such that commercial software is not required.
 
 
@@ -1781,7 +1778,7 @@ The key task of the package is to translate user input into the matrices require
 The \textit{pyvmte} module has two core functionalities:
 The \textit{identification} function derives solutions given a user-specified DGP corresponding to the identification part.
 The \textit{estimation} function estimates bounds given a user-provided dataset. Inference using the bootstrap or subsampling is supported.
-The functionality of both parts is tested against known results, both from~\cite{mogstad2018using} and the calculations presented here.
+The functionality of both parts is tested against known results, both from~\cite{mogstad2018using} and the calculations presented in this paper.
 
 \clearpage
 \newpage
