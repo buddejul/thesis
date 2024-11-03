@@ -1162,8 +1162,8 @@ If the value function is not fully differentiable, an alternative might be to pe
 
 Figures~\ref{fig:convex_relax_ci_coverage} and~\ref{fig:convex_relax_ci_mean} report simulated coverage probabilities and mean confidence intervals.
 I focus on the region $[-0.2, 0.2]$ around the kink and for a nominal coverage of $95\%$.
-First, a confidence interval
-For $k=2$ and $k=4$, inference is clearly too conservative as both confidence intervals have coverage probability one and are much smaller than the bootstrap interval throughout.
+First, the confidence interval based on the nonparametric bootstrap has poor finite sample coverage close to the kink. For $N=1000$, coverage is slightly smaller than $65$\%, while for $N=10000$ coverage only increases to about $85$\%.
+Looking at the convex relaxation, for $k=2$ and $k=4$, inference is clearly too conservative as both confidence intervals have coverage probability one and are much smaller than the bootstrap interval throughout.
 For tighter approximations $k=10$ and $k=20$, on the other hand, coverage probabilities are higher than for the bootstrap with much larger average confidence intervals.
 However, for $k=20$, the feasible region is potentially to close to the original linear program, and for $N=1000$ we again have coverage below the nominal level close to the kink.
 
