@@ -351,6 +351,7 @@ ID_TO_KWARGS_MEANS = {
     for confidence_interval in ["bootstrap", "subsampling"]
     for lp_tolerance in tolerances_to_plot
     if not (constraint != "none" and lp_tolerance == "1/sqrt(n)")
+    if not (constraint != "none" and lp_tolerance == "1/n**2")
 }
 
 for id_, kwargs in ID_TO_KWARGS_MEANS.items():

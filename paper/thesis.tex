@@ -855,45 +855,38 @@ For $N=10000$, however, they come close to the length of the bootstrap interval,
 
 % TODO Check: After presenting the general MTE model setup, the rest of the paper is concerned with presenting inference approaches, that can potentially address the previously raised concerns and comparing their performance in a Monte Carlo simulation.
 
-\section{Simulation Studies}\label{sec:simulation_studies}
+\section{Simulation Studies: Polynomial Bases and Shape Restrictions}\label{sec:simulation_studies}
 % TODO Write intro: Focus on more interesting example. Explain why only bootstrap and subsampling.
+This section provides a simulation study for confidence interval construction with a setting close to actual applications.
+That is, we focus on the sharp identified set (in the sense of~\cite{mogstad2018using}), use a flexible polynomial to enforce smoothness of the MTR functions, and impose various shape restrictions.
+In this case, solving the linear program algorithmically is necessary, and no explicit solutions are available.
+Hence, as a baseline for inference I for now only consider the performance of the nonparametric bootstrap and subsampling.
+These resampling procedures are also the ones implemented by~\cite{shea2023ivmte}, although no further discussion or simulation results are provided.
+
 
 \subsection{Simulation Design}
-I provide simulations for the binary IV model presented in Section~\ref{sec:simple_example}.
-The binary instrument $Z$ with support $\{0,1\}$ has PMF $P(Z=1) = P(Z=0) = 0.5$.
+The baseline setup is the same as in Section~\ref{sec:simple_example}:
+The instrument $Z$ is binary with support $\{0,1\}$ and has PMF $P(Z=1) = P(Z=0) = 0.5$.
 The propensity score I use is $p(0) = 0.4 < p(1) = 0.6$.
 Hence, the IV slope coefficient identifies the LATE for the subpopulation with $u\in(0.4, 0.6]$.
 The target parameter of interest is an extrapolation to the never-taker subpopulation up to $u=0.8$.
-That is, $\beta^* = E[Y(1) - Y(0) | U_i \in (0.4, 0.8]]$.
 There are two difficulties when designing these simulations: First, we need to use DGPs that are consistent with the assumptions we enforce, for example shape restrictions.
 Second, the parameter needs to be at the boundary of the identified set such that we study the most difficult case for inference.
 
-I follow MSTs notion of sharpness and parametrize the simulation in terms of the conditional moments of $Y$.
-In particular, I specify the following four moments, which can be identified from the data:
-\begin{align*}
-  & \gamma_1^{at} \equiv E[Y_1| U \in (0, p(0)]], \\
-  & \gamma_1^{c} \equiv E[Y_1| U \in (p(0), p(1)]], \\
-  & \gamma_0^{c} \equiv E[Y_0| U \in (p(0), p(1)]], \\
-  & \gamma_0^{nt} \equiv E[Y_0| U \in (p(1), 1]]. \\
-\end{align*}
-These are the MTR at $d=1$ for always-takers and compliers, as well as the MTR at $d=0$ for compliers and never-takers.
-Additionally, there are 2 more moments that cannot be identified but are required to parametrize the model:
-\begin{align*}
-  & \gamma_0^{at} \equiv E[Y_0| U \in (0, p(0)]], \\
-  & \gamma_1^{nt} \equiv E[Y_1| U \in (p(1), 1]]. \\
-\end{align*}
+I follow MSTs notion of sharpness and parametrize the simulation in terms of the conditional moments of $Y$, or more precisely, those moments that are identified by the conditional moments.
+In particular, I specify the following four moments, which can be identified from the data: $\gamma_1^{at}, \gamma_1^{c}, \gamma_0^{c}, \gamma_0^{nt}$, where again $\gamma_d^g = E[Y_d|g(U)=g]$.
+Additionally, there are two more moments that cannot be identified but are required to parametrize the model: $\gamma_0^{at}, \gamma_1^{nt}$.
 
 
 \paragraph{MTR Functions: Constant Splines}
 In terms of the parametrization from above, the constant spline MTR functions are
 \begin{equation*}
-  m_d(u; \gamma) \equiv \sum_{g\in\{at, c, nt\}} I\{u \in I_g\} \gamma_{d}^g,
+  m_d(u; \gamma) \equiv \sum_{g\in\{at, c, nt\}} I\{g(U) = g\} \gamma_{d}^g.
 \end{equation*}
-where $I_g$ are the intervals characterizing each respective group (always-takers, compliers, and never-takers).
-To mimic a bounded outcome in (approximately) $[0,1]$, I take $\gamma_d^g\in[0,1]$.
+To mimic a bounded outcome in $[0,1]$, I take $\gamma_d^g\in[0,1]$.
 The least favorable parameter position in terms of coverage is at the boundary of the identified set.
-For the upper bound, this would occur at $\gamma_1^{nt} - \gamma_0^{nt} = 1$.
-For the lower bound, this would occur at $\gamma_1^{nt} - \gamma_0^{nt} = -1$.
+Without any further restrictions, this would occur at $\gamma_1^{nt} - \gamma_0^{nt} = 1$ for the upper, and $\gamma_1^{nt} - \gamma_0^{nt} = -1$ for the lower bound.
+However, if we are using Bernstein polynomials, it is unclear, which values of the non-identified parameters imply parameter positions on the boundary as well as comply with any other shape restrictions.
 
 \paragraph{MTR Functions: Bernstein Polynomials}
 The goal is to find two Bernstein polynomial of the specified order $k$ for $m_0, m_1$, that
@@ -902,13 +895,13 @@ The goal is to find two Bernstein polynomial of the specified order $k$ for $m_0
 (3) are consistent with any other shape restrictions.
 
 To this end, I first solve the linear program for the identification problem using the desired Bernstein polynomial as the basis functions.
-The values of the point-identified parameters in this problem are computed based on the constant spline MTR functions $m_d(u) = \sum_g I\{u \in I_g\} \gamma_d^g$.
+The values of the point-identified parameters in this problem are computed based on the constant spline MTR functions. In this way, we can
 The basis function coefficient vector that solves the linear program can then be used to construct the desired MTR functions as Bernstein polynomials.
 By construction, it generates the point-identified parameters, implies a parameter at the boundary (either the upper or lower bound depending on the linear program), and satisfies any shape restrictions that are imposed.
-Note, however, that the linear program might not have a solution and hence no polynomials satisfying these requirements exist.
+Note, however, that the linear program might not have a solution and hence no DGP satisfying these requirements exists.
 
 \paragraph{Data}
-I generate the data $\{Y_i, D_i, Z_i\}_{i=1}^N$ in the following way:
+Having constructed the MTR functions, I generate the data $\{Y_i, D_i, Z_i\}_{i=1}^N$ in the following way:
 \begin{itemize}
   \item[1.] Draw $Z_i$ according to $P(Z_i=z) = 0.5$ and $U_i$ from $\text{Uniform}(0,1)$.
   \item[2.] Generate the treatment using the selection equation $D_i = I\{p(Z_i) \geq U_i\}$.
@@ -917,8 +910,8 @@ I generate the data $\{Y_i, D_i, Z_i\}_{i=1}^N$ in the following way:
 \end{itemize}
 
 \paragraph{Parameter Grid}
-I conduct simulation studies over a grid of parameters to study performance around kinks.
-To generate results that are easy to visualize in terms of the point-identified complier late, I use
+Simulation studies are conducted over a grid of parameters to study performance around kinks.
+I again use
 \begin{align}
   \gamma_1^c = \beta_s / 2 + 0.5, \quad \gamma_0^c = -\beta_s / 2 + 0.5,
 \end{align}
@@ -928,33 +921,43 @@ This allows for DGPs consistent with decreasing MTR functions, a decreasing MTE,
 \footnote{In the extreme, if we were to set $\gamma_1^{at} = 0$, the largest complier LATE consistent with a decreasing MTE function would be $0$, namely when $\gamma_0^{at}=0$.}
 
 \paragraph{Shape Restrictions}
-I provide simulation results for a model without shape restrictions, a model with positive monotone treatment response (MTE positive everywhere), and a model with a decreasing treatment effect (a decreasing MTE function).
+I provide simulation results for a model without shape restrictions, a model with positive monotone treatment response (a positive MTE everywhere), and a model with a decreasing treatment effect (a decreasing MTE function).
 
 \paragraph{Identified Set}
 I focus on the case of the \textit{sharp} identified set in the sense of MST, which is likely the specification most used in practice.
 This is the set that uses all conditional moments of $Y$.
 Hence, in our case this will make use of $\gamma_1^{at}, \gamma_1^{c}, \gamma_0^{c}$ and $\gamma_0^{nt}$.
 
-\paragraph{Inference Methods}
-Section~\ref{sec:simple_example} already provided some results on inference in a simple case with one point-identified parameter and constant splines.
-However, a prominent feature for of the MST approach is to allow for parametric, but flexible specifications of the MTR functions.
-When combined with shape restrictions, these problems are difficult to solve analytically and no explicit form of the solution will be available.
-Hence, it is also more difficult to construct estimators of the directional derivative that would be required for the analytical delta method by~\cite{fang2019infdirdiff}.
-\footnote{Some results might be available from sensitivity analysis in mathematical programming.~\cite{shapiro1991asymptotic} derives the Hadamard (directional) derivative for the optimal value functions of convex programs, that does not seem to apply here though \citep{bhattacharya2009inferring}.
-~\cite{de_wolf_smeers2021generalized} derive a particular differential of the optimal value with respect to matrix coefficients in the presence of potentially non-unique solutions.
-This is not pursued any further here, but might be a fruitful direction.}
+% TODO: I don't think we need this section?
+% \paragraph{Inference Methods}
+% Section~\ref{sec:simple_example} already provided some results on inference in a simple case with one point-identified parameter and constant splines.
+% However, a prominent feature for of the MST approach is to allow for parametric, but flexible specifications of the MTR functions.
+% When combined with shape restrictions, these problems are difficult to solve analytically and no explicit form of the solution will be available.
+% Hence, it is also more difficult to construct estimators of the directional derivative that would be required for the analytical delta method by~\cite{fang2019infdirdiff}.
+% \footnote{Some results might be available from sensitivity analysis in mathematical programming.~\cite{shapiro1991asymptotic} derives the Hadamard (directional) derivative for the optimal value functions of convex programs, that does not seem to apply here though \citep{bhattacharya2009inferring}.
+% ~\cite{de_wolf_smeers2021generalized} derive a particular differential of the optimal value with respect to matrix coefficients in the presence of potentially non-unique solutions.
+% This is not pursued any further here, but might be a fruitful direction.}
 
-Instead, for the Bernstein case I focus on resampling techniques in the following section.
-As a baseline, I investigate performance of the nonparametric bootstrap.
-Additionally, I also provide results on subsampling, which is typically employed in cases where the nonparametric bootstrap might be inconsistent, but some asymptotic distribution is believed to exist.
+% Instead, for the Bernstein case I focus on resampling techniques in the following section.
+% As a baseline, I investigate performance of the nonparametric bootstrap.
+% Additionally, I also provide results on subsampling, which is typically employed in cases where the nonparametric bootstrap might be inconsistent, but some asymptotic distribution is believed to exist.
 
 \subsection{Simulation Results}
-Figure~\ref{fig:simulation_binary_iv_bernstein} reports the main simulation results for the default setting of one-sided critical values and a subsampling share of $0.1N$.
+Figure~\ref{fig:simulation_binary_iv_bernstein} reports the main simulation results for the default setting of one-sided critical values,  a subsampling share of $0.1\times N$ and a linear program tolerance $\kappa_n = \frac{1}{N}$.
 Nominal coverage is $95$\% throughout all simulations. The first row considers a model without shape constraints, while the second row imposes monotone treatment response and the third a decreasing MTE function.
 The redline indicates the lower bound, which is also the true parameter position.
 The second column for each row focuses on a subset of $\beta_s$ for which inference is most difficult.
 Appendix Figure~\ref{app_fig:simulation_binary_iv_bernstein_means} plots the corresponding mean bound and confidence interval estimates.
 \footnote{Note this illustrates the consistency of the bound estimators proven in~\cite{mogstad2018using}, but for which no simulation studies seem to be available.}
+
+\begin{itemize}
+  \item Estimator is close to the true bounds in most cases, especially in regions where the bounds are ``well-behaved''. Generally, the estimator for the larger sample size is also on average closer.
+  \item However, when focusing on the boundary regions for large $\beta_s$, estimates for the largest $\beta_s$ tend to be further away from the true bounds on average.
+  \item This is also evident in the coverage rates: Coverage rates are generally close to the nominal level for smaller values of $\beta_s$ where the lower bound is close to linear with few kinks.
+  \item For larger $\beta_s$ coverage is typically far below the nominal level. This is true for both $N=1000$ and $N=10000$ as well as both bootstrap and subsampling.
+  \item Coverage generally deteriorates towards the boundary, but is increasing in the sample size.
+  \item Next section discusses some potential explanations: LP tolerance (if tolerance too high --> underestimate --> too high coverage; if tolerance too low --> overestimate --> too low coverage)
+\end{itemize}
 
 \begin{figure}
 
@@ -997,9 +1000,9 @@ Appendix Figure~\ref{app_fig:simulation_binary_iv_bernstein_means} plots the cor
       \caption{Problematic Region}\label{fig:simulation_coverage_mte_monotone_problematic}
   \end{subfigure}
 
-  \floatfoot{\textbf{Notes}: This figure reports simulate coverage probabilities for the true parameter for the binary-IV model with Bernstein polynomials of degree $k=11$ under various shape constraints.
+  \floatfoot{\textbf{Notes}: This figure reports simulated coverage probabilities for the true parameter for the binary-IV model with Bernstein polynomials of degree $k=11$ under various shape constraints.
   The true parameter is at the lower bound. Confidence intervals are constructed using one-sided $\alpha = 0.05$ critical values for a nominal coverage of $95$\%.
-  Number of simulations = 2000, subsampling share = $0.1\times N$.}
+  Number of simulations = 2000, subsampling share = $0.1\times N$, $\kappa_n = \frac{1}{N}$.}
 \end{figure}
 
 
@@ -1009,7 +1012,7 @@ Beyond the conditions required for asymptotic theory, namely that the subsample 
 In our case, we are resampling a ratio estimator for $\beta_s$ and which is known to have poor behavior in small samples.
 Hence, using $s = \frac{B}{N}$ too small should yield worse coverage, since any sample of size $B$ is a poor approximation to a sample of size $N$.
 
-Appendix Figure~\ref{app_fig:sims_add_subsample_share} reports simulation results in the case without shape restrictions using different subsample share $s \in \{0.05, 0.1, 0.2\}$.
+Appendix Figure~\ref{app_fig:sims_add_subsample_share_tolerance} reports simulation results in the case without shape restrictions using different subsample share $s \in \{0.05, 0.1, 0.2\}$.
 In general, the coverage probability seems to be increasing in $s$, with slightly worse coverage for $s=0.05$ and slightly better one for $s=0.2$ compared to the default.
 However, the differences are only small and the subsample share hence cannot explain the coverage probabilities far below the nominal level.
 
@@ -1065,7 +1068,7 @@ Appendix Figure~\ref{app_fig:sims_add_alpha_im_crit} reports coverage probabilit
 There is almost no difference in the coverage rates.
 Looking at the implied (average) $\tilde{\alpha}$, this results from $\tilde{\alpha} \approx 0.05$.
 To illustrate, the typical bootstrapped standard deviations are of order $1-10$.
-Hence, with $N = 10,000$ and taking $\max(\sigma_l, \sigma_u)=10$ (larger sigma result in smaller $\tilde{\alpha}$), we have
+Hence, with $N = 10,000$ and taking $\max(\sigma_l, \sigma_u)=10$ (larger variances result in smaller $\tilde{\alpha}$), we have
 \begin{equation*}
   \Phi\left(\tilde{c} + 100\Delta\right) - \Phi\left(-\tilde{c}\right) = 1 - 0.05.
 \end{equation*}
@@ -1080,7 +1083,7 @@ In particular, we will replace the box constraint $x\in[0,1]^d$ on the basis coe
 
 Solving a non-linear program has two potential advantages:
 First, if the resulting value function is (fully) differentiable in the underlying parameters, then the bootstrap is consistent~\citep{fang2019infdirdiff}.
-Second, if this is not the case, existing results on the asymptotic distribution of the value function estimator derived in~\cite{shapiro1991asymptotic} can be used for inference on the value of the non-linear program.
+Second, if this is not the case, existing results on the asymptotic distribution of the value function derived in~\cite{shapiro1991asymptotic} can be used for inference on the value of the non-linear program.
 The disadvantage is replacing the easily solvable linear program with a more difficult nonlinear one.
 Asymptotic theory might be possible by letting the feasible region $\mathcal{A}$ shrink to $[0,1]^d$, probably at a sufficiently slow rate.
 
@@ -1098,7 +1101,7 @@ Denote the value function as a function of the parameter $c$ by $\phi(c) := \min
 
 For the linear program, the feasible region is a unit square centered at $(0.5, 0.5)$. Solutions are unique as long as $c$ has no $0$-entry.
 If $c=\mathbf{0}$, all $x\in [0,1]^2$ are optimal. If $c_j = 0 \neq c_i$, there are infinitely many solutions with $c_j \in [0,1]$.
-Whenever $c_1\neq0, c_2\neq0$ we have a unique solution that appears at one of the corners of $[0,1]^2$ depending on the signs of $c_1, c_2$.
+Whenever $c_1\neq0$ and $c_2\neq0$ we have a unique solution that appears at one of the corners of $[0,1]^2$ depending on the signs of $c_1, c_2$.
 
 Assume $c_i, c_j \neq 0$ so we have a unique solution.
 The first panel in Figure~\ref{fig:convex_relax_value} plots the value function for the linear program with a box constraint and several strictly convex constraints, to be described below.
@@ -1115,8 +1118,8 @@ The resulting program is
 	\min_{x\in\mathcal{A}} c'x,
 \end{equation}
 which is no longer a linear program, since the constraints are not linear.
-However, this is a convex optimization problem for which solution methods exist in general.
-\footnote{In fact, it has an easy to characterize analytical solution that can be derived using a Lagrangian.}
+However, this is a convex optimization problem for which optimization algorithms are available.
+% \footnote{In fact, it has an easy to characterize analytical solution that can be derived using a Lagrangian.}
 
 Figure~\ref{fig:convex_relax_value} $(k=2)$ shows the resulting value function.
 Since the feasible region is larger, the value lies below the value of the linear program.
@@ -1126,14 +1129,13 @@ Since we smoothed out the edges, points of tangency now continuously change when
 This smooth transition is also evident in the solutions in Figure~\ref{fig:convex_relax_solution}.
 
 However, the solution is visibly smaller (or in our interpretation: too conservative).
-So maybe $\mathcal{A}$ is too large a relaxation to be useful.
-
+So maybe $\mathcal{A}$ is too large.
 To construct a tighter strictly convex set containing $[0,1]^2$ we can take any other higher $l_p$ norm and recenter it.
 In particular, we have
 \begin{equation*}
 	(x_1-0.5)^k + (x_2-0.5)^k \leq c
 \end{equation*}
-where $c = 2(1-0.5)^k$ ensures the unit square is included.
+where $c = 2(1-0.5)^k$ so $[0,1]^d \subset \mathcal{A}$.
 \footnote{An alternative is to use the intersection of multiple lower order polynomials with varying slopes on one of the coordinates. For example,
 \begin{align}
 	& s(x_1 - 0.5)^4 + (x_2 - 0.5)^4 \leq u(s), \\
@@ -1148,9 +1150,11 @@ Hence, the value function is also closer to the original linear program one, whi
 \paragraph{Monte Carlo}
 I study the performance of the proposed method in a simple Monte Carlo experiment, using the setting as described above with $c_2=1$.
 $c_1$ is treated as unknown, but we have noisy measurements $X_i \sim N(c_1, 1)$ so $\hat{c_1} = \frac{1}{N}\sum_i X_i$ is a consistent estimator.
+The goal is to construct one-sided confidence intervals that cover the value function with a pre-specified probability.
 
 To solve the optimization problems I tried several algorithms accessible via the \textit{optimagic} Python package~\citep{Gabler2024}.
-The most suited to this simple problem was found to be the \textit{SciPy}~\citep{scipy} implementation of the COBYLA algorithm~\citep{cobyla_powell1994direct}.
+The most suited to this small problem was found to be the \textit{SciPy}~\citep{scipy} implementation of the COBYLA algorithm~\citep{cobyla_powell1994direct}.
+However, for problems with more dimensions other algorithms perform better, see the discussion below.
 As an initial parameter guess for the nonlinear problems I use the linear program solution.
 
 Confidence intervals are constructed based on the nonparametric bootstrap both for the linear program and for its convex relaxation.
@@ -1158,13 +1162,14 @@ For the linear program, the bootstrap is inconsistent at $c_1=0$ because the val
 Hence, we would expect poor finite sample performance at and around the kink.
 For the convex relaxation, the bootstrap is justified if the value function is smooth.
 Of course, as $\mathcal{A}\to [0,1]^d$ we would expect similar issues to arise with the value function of the relaxed program.
-If the value function is not fully differentiable, an alternative might be to perform inference based on a functional delta method derived by~\cite{shapiro1991asymptotic} (see below).
+If the value function of the relaxed problem is also only directionally differentiable, an alternative might be to perform inference based on a functional delta method derived by~\cite{shapiro1991asymptotic} (see below).
 
 Figures~\ref{fig:convex_relax_ci_coverage} and~\ref{fig:convex_relax_ci_mean} report simulated coverage probabilities and mean confidence intervals.
-I focus on the region $[-0.2, 0.2]$ around the kink and for a nominal coverage of $95\%$.
+I focus on the region $[-0.2, 0.2]$ around the kink and construct intervals with a nominal coverage of $95\%$.
 First, the confidence interval based on the nonparametric bootstrap has poor finite sample coverage close to the kink. For $N=1000$, coverage is slightly smaller than $65$\%, while for $N=10000$ coverage only increases to about $85$\%.
-Looking at the convex relaxation, for $k=2$ and $k=4$, inference is clearly too conservative as both confidence intervals have coverage probability one and are much smaller than the bootstrap interval throughout.
-For tighter approximations $k=10$ and $k=20$, on the other hand, coverage probabilities are higher than for the bootstrap with much larger average confidence intervals.
+Looking at the convex relaxation, for $k=2$ and $k=4$, inference is clearly too conservative as both confidence intervals have coverage probability one and are much larger than the bootstrap interval throughout.
+\footnote{For the one-sided lower confidence interval I refer to the length in terms of the lower bound, where a larger lower bound means a smaller confidence interval.}
+For tighter approximations $k=10$ and $k=20$, on the other hand, coverage probabilities are higher than for the bootstrap with only slightly larger average confidence intervals.
 However, for $k=20$, the feasible region is potentially to close to the original linear program, and for $N=1000$ we again have coverage below the nominal level close to the kink.
 
 \begin{figure}
@@ -1214,7 +1219,8 @@ However, $c = 0$ should be excluded in most applications of interest.
 Specifically, in our case, choosing a relevant target parameter should always ensure that $c$ is bounded away from zero.
 In the simple example, this would only include the situation where both $p(0) \approx p(1)$ and $\overline{u} \approx 0$, but the latter is chosen by the researcher.
 
-More generally,~\cite{shapiro1991asymptotic} Section 3 discusses several adjustments of the delta method for inference on the objective function in mathematical programming.
+More generally, even if the value of the nonlinear program features kinks, inference might still be possible based on a similar adjusted delta method as in Section~\ref{sec:simple_example}.
+~\cite{shapiro1991asymptotic} Section 3 discusses several adjustments of the delta method for inference on the objective function in mathematical programming.
 In particular, Theorem 3.1 provides the Hadamard directional derivative for the value function when only the objective has a stochastic component.
 Further, it is noted that if the solution is unique, then this derivative is linear and the value function is hence \textit{fully} differentiable.
 In that case, as expected, if the asymptotic distribution of the stochastic part of the value function is normal, so is the optimal value.
@@ -1223,7 +1229,9 @@ For the result see Theorem 3.3 and the preceding discussion.
 If we exclude $c=0$ from the parameter space, then the example problem above has a unique solution everywhere and hence the above theorem applies.
 \footnote{We also require $\mathcal{A}$ to be compact, which is true since it is closed and bounded.
 Further, (a) $g(x, \omega) = \hat{c_1}x_0$ is measurable for all $x \in \mathcal{A}$, (b) it has a finite second moment, and (c) there exists a dominating function since $g$ is linear in $x$.}
-[TODO Is this so relevant here?]
+% [TODO Is this so relevant here?]
+% Currently it reads: (1) There might be a kink at c = 0. We can exclude it. (2) If we don't want to then
+% Maybe write: Not relevant here since c=0 is the only kink, but maybe we have other kinks in higher dimensions so might still want the derivative?
 
 If all or some of the constraints are unknown, equivalent asymptotic results can be derived in settings with convex inequality constraints.
 See Theorems 3.4 for the directional derivative and Theorem 3.5 for the asymptotic distribution.
@@ -1236,7 +1244,7 @@ Figure~\ref{fig:convex_relax_solution} shows a potential problem with norm-based
 The solution is too far away from the linear solution away from the kink, but changes too quickly at the kink, especially for high $k$.
 
 Even given a set $\mathcal{A}$ that has desirable properties, the main challenge is motivating the tuning parameter, e.g. $k$ above.
-While asymptotic theory probably puts some requirements on the rate of convergence to points of non-differentiability (probably slow ``enough'' relative to estimation rates), it is unclear how to motivate this choice in finite sample.
+While asymptotic theory probably puts some requirements on the rate of convergence to points of non-differentiability (e.g.\ slow ``enough'' relative to estimation rates), it is unclear how to motivate this choice in finite sample.
 How useful such an approach would be in practice hinges on the ability to motivate a tuning parameter choice, which, for example, is the main problem with subsampling.
 One potential source of information could be solving the estimation problem at hand under increasing relaxations as well as comparing the degree of conservativeness to an initial (biased) bootstrap estimate of the standard error.
 
@@ -1251,9 +1259,9 @@ Four equality constraints for the point-identified estimands reduce the number o
 The unit box $[0,1]^{24}$ is the only other constraint and I again relax it by the recentered norms of degree $k$.
 Appendix Figure~\ref{app_fig:convex_relax_mte_bernstein_11} plots the resulting approximations to the lower bound.
 Sub-figure (a) provides approximations for varying $k$, while sub-figure (b) considers solutions for $k=10$ with multiple algorithms.
-Notably, to get a close enough approximation, $k=20$ or $k=40$ is required. However, the solution is visibly unstable, pointing to optimization issues.
-Further, different optimization routines result in vastly different solutions, pointing to convergence issues.
-This is not meant to show, that this approach is generally not viable for higher dimensional problems, but to point out that several additional optimization difficulties are introduced by relaxing the constraint.
+Notably, to get a close enough approximation, $k=20$ or $k=40$ is required. However, the solution is visibly unstable.
+Different optimization routines result in vastly different solutions, pointing to convergence issues, and with large $k$ numerical precision becomes a concern.
+However, this is not meant to show, that numerical optimization in these higher dimensional, yet simple problems is impossible, but merely to point out that several additional difficulties are introduced by relaxing the constraint that are not present with a pure linear programming approach.
 
 
 \section{Conclusion}
@@ -1401,19 +1409,31 @@ This is not meant to show, that this approach is generally not viable for higher
 
 \begin{figure}
 
-  \caption{Simulation Results for the Binary-IV Model with Bernstein Polynomial MTRs (1)}\label{app_fig:sims_add_subsample_share_tolerance}
+  \caption{Simulation Results for the Binary-IV Model with Bernstein Polynomial MTRs: Subsampling Share and LP Tolerance $\kappa_n$}\label{app_fig:sims_add_subsample_share_tolerance}
 
   \centering
-  \begin{subfigure}[b]{0.95\textwidth}
+  \begin{subfigure}[b]{0.49\textwidth}
       \centering
       \includegraphics[width=\textwidth]{../../bld/figures/pyvmte_sims/plot_by_subsample_share/sims_binary_iv_sharp_none_coverage_problematic_region_by_subsample_share.png}
-      \caption{By Subsampling Share}\label{app_fig:sims_add_subsample_share}
+      \caption{Coverage: Subsampling Share}\label{app_fig:sims_add_subsample_share_coverage}
+  \end{subfigure}
+  \hfil
+  \begin{subfigure}[b]{0.49\textwidth}
+      \centering
+      \includegraphics[width=\textwidth]{../../bld/figures/pyvmte_sims/plot_by_subsample_share/sims_binary_iv_sharp_none_means_problematic_region_subsampling_by_subsample_share.png}
+      \caption{Means: Subsampling Share}\label{app_fig:sims_add_subsample_share_means}
   \end{subfigure}
 
-  \begin{subfigure}[b]{0.95\textwidth}
+  \begin{subfigure}[b]{0.49\textwidth}
       \centering
       \includegraphics[width=\textwidth]{../../bld/figures/pyvmte_sims/plot_by_tolerance/sims_binary_iv_sharp_none_coverage_problematic_region_by_tolerance.png}
-      \caption{By LP Tolerance $\kappa_n$}\label{app_fig:sims_add_tolerance}
+      \caption{Coverage: LP Tolerance $\kappa_n$}\label{app_fig:sims_add_tolerance_coverage}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[b]{0.49\textwidth}
+      \centering
+      \includegraphics[width=\textwidth]{../../bld/figures/pyvmte_sims/plot_by_tolerance/sims_binary_iv_sharp_none_means_problematic_region_bootstrap_by_tolerance.png}
+      \caption{Means: LP Tolerance $\kappa_n$}\label{app_fig:sims_add_tolerance_means}
   \end{subfigure}
 
 \end{figure}
@@ -1739,6 +1759,28 @@ where $\hat{\cdot}$ is used to emphasize, which parts of the problem are estimat
 Shape constraints need to be added to both the first and second step program.
 All shape constraints are similar to the identification part, except for additional zero columns in $A_{ub}$ in the first step program due to the dummy variables.
 In particular, all of these constraints are non-random.
+
+\clearpage
+\newpage
+
+\section{Pyvmte Implementation}
+All simulations for the more complicated MTE model settings are performed using an implementation of both the identification and estimation procedures in Python.
+The implementation in the form of the \textit{pyvmte} module can be found under \url{https://github.com/buddejul/pyvmte}.
+This implementation grew out of a programming class at the University of Bonn.
+The only other existing implementation is provided by~\cite{shea2023ivmte} in the form of an R-package called \textit{ivmte}.
+Writing an implementation was partly motivated by the fact, that the \textit{ivmte} was too slow to perform bootstrap simulations.
+\footnote{For typical datasets the ivmte simulation would take up to $100\times$ longer.
+Most of this, however, }
+Another motivation where the availability of many open-source optimizer implementations in the \textit{SciPy} ecosystem, which avoids the needs for licenses such as Gurobi or similar.
+After all, the linear programs in this context seem easy enough to solve such that commercial software is not required.
+
+
+\paragraph{Functionality}
+The key task of the package is to translate user input into the matrices required for the identification and/or estimation linear programs (cf. Appendix Section~\ref{app_sec:linear_programs}).
+The \textit{pyvmte} module has two core functionalities:
+The \textit{identification} function derives solutions given a user-specified DGP corresponding to the identification part.
+The \textit{estimation} function estimates bounds given a user-provided dataset. Inference using the bootstrap or subsampling is supported.
+The functionality of both parts is tested against known results, both from~\cite{mogstad2018using} and the calculations presented here.
 
 \clearpage
 \newpage
