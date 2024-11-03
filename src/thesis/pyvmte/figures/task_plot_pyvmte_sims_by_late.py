@@ -11,7 +11,7 @@ import pytask
 from plotly.io import write_image  # type: ignore[import-untyped]
 from pytask import Product, task
 
-from thesis.config import BLD
+from thesis.config import BLD, PLOT_NOTES
 from thesis.pyvmte.sims.task_pyvmte_sims import grid_by_constraint
 
 
@@ -281,21 +281,23 @@ for id_, kwargs in ID_TO_KWARGS_COVERAGE.items():
         else:
             subsample_size = df_plot["subsample_size"].unique()
 
-        fig.add_annotation(
-            text=(
-                f"N Simulations: {num_sims}<br>"
-                f"Subsample size: {subsample_size}<br>"
-                f"N Bootstrap Samples/Subsamples: {int(num_boot)}/{int(num_subsamples)}"
-            ),
-            font={"size": 10},
-            showarrow=False,
-            xref="paper",
-            yref="paper",
-            x=1.2,
-            y=-0.21,
-            # Right aligned
-            align="right",
-        )
+        if PLOT_NOTES:
+            fig.add_annotation(
+                text=(
+                    f"N Simulations: {num_sims}<br>"
+                    f"Subsample size: {subsample_size}<br>"
+                    f"N Bootstrap Samples/Subsamples:"
+                    f" {int(num_boot)}/{int(num_subsamples)}"
+                ),
+                font={"size": 10},
+                showarrow=False,
+                xref="paper",
+                yref="paper",
+                x=1.2,
+                y=-0.21,
+                # Right aligned
+                align="right",
+            )
 
         # Draw horizontal line at 1 - alpha
         fig.add_shape(
@@ -406,8 +408,8 @@ for id_, kwargs in ID_TO_KWARGS_MEANS.items():
         col_to_legend_group = {
             "sim_ci_lower": "Confidence Interval",
             "sim_ci_upper": "Confidence Interval",
-            "sim_lower_bound": "Estimated",
-            "sim_upper_bound": "Estimated",
+            "sim_lower_bound": "Estimated Bound",
+            "sim_upper_bound": "Estimated Bound",
             "true_lower_bound": "True",
             "true_upper_bound": "True",
         }
@@ -563,17 +565,18 @@ for id_, kwargs in ID_TO_KWARGS_MEANS.items():
             df_plot["num_sims"].value_counts()
         num_sims = np.max(num_sims)
 
-        fig.add_annotation(
-            text=(f"N Simulations: {int(num_sims)}<br>"),
-            font={"size": 10},
-            showarrow=False,
-            xref="paper",
-            yref="paper",
-            x=1.2,
-            y=-0.21,
-            # Right aligned
-            align="right",
-        )
+        if PLOT_NOTES:
+            fig.add_annotation(
+                text=(f"N Simulations: {int(num_sims)}<br>"),
+                font={"size": 10},
+                showarrow=False,
+                xref="paper",
+                yref="paper",
+                x=1.2,
+                y=-0.21,
+                # Right aligned
+                align="right",
+            )
 
         # Make x-axis from 0 to 1
         fig.update_xaxes(range=[-0.1, 1])

@@ -42,3 +42,6 @@ Compliers
 nondifferentiable
 RDD
 DiD
+
+exogenously
+piecewise
