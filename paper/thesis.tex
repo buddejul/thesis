@@ -945,14 +945,15 @@ The second column for each row focuses on a subset of $\beta_s$ for which infere
 Appendix Figure~\ref{app_fig:simulation_binary_iv_bernstein_means} plots the corresponding mean bound and confidence interval estimates.
 \footnote{Note this illustrates the consistency of the bound estimators proven in~\cite{mogstad2018using}, but for which no simulation studies seem to be available.}
 
-\begin{itemize}
-  \item Estimator is close to the true bounds in most cases, especially in regions where the bounds are ``well-behaved''. Generally, the estimator for the larger sample size is also on average closer.
-  \item However, when focusing on the boundary regions for large $\beta_s$, estimates for the largest $\beta_s$ tend to be further away from the true bounds on average.
-  \item This is also evident in the coverage rates: Coverage rates are generally close to the nominal level for smaller values of $\beta_s$ where the lower bound is close to linear with few kinks.
-  \item For larger $\beta_s$ coverage is typically far below the nominal level. This is true for both $N=1000$ and $N=10000$ as well as both bootstrap and subsampling.
-  \item Coverage generally deteriorates towards the boundary, but is increasing in the sample size.
-  \item Next section discusses some potential explanations: LP tolerance (if tolerance too high --> underestimate --> too high coverage; if tolerance too low --> overestimate --> too low coverage)
-\end{itemize}
+Looking at the results in~\ref{fig:simulation_binary_iv_bernstein} immediately reveals, that in this setting the bootstrap as well as subsampling can have coverage rates far below the nominal level.
+Coverage rates are generally close to the nominal level for smaller values of $\beta_s$ where the lower bound is close to linear with few kinks.
+For larger $\beta_s$ coverage is typically far below the nominal level. This is true for both $N=1000$ and $N=10000$ as well as both bootstrap and subsampling.
+Coverage generally deteriorates towards the boundary, but is increasing in the sample size.
+This is also evident in the means reported in Figure~\ref{app_fig:simulation_binary_iv_bernstein_means}.
+The estimators for both the upper and lower bound are close to the true bounds in most cases, especially in regions where the bounds are ``well-behaved''.
+Generally, the estimator for the larger sample size is also on average closer.
+However, when focusing on the boundary regions for large $\beta_s$, estimates of the lower bound for the largest $\beta_s$ tend to be further away from the true bounds on average.
+The following paragraphs consider variations in some simulation parameters: The subsampling share, the linear program tolerance $\kappa_n$, and the way in which confidence intervals are constructed.
 
 \begin{figure}
 
