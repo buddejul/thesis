@@ -50,3 +50,7 @@ pyvmte
 Pyvmte
 ivmte
 Gurobi
+
+Freyberger
+Rheinische
+Friedrich-Wilhelms-Universität
