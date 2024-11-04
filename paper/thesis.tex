@@ -265,7 +265,7 @@ Section~\ref{sec:simple_example} is concerned with inference in a simple model, 
 Lastly, Section~\ref{sec:convex_relaxation} discusses an idea for a conservative inference approach based on relaxing the constraint set and provides a simple Monte Carlo simulation.
 
 \section{Background: MTE Model and Inference Methods}\label{sec:general_mte}
-As a background for the results in the following sections, I restate the MTE approach presented in~\cite{mogstad2018using} as well as different approaches to inference.
+As a background for the results in the following sections, I restate the MTE approach presented in~\cite{mogstad2018using} (MST) as well as different approaches to inference.
 For inference, I focus on the nonparametric bootstrap as a benchmark, adjustments of the delta method to non-differential functions proposed in~\cite{fang2019infdirdiff} as well as subsampling.
 
 \subsection{MTE Model}
@@ -380,7 +380,7 @@ Apart from constant splines, Sections~\ref{sec:simple_example} and~\ref{sec:simu
 Lastly, a \textit{sharp} identified set, in the sense of exploiting all information in the conditional means of $Y$, can be constructed (see Proposition 3 in MST).
 For this, we can take $\mathcal{S} = \{I\{d=d', z=z'\} \text{ for } z'\in Supp_Z, d'\in\{0,1\}\}$.
 This is also the sense in which \textit{sharp} is used throughout this study.
-See the discussion following Proposition 4 for an application for continuous $Z$ and~\cite{marx2024sharp} for sets, that use other features of the data beyond the conditional first moments.
+See the discussion following Proposition 3 for an application for continuous $Z$ and~\cite{marx2024sharp} for identified sets, that use other features of the data beyond the conditional first moments.
 
 \paragraph{Estimation}
 Estimation is complicated by the fact, that the equality constraints in~\ref{eq:lp_identification} might not hold with probability one in finite samples.
