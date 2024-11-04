@@ -950,7 +950,7 @@ This allows for DGPs consistent with decreasing MTR functions, a decreasing MTE,
 \footnote{In the extreme, if we were to set $\gamma_1^{at} = 0$, the largest complier LATE consistent with a decreasing MTE function would be $0$, namely when $\gamma_0^{at}=0$.}
 
 \paragraph{Shape Restrictions}
-I provide simulation results for a model without shape restrictions, a model with positive monotone treatment response (a positive MTE everywhere), and a model with a decreasing treatment effect (a decreasing MTE function).
+I provide simulation results for a model without shape restrictions, a model with positive monotone treatment response (a positive MTE function everywhere), and a model with a decreasing treatment effect (a decreasing MTE function).
 
 \paragraph{Identified Set}
 I focus on the case of the \textit{sharp} identified set in the sense of MST, which is likely the specification most used in practice.
@@ -974,12 +974,12 @@ Hence, in our case this will make use of $\gamma_1^{at}, \gamma_1^{c}, \gamma_0^
 \subsection{Simulation Results}
 Figure~\ref{fig:simulation_binary_iv_bernstein} reports the main simulation results for the default setting of one-sided critical values,  a subsampling share of $0.1\times N$ and a linear program tolerance $\kappa_n = \frac{1}{N}$.
 Nominal coverage is $95$\% throughout all simulations. The first row considers a model without shape constraints, while the second row imposes monotone treatment response and the third a decreasing MTE function.
-The redline indicates the lower bound, which is also the true parameter position.
+The red line indicates the lower bound, which is also the true parameter position.
 The second column for each row focuses on a subset of $\beta_s$ for which inference is most difficult.
 Appendix Figure~\ref{app_fig:simulation_binary_iv_bernstein_means} plots the corresponding mean bound and confidence interval estimates.
 \footnote{Note this illustrates the consistency of the bound estimators proven in~\cite{mogstad2018using}, but for which no simulation studies seem to be available.}
 
-Looking at the results in~\ref{fig:simulation_binary_iv_bernstein} immediately reveals, that in this setting the bootstrap as well as subsampling can have coverage rates far below the nominal level.
+Looking at the results in Figure~\ref{fig:simulation_binary_iv_bernstein} immediately reveals, that in this setting the bootstrap as well as subsampling perform well for some $\beta_s$ but have bad finite sample coverage in large regions.
 Coverage rates are generally close to the nominal level for smaller values of $\beta_s$ where the lower bound is close to linear with few kinks.
 For larger $\beta_s$ coverage is typically far below the nominal level. This is true for both $N=1000$ and $N=10000$ as well as both bootstrap and subsampling.
 Coverage generally deteriorates towards the boundary, but is increasing in the sample size.
@@ -1039,7 +1039,7 @@ The following paragraphs consider variations in some simulation parameters: The 
 \paragraph{Subsampling Size}
 The tuning parameter for subsampling is the size of the subsample.
 Beyond the conditions required for asymptotic theory, namely that the subsample size needs to diverge, but no faster than $N$ so that $B/N \to 0$, little further guidance seems to be available.
-In our case, we are resampling a ratio estimator for $\beta_s$ and which is known to have poor behavior in small samples.
+In our case, we are resampling a ratio estimator for $\beta_s$ which is known to have poor behavior in small samples.
 Hence, using $s = \frac{B}{N}$ too small should yield worse coverage, since any sample of size $B$ is a poor approximation to a sample of size $N$.
 
 Appendix Figure~\ref{app_fig:sims_add_subsample_share_tolerance} reports simulation results in the case without shape restrictions using different subsample share $s \in \{0.05, 0.1, 0.2\}$.
@@ -1049,22 +1049,22 @@ However, the differences are only small and the subsample share hence cannot exp
 \paragraph{Linear Program Tolerance $\kappa_n$}
 ~\cite{mogstad2018using} provide no discussion for the linear program tolerance $\kappa_n$ in their paper.
 The only requirement stated in the main text is that $\kappa_n \to 0$ at an ``appropriate rate''.
-The proof in the appendix is provided for a more general convex loss function and distinguishes between the rate of convergence of $\hat{\Gamma}, \hat{\beta}$ and a tolerance parameter $\tilde{\kappa}_n$ (which I denote differently for clarity).
+The proof in the appendix is provided for a more general convex loss function and distinguishes between the rate of convergence of $\hat{\Gamma}, \hat{\beta}$ denoted $r_n$ and a tolerance parameter $\tilde{\kappa}_n$ (which I denote differently for clarity).
 The requirement is $\frac{\tilde{\kappa}_n}{r_n} \to 0$ and $\tilde{\kappa_n}\to \infty$. Hence, if $r_n = \sqrt{n}$, $\tilde{\kappa}_n$ may diverge at $n^\delta$ for $\delta \in (0, 1/2)$.
 Hence, $\kappa_n = \frac{1}{n^{1/2 - \delta}}$ and the upper bound is given by $\frac{1}{n^{1/2}}$.
 
-~\cite{shea2023ivmte} take the tuning parameter as a scalar of the minimal deviations from the first step program, namely $\kappa_n = \sigma \hat{\mu}$. They set $\sigma = 10^4$ as the default.
-This does not comply with the asymptotic requirement since this converges as $1/\sqrt{r_n}$ to zero.
+~\cite{shea2023ivmte} take the tuning parameter as a multiple of the minimal deviations from the first step program, namely $\kappa_n = \sigma \hat{\mu}$. They set $\sigma = 10^{-4}$ as the default.
+This does not comply with the asymptotic requirement since this converges at rate $r_n$ to zero.
 Note that this sets the tolerance to zero whenever the minimal deviations are zero, that is, whenever there is an exact solution satisfying the equality constraints.
 They also provide no further discussion on this choice.
 
-In practice, for the simulations above I found $\kappa_n = \frac{1}{n}$ to perform reasonably well.
+In practice, for the simulations above I found $\kappa_n = \frac{1}{n}$ to perform reasonably well for estimation (cf. Appendix Figure~\ref{app_fig:simulation_binary_iv_bernstein_means}).
 In addition, I also consider $\kappa_n = \frac{1}{\sqrt{n}}$ and $\kappa_n = \frac{1}{n^2}$.
 For the larger tolerance $\frac{1}{\sqrt{n}}$, the set of feasible solutions is larger, hence we expect smaller estimates for the lower bound and larger estimates for the upper bound.
 The reverse should hold for the smaller tolerance $\kappa_n = \frac{1}{n^2}$.
 Results for simulations using these tolerances are reported in Appendix Figure~\ref{app_fig:sims_add_subsample_share_tolerance}.
 
-Clearly, for the larger tolerance, the estimator performs considerably worse with mean estimates being too wide.
+Clearly, for the larger tolerance, the estimator performs considerably worse with mean estimates being much wider.
 Hence, the resulting coverage probability is typically equal to one.
 Using $\frac{1}{n^2}$, which comes close to the default tolerance of $0$ implicit in~\cite{shea2023ivmte}, no systematic changes to using $\frac{1}{n}$ are evident.
 Hence, the coverage issue does not seem to result from choosing an inappropriate tuning parameter.
@@ -1073,18 +1073,19 @@ Hence, the coverage issue does not seem to result from choosing an inappropriate
 A potential concern with the confidence intervals presented above is poor finite sample coverage whenever we are close to point-identification.
 Clearly, with point-identification using $c_\alpha$ instead of the usual $c_{\alpha/2}$ will result in a too small confidence interval.
 More generally, as pointed out by~\cite{imbens2004confidence}, using the one-sided critical value $c_\alpha$ has a uniformity issue that can translate into poor finite sample coverage.
-In missing data setting, they show that while for every fixed interval length, using $c_\alpha$ is asymptotically justified, for any fixed $N$ it is possible to find a DGP that results in finite sample coverage approaching $1-2\alpha$.
+In a missing data setting, they show that while for every fixed interval length, using $c_\alpha$ is asymptotically justified, for any fixed $N$ it is possible to find a DGP that results in finite sample coverage approaching $1-2\alpha$.
 
-To remedy this issue they propose an adjusted $\tilde{c}\in[c_{\alpha}, c_{\alpha/2}]$ that depends on the length of the confidence interval.
+To remedy this issue they propose an adjusted critical value $\tilde{c}\in[c_{\alpha}, c_{\alpha/2}]$ that depends on the length of the confidence interval.
 Let $\Delta$ denote the length of the identified set, $\sigma_l$ and $\sigma_u$ the asymptotic variances of the estimators for the upper and lower bound.
-Then the proposed adjusted critical value $\tilde{c}$ is defined by
+Then the proposed adjusted critical value $\tilde{c}$ is implicitly defined by
 \begin{equation}\label{eq:imbens_manski_crit}
   \Phi\left(\tilde{c} + \sqrt{N}\frac{\hat{\Delta}}{\max(\hat{\sigma}_l, \hat{\sigma}_u)}\right) - \Phi\left(-\tilde{c}\right) = 1 - \alpha.
 \end{equation}
 Here, $\hat{\cdot}$ denote estimators of their corresponding population quantities.
 ~\cite{imbens2004confidence} provide conditions under which a confidence interval using this critical value has uniform coverage.
-However, their particular assumptions are unlikely to hold in the current setting.
-For example, their Assumption 1(i) requires the estimators for the lower and upper bounds to be asymptotically normal, which, as discussed, is unlikely to hold in the present setting.
+However, it is unclear whether their assumptions are holding in the current setting.
+For example, their Assumption 1(i) requires the estimators for the lower and upper bounds to be jointly asymptotically normal, which, has not been established.
+Further, as argued throughout, in our setting it is not clear how to derive consistent estimators for the asymptotic variance.
 However, their construction still provides a way to derive quantiles for the bootstrap that lie somewhere between $\alpha$ and $\alpha/2$ and depend on the length of the confidence interval.
 
 The idea is implemented as follows:
@@ -1097,12 +1098,12 @@ Lastly, I take $\tilde{\alpha} = 1 - \Phi(\tilde{c})$ to determine the bootstrap
 Appendix Figure~\ref{app_fig:sims_add_alpha_im_crit} reports coverage probabilities using bootstrap percentiles based on one-sided critical values and Imbens-Manski critical values.
 There is almost no difference in the coverage rates.
 Looking at the implied (average) $\tilde{\alpha}$, this results from $\tilde{\alpha} \approx 0.05$.
-To illustrate, the typical bootstrapped standard deviations are of order $1-10$.
+To illustrate, the typical bootstrapped standard deviations are of order $1$ to $10$.
 Hence, with $N = 10,000$ and taking $\max(\sigma_l, \sigma_u)=10$ (larger variances result in smaller $\tilde{\alpha}$), we have
 \begin{equation*}
   \Phi\left(\tilde{c} + 100\Delta\right) - \Phi\left(-\tilde{c}\right) = 1 - 0.05.
 \end{equation*}
-For $\delta=0.1$, the solution would be $\tilde{\alpha} = 0.046$, for $\delta=0.01$, which is far smaller than any of the estimated lengths, we would get $\tilde{\alpha} = 0.028$.
+For $\Delta=0.1$, the solution would be $\tilde{\alpha} = 0.046$, for $\Delta=0.01$, which is far smaller than any of the estimated lengths, we would get $\tilde{\alpha} = 0.028$.
 Hence, based on this simple heuristic we shouldn't expect the coverage problems above to result from convergence to point-identification.
 
 \section{Convex Relaxation}\label{sec:convex_relaxation}
