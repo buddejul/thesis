@@ -762,7 +762,8 @@ This can lead to parameter at the boundary issues, as, for example, discussed in
 
 \subsection{Simulation: Bootstrap and Adjusted Delta Methods}
 This section presents some simple Monte Carlo evidence on the failure of the nonparametric bootstrap in the case of constant splines (``nonparametric'' bounds) with the restriction of increasing MTR functions.
-\footnote{All simulations in the present paper where performed on the Marvin High-Performance-Computing Cluster at the University of Bonn.}
+\footnote{All simulations in the present paper where performed on the Marvin High-Performance-Computing Cluster at the University of Bonn.
+Code for MTE model simulations can be found at \url{https://github.com/buddejul/thesis}.}
 I take the target $LATE(0.4, 0.8)$ and a binary instrument $Z$ with propensity scores $p(0) = 0.4 < 0.6 = p(1)$ and $P(Z=0)=P(Z=1)=0.5$.
 The outcome data is generated as $Y(d) = \gamma_d^g + \varepsilon$ where $\varepsilon \sim N(0,\sigma^2)$ with $\sigma=0.1$ and $g=g(u)$ refers to the three subpopulations (complier, never-taker, always-taker).
 We treat only the complier late $\beta_s = \gamma_1^c - \gamma_0^c$ as point-identified and the remaining parameters are chosen such that the true parameter is at the upper bound of the identified set.
@@ -973,6 +974,7 @@ Hence, in our case this will make use of $\gamma_1^{at}, \gamma_1^{c}, \gamma_0^
 
 \subsection{Simulation Results}
 Figure~\ref{fig:simulation_binary_iv_bernstein} reports the main simulation results for the default setting of one-sided critical values,  a subsampling share of $0.1\times N$ and a linear program tolerance $\kappa_n = \frac{1}{N}$.
+\footnote{Simulations were performed using my own Python implementation of the MTE approach. See Appendix Section~\ref{app_sec:pyvmte} and \url{https://github.com/buddejul/pyvmte}.}
 Nominal coverage is $95$\% throughout all simulations. The first row considers a model without shape constraints, while the second row imposes monotone treatment response and the third a decreasing MTE function.
 The red line indicates the lower bound, which is also the true parameter position.
 The second column for each row focuses on a subset of $\beta_s$ for which inference is most difficult.
@@ -1181,6 +1183,8 @@ Hence, the value function is also closer to the original linear program one, whi
 
 \paragraph{Monte Carlo}
 I study the performance of the proposed method in a simple Monte Carlo experiment, using the setting as described above with $c_2=1$.
+\footnote{The code to reproduce these simulations can be found under \url{https://github.com/buddejul/lp_relax}.
+Simulations were again performed on the Marvin cluster.}
 $c_1$ is treated as unknown, but we have noisy measurements $X_i \sim N(c_1, 1)$ so $\hat{c_1} = \frac{1}{N}\sum_i X_i$ is a consistent estimator.
 The goal is to construct lower one-sided confidence intervals that cover the value function with a pre-specified probability.
 
@@ -1796,7 +1800,7 @@ In particular, all of these constraints are non-random.
 \clearpage
 \newpage
 
-\section{Pyvmte Implementation}
+\section{Pyvmte Implementation}\label{app_sec:pyvmte}
 All simulations for the more complicated MTE model settings are performed using an implementation of both the identification and estimation procedures in Python.
 The implementation in the form of the \textit{pyvmte} module can be found under \url{https://github.com/buddejul/pyvmte}.
 This implementation grew out of a programming class at the University of Bonn.
