@@ -233,30 +233,36 @@ Treatment Effect Models \\[3.5cm]
 
 \section{Introduction}\label{sec:introduction}
 Causal inference using instrumental variables is part of the toolkit of almost all applied economists.
-One particular prominent result is that of~\cite{imbens_angrist1994ecma}, who show that instruments can identify a certain local average treatment effect, namely for those people who respond to the treatment.
-While clarifying the estimation of the point-identified estimand typically reported in many studies, this provides no guidance in formally reasoning about other parameters of interest, like the average treatment effect or treatment effect for other subpopulations, that are generally not point-identified.
+One particular prominent result is that of~\cite{imbens_angrist1994ecma}, who show that instruments can identify a certain local average treatment effect, namely for those people who respond to the instrument by shifting their treatment status.
+While this result clarifies the interpretation of estimates typically reported in applied work, it provides no guidance for formally reasoning about other parameters of interest, like the average treatment effect or treatment effects for other subpopulations.
+These parameters are generally not point-identified without making assumptions beyond those required for the local average treatment effect result.
 There are several intuitive approaches to make progress, that can be found throughout the literature, but many of them are unappealing, at least on their own:
-Homogeneity assumptions are likely to be wrong. After all, some individuals did not select into treatment, although they could have and one reason might be knowledge about a negative treatment effect.
-Using only bounds on the outcome for partial identification typically leave wide intervals and implies unappealing discontinuities in the treatment response.
+Homogeneity assumptions are likely to be wrong. After all, some individuals did not select into treatment and one reason might be knowledge about a negative individual treatment effect.
+Using only bounds on the outcome for partial identification typically leaves wide intervals and implies unappealing discontinuities in the treatment response.
 Other assumptions might be possible to enforce on a case-by-case basis, but this can quickly get unwieldy.
 
-~\cite{mogstad2018using} seek to remedy this problem by providing a unifying framework that allows to transparently combine
-(a) information in the data and (b) theoretical assumptions into an identified interval for many target parameters of interest.
-In particular, they rely on a characterization of the underlying population by a latent variable describing heterogeneity or, in economic terms, resistance to treatment.
+~\cite{mogstad2018using} seek to remedy this problem by providing a unified framework that allows to transparently combine
+information in the data and theoretical assumptions into an identified interval for many target parameters of interest.
+In particular, they rely on a characterization of the underlying population by a latent variable describing unobserved heterogeneity or, in economic terms, resistance to treatment.
 The model can then be reformulated in terms of \textit{marginal} treatment effects for a particular resistance to treatment.
 This characterization allows to combine many assumptions previously imposed in the literature (like a decreasing treatment effect or a monotone treatment response), but also to incorporate smoothness and parametric assumptions.
 
 The usefulness of any such method for applied researchers also depends on the ease with which statistical uncertainty can be accounted for.
 That is, how difficult it is to construct valid confidence intervals.
 However, inference seems to have gained less attention in the existing literature, possibly due to the lack of theoretical results and the relative difficulty of implementation compared to traditional methods.
-While the working paper version~\cite{mogstad2017using_nber} contain a potential procedure for constructing confidence intervals, it is not implemented in their own later implementation \citep{shea2023ivmte} and no simulation results are available.
+While the working paper version~\cite{mogstad2017using_nber} contains a potential procedure for constructing confidence intervals, it is not implemented in their own later implementation \citep{shea2023ivmte} and no simulation results are available.
 \footnote{The steps necessary for the inference procedure are described on p. 87 of~\cite{mogstad2017using_nber}.
 In addition to constructing the usual sample analogue estimators it involves: (1) Solving two mixed integer linear programs for each bootstrap draw for tuning parameter choice, followed by (2) solving a bilinear maximization problem for each bootstrap draw.}
-Instead,~\cite{shea2023ivmte} implement several resampling techniques, which will also be studied here, but report no simulations.
+Instead,~\cite{shea2023ivmte} implement several resampling techniques including the bootstrap, but report no simulations.
 
 This study seeks to fill this gap by conducting Monte Carlo experiments and provides some suggestions on potential inference approaches other than the bootstrap.
 I consider a delta method for inference on directionally differentiable functions suggested in~\cite{fang2019infdirdiff} and~\cite{hong2018numerical} for a simple example with explicit solutions.
 For more complicated settings, the performance of the nonparametric bootstrap as well as subsampling are studied.
+I also suggest a different approach to the ones found in the literature, which relies on appropriately relaxing the constraints of the linear program used to compute the identified set to a larger, but strictly convex feasible set.
+
+The paper is structured as follows. Section~\ref{sec:general_mte} introduces the framework of~\cite{mogstad2018using} and briefly describes potential inference methods.
+Section~\ref{sec:simple_example} is concerned with inference in a simple model, for which explicit solutions are available, while Section~\ref{sec:simulation_studies} focuses on a setting with flexible polynomial restrictions closer to actual applications.
+Lastly, Section~\ref{sec:convex_relaxation} discusses an idea for a conservative inference approach based on relaxing the constraint set and provides a simple Monte Carlo simulation.
 
 \section{Background: MTE Model and Inference Methods}\label{sec:general_mte}
 As a background for the results in the following sections, I restate the MTE approach presented in~\cite{mogstad2018using} as well as different approaches to inference.
@@ -911,15 +917,16 @@ Without any further restrictions, this would occur at $\gamma_1^{nt} - \gamma_0^
 However, if we are using Bernstein polynomials, it is unclear, which values of the non-identified parameters imply parameter positions on the boundary as well as comply with any other shape restrictions.
 
 \paragraph{MTR Functions: Bernstein Polynomials}
-The goal is to find two Bernstein polynomial of the specified order $k$ for $m_0, m_1$, that
-(1) are consistent with the moments point-identified moments $\gamma_1^{at}, \gamma_1^c, \gamma_0^c, \gamma_0^{nt}$;
-(2) imply a parameter at the boundary of the identified set;
+The goal is to find two Bernstein polynomials of the specified order $k$ for $m_0, m_1$, that
+(1) are consistent with the point-identified moments $\gamma_1^{at}, \gamma_1^c, \gamma_0^c, \gamma_0^{nt}$,
+(2) imply a parameter at the boundary of the identified set, and
 (3) are consistent with any other shape restrictions.
 
 To this end, I first solve the linear program for the identification problem using the desired Bernstein polynomial as the basis functions.
-The values of the point-identified parameters in this problem are computed based on the constant spline MTR functions. In this way, we can
+The values of the point-identified parameters in this problem are computed based on the constant spline MTR functions.
+In this way, we can specify the DGP in terms of the parameters $\gamma_d^g$ (using constant splines) while generating Bernstein polynomial MTR functions.
 The basis function coefficient vector that solves the linear program can then be used to construct the desired MTR functions as Bernstein polynomials.
-By construction, it generates the point-identified parameters, implies a parameter at the boundary (either the upper or lower bound depending on the linear program), and satisfies any shape restrictions that are imposed.
+By construction, it generates the point-identified parameters, implies a parameter at the boundary (either the upper or lower bound depending on whether we use the upper or lower bound linear program solution), and satisfies any shape restrictions that are imposed.
 Note, however, that the linear program might not have a solution and hence no DGP satisfying these requirements exists.
 
 \paragraph{Data}
@@ -1098,7 +1105,7 @@ Hence, with $N = 10,000$ and taking $\max(\sigma_l, \sigma_u)=10$ (larger varian
 For $\delta=0.1$, the solution would be $\tilde{\alpha} = 0.046$, for $\delta=0.01$, which is far smaller than any of the estimated lengths, we would get $\tilde{\alpha} = 0.028$.
 Hence, based on this simple heuristic we shouldn't expect the coverage problems above to result from convergence to point-identification.
 
-\section{Convex Relaxation}
+\section{Convex Relaxation}\label{sec:convex_relaxation}
 Given the difficulty of inference evident in the simulation results of the previous section, we now provide some suggestions for a conservative inference approach.
 The main idea, is to provide a conservative approximation to the solutions of the linear program $\overline{\beta^*}, \underline{\beta^*}$ by solving a slightly relaxed, but nonlinear program.
 In particular, we will replace the box constraint $x\in[0,1]^d$ on the basis coefficients by a larger and strictly convex set $\mathcal{A}$.
@@ -1290,7 +1297,7 @@ However, this is not meant to show, that numerical optimization in these higher 
 
 \section{Conclusion}
 This study was concerned with statistical inference in the MTE model, when point-identified parameters and theoretical restrictions are used to partially identify a target parameter of interest.
-While the study of inference methods is yet incomplete, some conclusions can be drawn:
+While the study of inference methods is still incomplete, some conclusions can be drawn:
 First, in the most simple models it might be worthwhile to derive explicit formulas for the identified set instead of blindly bootstrapping the linear program.
 Depending on the exact setting, the solutions will feature kinks in the identified parameters and other boundary issues might arise.
 For the cases where explicit solutions are known, inference might be adjusted based on forms of the directional derivative as suggested by~\cite{fang2019infdirdiff}.
@@ -1300,7 +1307,7 @@ The simulation studies here show, that the bootstrap as well as subsampling can 
 
 However, the current simulations are also missing some promising inference methods:
 ~\cite{bei2023inference} proposes conservative inference based on a projection approach.~\cite{bhattacharya2009inferring} and~\cite{freyberger2015identification} provide asymptotic results on the value function of a linear program.
-Ideas in~\cite{de_wolf_smeers2021generalized} might be used to approximate the gradient of the value function and use a delta method in the spirit of~\cite{shapiro1991asymptotic},~\cite{fang2019infdirdiff}.
+Ideas in~\cite{de_wolf_smeers2021generalized} might be used to approximate the gradient of the value function and use a delta method in the spirit of~\cite{shapiro1991asymptotic} and~\cite{fang2019infdirdiff}.
 In the context of the model, it might be worthwhile thinking about heuristics for the choice of $\kappa_n$.
 Slightly relaxing the tolerance $\frac{1}{n}$ but not as far as $\frac{1}{n^2}$, which was considered here, might provide conservative inference at the sake of a slightly slower convergence of the estimator.
 Alternatively, it might be possible to make the convex relaxation approach work also for larger problems.
