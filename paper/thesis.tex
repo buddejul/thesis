@@ -1108,7 +1108,7 @@ Hence, based on this simple heuristic we shouldn't expect the coverage problems 
 
 \section{Convex Relaxation}\label{sec:convex_relaxation}
 Given the difficulty of inference evident in the simulation results of the previous section, we now provide some suggestions for a conservative inference approach.
-The main idea, is to provide a conservative approximation to the solutions of the linear program $\overline{\beta^*}, \underline{\beta^*}$ by solving a slightly relaxed, but nonlinear program.
+The main idea is to provide a conservative approximation to the solutions of the linear program $\overline{\beta^*}, \underline{\beta^*}$ by solving a slightly relaxed, but nonlinear program.
 In particular, we will replace the box constraint $x\in[0,1]^d$ on the basis coefficients by a larger and strictly convex set $\mathcal{A}$.
 \footnote{In the following, I will drop the \textit{strict} qualifier and refer to this as convex relaxation. The set $[0,1]^d$ is of course also convex (but not strictly so).}
 
@@ -1182,7 +1182,7 @@ Hence, the value function is also closer to the original linear program one, whi
 \paragraph{Monte Carlo}
 I study the performance of the proposed method in a simple Monte Carlo experiment, using the setting as described above with $c_2=1$.
 $c_1$ is treated as unknown, but we have noisy measurements $X_i \sim N(c_1, 1)$ so $\hat{c_1} = \frac{1}{N}\sum_i X_i$ is a consistent estimator.
-The goal is to construct one-sided confidence intervals that cover the value function with a pre-specified probability.
+The goal is to construct lower one-sided confidence intervals that cover the value function with a pre-specified probability.
 
 To solve the optimization problems I tried several algorithms accessible via the \textit{optimagic} Python package~\citep{Gabler2024}.
 The most suited to this small problem was found to be the \textit{SciPy}~\citep{scipy} implementation of the COBYLA algorithm~\citep{cobyla_powell1994direct}.
@@ -1269,7 +1269,7 @@ If all or some of the constraints are unknown, equivalent asymptotic results can
 See Theorems 3.4 for the directional derivative and Theorem 3.5 for the asymptotic distribution.
 Again, for a unique solution, this distribution is normal, with variance equal to the variance of the Lagrangian evaluated at the optimal solution.
 Hence, this takes into account uncertainty both in the objective function and the constraints.
-Since the $l_1$ norm in the MTE estimation linear program is convex, replacing the box constraint by a convex relaxation would give such a program.
+Since the $l_1$ norm in the MTE estimation linear program is also convex, replacing the box constraint by a convex relaxation would give such a program.
 
 \paragraph{Choosing $\mathcal{A}$}
 Figure~\ref{fig:convex_relax_solution} shows a potential problem with norm-based relaxations $\mathcal{A}$:
@@ -1290,7 +1290,7 @@ To illustrate these difficulties, I consider one of the MTE problems studied in 
 Four equality constraints for the point-identified estimands reduce the number of free parameters to $20$; reparameterization is performed in the background by \textit{optimagic}.
 The unit box $[0,1]^{24}$ is the only other constraint and I again relax it by the recentered norms of degree $k$.
 Appendix Figure~\ref{app_fig:convex_relax_mte_bernstein_11} plots the resulting approximations to the lower bound.
-Sub-figure (a) provides approximations for varying $k$, while sub-figure (b) considers solutions for $k=10$ with multiple algorithms.
+Sub-figure (a) provides approximations for varying $k$, while sub-figure (b) considers solutions for $k=20$ with multiple algorithms.
 Notably, to get a close enough approximation, $k=20$ or $k=40$ is required. However, the solution is visibly unstable.
 Different optimization routines result in vastly different solutions, pointing to convergence issues, and with large $k$ numerical precision becomes a concern.
 However, this is not meant to show, that numerical optimization in these higher dimensional, yet simple problems is impossible, but merely to point out that several additional difficulties are introduced by relaxing the constraint that are not present with a pure linear programming approach.
