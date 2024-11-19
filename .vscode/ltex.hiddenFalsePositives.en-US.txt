@@ -1,0 +1,21 @@
+{"rule":"UPPERCASE_SENTENCE_START","sentence":"^\\Qbreaklines=true, postbreak=, numbers=left, numbersep=5pt, numberstyle=, basicstyle=\\E$"}
+{"rule":"MORFOLOGIK_RULE_EN_US","sentence":"^\\Qbreaklines=true, postbreak=, numbers=left, numbersep=5pt, numberstyle=, basicstyle=\\E$"}
+{"rule":"WHITESPACE_RULE","sentence":"^\\Qver@etex.sty3000/12/31\\E$"}
+{"rule":"MORFOLOGIK_RULE_EN_US","sentence":"^\\Qcompat=1.18\\E$"}
+
+{"rule":"MASS_AGREEMENT","sentence":"^\\QMST maintain the following assumptions, which guarantee a \"valid\" instrument\\E$"}
+{"rule":"MASS_AGREEMENT","sentence":"^\\QMST maintain the following assumptions, which guarantee a “valid” instrument\\E$"}
+{"rule":"HE_VERB_AGR","sentence":"^\\QTo address this, MST propose a two-way estimator that is guaranteed to exist.\\E$"}
+{"rule":"NO_COMMA_BEFORE_INDIRECT_QUESTION","sentence":"^\\QIn particular, we know \\E(?:Dummy|Ina|Jimmy-)[0-9]+\\Q, where \\E(?:Dummy|Ina|Jimmy-)[0-9]+\\Q is easy to estimate.\\E$"}
+{"rule":"MORFOLOGIK_RULE_EN_US","sentence":"^\\QOne potential source of information could be solving the estimation problem at hand under increasing relaxations as well as comparing the degree of conservativeness to an initial (biased) bootstrap estimate of the standard error.\\E$"}
+
+{"rule":"IF_IS","sentence":"^\\QThe directional derivative in our case is given by \\E(?:Dummy|Ina|Jimmy-)[0-9]+\\Q if \\E(?:Dummy|Ina|Jimmy-)[0-9]+\\Q if \\E(?:Dummy|Ina|Jimmy-)[0-9]+$"}
+{"rule":"IF_IS","sentence":"^\\QThe directional derivative in our case is given by \\E(?:Dummy|Ina|Jimmy-)[0-9]+\\Q if \\E(?:Dummy|Ina|Jimmy-)[0-9]+\\Q if \\E(?:Dummy|Ina|Jimmy-)[0-9]+\\Q if \\E(?:Dummy|Ina|Jimmy-)[0-9]+\\Q.\\E$"}
+{"rule":"IF_IS","sentence":"^\\QIn particular, consider the estimator \\E(?:Dummy|Ina|Jimmy-)[0-9]+\\Q if \\E(?:Dummy|Ina|Jimmy-)[0-9]+\\Q if \\E(?:Dummy|Ina|Jimmy-)[0-9]+\\Q if \\E(?:Dummy|Ina|Jimmy-)[0-9]+\\Q.\\E$"}
+{"rule":"IF_IS","sentence":"^\\QIn particular, consider the estimator \\E(?:Dummy|Ina|Jimmy-)[0-9]+\\Q if \\E(?:Dummy|Ina|Jimmy-)[0-9]+\\Q if \\E(?:Dummy|Ina|Jimmy-)[0-9]+\\Q if \\E(?:Dummy|Ina|Jimmy-)[0-9]+\\Q, where \\E(?:Dummy|Ina|Jimmy-)[0-9]+\\Q is an estimator of the asymptotic standard deviation of \\E(?:Dummy|Ina|Jimmy-)[0-9]+\\Q.\\E$"}
+{"rule":"IF_IS","sentence":"^\\QHence, I construct the following estimator which takes into account both variability in estimating \\E(?:Dummy|Ina|Jimmy-)[0-9]+\\Q and \\E(?:Dummy|Ina|Jimmy-)[0-9]+\\Q: \\E(?:Dummy|Ina|Jimmy-)[0-9]+\\Q if \\E(?:Dummy|Ina|Jimmy-)[0-9]+\\Q if \\E(?:Dummy|Ina|Jimmy-)[0-9]+\\Q if \\E(?:Dummy|Ina|Jimmy-)[0-9]+\\Q.\\E$"}
+
+{"rule":"IF_IS","sentence":"^\\QThe directional derivative for our case when \\E(?:Dummy|Ina|Jimmy-)[0-9]+\\Q is known is given by \\E(?:Dummy|Ina|Jimmy-)[0-9]+\\Q if \\E(?:Dummy|Ina|Jimmy-)[0-9]+\\Q if \\E(?:Dummy|Ina|Jimmy-)[0-9]+\\Q if \\E(?:Dummy|Ina|Jimmy-)[0-9]+\\Q.\\E$"}
+{"rule":"EN_A_VS_AN","sentence":"^\\QI report results for a lower-order, and hence more restrictive polynomial of degree \\E(?:Dummy|Ina|Jimmy-)[0-9]+\\Q as well as an \\E(?:Dummy|Ina|Jimmy-)[0-9]+\\Qth order polynomial similar to the numerical example in \\E(?:Dummy|Ina|Jimmy-)[0-9]+\\Q.\\E$"}
+
+{"rule":"MASS_AGREEMENT","sentence":"^\\QMST provide no distributional results.\\E$"}

@@ -1,5 +1,7 @@
 """Task for running bootstrap simulations."""
 
+import inspect
+import pickle
 from collections.abc import Callable
 from pathlib import Path
 from typing import Annotated, NamedTuple
@@ -23,9 +25,9 @@ class _Arguments(NamedTuple):
     bootstrap_params: dict[str, Callable]
     path_to_data: Path | None = None
     pscore_hi: float = 0.6
-    alpha: float = 0.05
-    n_boot: int = 500
-    n_sims: int = 2_000
+    alpha: float = 0.10
+    n_boot: int = 2000
+    n_sims: int = 2000
     rng: np.random.Generator = RNG
 
 
@@ -34,12 +36,13 @@ N_OBS = [1_000, 10_000]
 PSCORES_LOW = [0.4]
 CONSTRAINTS_MTR = ["increasing"]
 BOOTSTRAP_METHODS = ["standard", "numerical_delta", "analytical_delta"]
-LATES_COMPLIER = np.concat((np.linspace(-0.4, 0.4, num=20), np.zeros(1)))
+LATES_COMPLIER = np.concatenate((np.linspace(-0.4, 0.4, num=14), np.zeros(1)))
 EPS_FUNS_NUMERICAL_DELTA = [
     lambda n: n ** (-1 / 2),
+    lambda n: n ** (-1 / 6),
 ]
 KAPPA_FUNS_ANALYTICAL_DELTA = [
-    lambda n: np.log(n) ** (1 / 2),
+    lambda n: np.sqrt(np.log(n)),
 ]
 
 
@@ -103,7 +106,7 @@ for id_, kwargs in ID_TO_KWARGS.items():
 
 for id_, kwargs in ID_TO_KWARGS.items():
 
-    @pytask.mark.skip()
+    @pytask.mark.hpc()
     @task(id=id_, kwargs=kwargs)  # type: ignore[arg-type]
     def task_bootstrap_sims(
         n_sims: int,
@@ -127,7 +130,7 @@ for id_, kwargs in ID_TO_KWARGS.items():
             pscores=np.array([pscore_low, pscore_hi]),
         )
 
-        res = simulation_bootstrap(
+        data = simulation_bootstrap(
             n_sims=n_sims,
             n_obs=n_obs,
             n_boot=n_boot,
@@ -141,4 +144,30 @@ for id_, kwargs in ID_TO_KWARGS.items():
             bootstrap_params=bootstrap_params,
         )
 
-        res.to_pickle(path_to_data)
+        # If bootstrap_params has "kappa_fun" or "eps_fun", inspect the function
+        # and return the sourcelines to avoid pickling issues.
+        for key, value in bootstrap_params.items():
+            if isinstance(value, Callable):  # type: ignore[arg-type]
+                bootstrap_params[key] = str(inspect.getsourcelines(value)[0])  # type: ignore[assignment]
+
+        settings = {
+            "n_sims": n_sims,
+            "n_obs": n_obs,
+            "n_boot": n_boot,
+            "u_hi": u_hi,
+            "local_ates": local_ates,
+            "alpha": alpha,
+            "instrument": instrument,
+            "constraint_mtr": constraint_mtr,
+            "rng": rng,
+            "bootstrap_method": bootstrap_method,
+            "bootstrap_params": bootstrap_params,
+        }
+
+        out = {
+            "data": data,
+            "settings": settings,
+        }
+
+        with Path.open(path_to_data, "wb") as handle:
+            pickle.dump(out, handle, protocol=pickle.HIGHEST_PROTOCOL)

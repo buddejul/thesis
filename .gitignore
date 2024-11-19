@@ -10,7 +10,7 @@
 .pytask
 
 # bld
-bld/
+/bld/
 
 # latex
 *.aux
@@ -28,6 +28,8 @@ bld/
 *.toc
 *.snm
 *.nav
+*.lof
+*.lot
 
 # Jupyter notebooks
 *.ipynb

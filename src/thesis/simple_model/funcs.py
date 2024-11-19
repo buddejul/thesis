@@ -515,7 +515,9 @@ def _d_phi_kink(
         + cond_left * b * slope_left
         + cond_mid * ((b < 0) * b * slope_left + (b >= 0) * b * slope_right)
         + w * slope_w
+        # TODO(@buddejul): Shouldn't this only be relevant whenever cond_mid?
         + beta_late * w * (b >= 0)
+        # TODO(@buddejul): Product rule term...
     )
 
 
