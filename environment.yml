@@ -25,15 +25,6 @@ dependencies:
   - pandas >=2.2
   - plotly >=5.2.0,<6
 
-  # R template project dependencies
-  # Currently we are not using R hence we do not need to install these dependencies.
-  # - pytask-r >=0.4.1
-  # - pyreadr
-  # - r-plyr
-  # - r-precommit
-  # - r-yaml
-  # - r-forcats
-
   # Install project
   - pip:
     - -e .
