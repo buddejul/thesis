@@ -33,3 +33,4 @@ dependencies:
     - joblib
     - git+https://github.com/buddejul/pyvmte@im_crit
     - coptpy
+    - pycddlib
