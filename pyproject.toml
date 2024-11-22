@@ -19,6 +19,7 @@ plot_for_paper_wip = "A marker for plots specifically for the paper."
 solve = "A marker for tasks solving models."
 relax = "A marker for tasks working on relaxation of the LP."
 simple_model_sims = "A marker for simple model simulations."
+bhatta = "Bhattachayra 2009 analysis."
 
 [tool.ruff]
 target-version = "py311"
