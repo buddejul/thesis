@@ -1,4 +1,5 @@
 """Task for running Bhatta 2009 simulations."""
+
 import pickle
 from collections.abc import Callable
 from functools import partial
@@ -32,12 +33,7 @@ class _Arguments(NamedTuple):
 
 num_obs_for_sim = [100, 1_000, 10_000]
 
-num_gridpoints = 10
-start = -0.2
-end = 0.2
-c_1_for_sim = np.sort(
-    np.concatenate([np.linspace(start, end, num_gridpoints), np.zeros(1)]),
-)
+c_1_for_sim = [-0.2, -0.15, -0.1, -0.05, -0.01, 0, 0.01, 0.05, 0.1, 0.15, 0.2]
 
 c_n_for_sim = [
     partial(

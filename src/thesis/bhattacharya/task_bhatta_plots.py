@@ -6,10 +6,13 @@ from typing import Annotated, NamedTuple
 
 import numpy as np
 import pandas as pd  # type: ignore[import-untyped]
-import plotly.graph_objects as go  # type: ignore[import-untyped]
 import pytask
 from pytask import Product, task
 
+from thesis.bhattacharya.bhatta_plot_funcs import (
+    plot_bhatta_sims,
+    plot_bhatta_sims_histogram,
+)
 from thesis.bhattacharya.task_bhatta_sims import ID_TO_KWARGS
 from thesis.config import BLD
 
@@ -19,6 +22,14 @@ paths_to_sim_res = [kwargs.path_to_res for kwargs in ID_TO_KWARGS.values()]
 class _ArgsPlots(NamedTuple):
     num_obs: int
     stat_to_plot: str
+    path_to_plot: Path
+
+
+class _ArgsPlotsHisto(NamedTuple):
+    num_obs: int
+    stat_to_plot: str
+    c_1: float
+    c_n_alpha: str
     path_to_plot: Path
 
 
@@ -107,101 +118,41 @@ for id_, kwargs in ID_TO_KWARGS_PLOTS.items():
         fig.write_image(path_to_plot)
 
 
-def plot_bhatta_sims(
-    data: pd.DataFrame,
-    stat_to_plot: str,
-) -> go.Figure:
-    """Plot the simulation results."""
-    data_for_plot = data.groupby(["c_1", "c_n_name"]).mean()
-
-    data_for_plot = data_for_plot.reset_index()
-
-    setting = {}
-
-    # Construct "c_n_alpha" by extracting the alpha from the c_n_name
-    # c_n_name is of the form {'alpha': 0.05, 'sigma': 1.0}
-    # So we need to extract the number following "alpha" from the string column
-
-    for col in ["num_obs", "num_sims", "alpha"]:
-        # Check unique, then assign to variable
-        unique_values = data_for_plot[col].unique()
-
-        if len(unique_values) != 1:
-            msg = f"Multiple unique values for {col}"
-            raise ValueError(msg)
-
-        setting[col] = unique_values[0]
-
-    c_n_alpha_to_color = {
-        0.05: "blue",
-        0.025: "red",
-        0.0125: "green",
-        0.1: "orange",
-        0.2: "purple",
-        0.4: "black",
-        0.00625: "brown",
-    }
-
-    fig = go.Figure()
-
-    for c_n_alpha in data_for_plot["c_n_alpha"].unique():
-        data = data_for_plot.query(f"c_n_alpha == {c_n_alpha}")
-
-        fig.add_trace(
-            go.Scatter(
-                x=data["c_1"],
-                y=data[stat_to_plot],
-                mode="lines",
-                name=f"c_n alpha = {c_n_alpha}",
-                line={"color": c_n_alpha_to_color[c_n_alpha]},
-            ),
-        )
-
-    fig.update_layout(
-        title=(
-            f"Coverage of Confidence Intervals <br>"
-            f"<sub>(N = {setting['num_obs']:.0f},"
-            f" Simulations = {setting['num_sims']:.0f},"
-            f" Nominal Coverage = {1 - setting['alpha']:.2f})</sub>"
-        ),
-        xaxis_title="True Value",
-        yaxis_title=f"{stat_to_plot.capitalize()}",
+ID_TO_KWARGS_PLOTS_HISTO = {
+    f"histo_{num_obs}_{stat_to_plot}_{c_1}_{c_n_alpha}": _ArgsPlotsHisto(
+        num_obs=num_obs,
+        stat_to_plot=stat_to_plot,
+        c_1=c_1,
+        c_n_alpha=c_n_alpha,
+        path_to_plot=BLD
+        / "bhatta"
+        / "plots"
+        / "histograms"
+        / f"{stat_to_plot}"
+        / f"histogram_{stat_to_plot}_{num_obs}_{c_1}_{c_n_alpha}.png",
     )
+    for num_obs in [100, 1_000, 10_000]
+    for stat_to_plot in ["z_lo", "z_hi"]
+    for c_1 in [-0.01]
+    for c_n_alpha in np.array([1, 8]) * 0.05
+}
 
-    c_1_min = np.min(data_for_plot["c_1"])
-    c_1_max = np.max(data_for_plot["c_1"])
 
-    # Add a line at 0.95
-    if stat_to_plot in ["covers", "covers_hi", "covers_lo"]:
-        fig.add_shape(
-            type="line",
-            x0=c_1_min,
-            y0=1 - setting["alpha"],
-            x1=c_1_max,
-            y1=1 - setting["alpha"],
-            line={"color": "black", "width": 1},
-        )
+for id_histo, kwargs_histo in ID_TO_KWARGS_PLOTS_HISTO.items():
 
-    if stat_to_plot in ["v_hat", "ci_midpoint", "ci_lo", "ci_hi"]:
-        fig.add_trace(
-            go.Scatter(
-                x=data_for_plot["c_1"],
-                y=data_for_plot["true"],
-                mode="lines",
-                name="True v",
-                line={"dash": "dash", "color": "black"},
-            ),
-        )
+    @pytask.mark.bhatta()
+    @task(id=id_histo, kwargs=kwargs_histo)  # type: ignore[arg-type]
+    def task_plot_bhatta_sims_histogram(
+        num_obs: int,
+        stat_to_plot: str,
+        c_1: float,
+        c_n_alpha: str,
+        path_to_plot: Annotated[Path, Product],
+        path_to_combined_res: Path = BLD / "bhatta" / "sims" / "combined_res.pkl",
+    ) -> None:
+        """Description of the task."""
+        data = pd.read_pickle(path_to_combined_res)
 
-    if stat_to_plot in ["ci_midpoint"]:
-        fig.add_trace(
-            go.Scatter(
-                x=data_for_plot["c_1"],
-                y=data_for_plot["v_hat"],
-                mode="lines",
-                name="Estimated v",
-                line={"dash": "dash", "color": "black"},
-            ),
-        )
+        fig = plot_bhatta_sims_histogram(data, stat_to_plot, c_1, c_n_alpha, num_obs)
 
-    return fig
+        fig.write_image(path_to_plot)
