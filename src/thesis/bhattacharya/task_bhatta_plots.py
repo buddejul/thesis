@@ -28,7 +28,7 @@ ID_TO_KWARGS_PLOTS = {
         stat_to_plot=stat_to_plot,
         path_to_plot=BLD / "bhatta" / "plots" / f"{stat_to_plot}_{num_obs}.png",
     )
-    for num_obs in [100, 1_000]
+    for num_obs in [100, 1_000, 10_000]
     for stat_to_plot in [
         "covers",
         "covers_lo",
@@ -134,6 +134,10 @@ def plot_bhatta_sims(
         0.05: "blue",
         0.025: "red",
         0.0125: "green",
+        0.1: "orange",
+        0.2: "purple",
+        0.4: "black",
+        0.00625: "brown",
     }
 
     fig = go.Figure()

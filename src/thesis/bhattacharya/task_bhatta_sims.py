@@ -30,7 +30,7 @@ class _Arguments(NamedTuple):
     rng: np.random.Generator = RNG
 
 
-num_obs_for_sim = [100, 1_000]
+num_obs_for_sim = [100, 1_000, 10_000]
 
 num_gridpoints = 10
 start = -0.2
@@ -45,12 +45,12 @@ c_n_for_sim = [
         alpha=params["alpha"] / ratio,
         sigma=params["sigma"],
     )
-    for ratio in [0.25, 0.5, 1, 2, 4]
+    for ratio in [0.125, 0.25, 0.5, 1, 2, 4, 8]
 ]
 
 ID_TO_KWARGS = {
-    f"{num_obs}_{c_1}_{c_n(num_obs):.2f}": _Arguments(
-        path_to_res=BLD / "bhatta" / "sims" / f"{num_obs}_{c_1}_{c_n(num_obs):.2f}.pkl",
+    f"{num_obs}_{c_1}_{c_n(num_obs)}": _Arguments(
+        path_to_res=BLD / "bhatta" / "sims" / f"{num_obs}_{c_1}_{c_n(num_obs)}.pkl",
         num_obs=num_obs,
         c_1=c_1,
         c_n=c_n,
