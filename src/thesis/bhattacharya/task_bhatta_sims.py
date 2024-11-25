@@ -83,6 +83,7 @@ for id_, kwargs in ID_TO_KWARGS.items():
             num_sims=num_sims,
             alpha=alpha,
             rng=rng,
+            ci_type="b2009",
         )
 
         sim_params = {

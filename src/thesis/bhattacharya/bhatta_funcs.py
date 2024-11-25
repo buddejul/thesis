@@ -252,20 +252,29 @@ def sim_confidence_interval(
     sigma: float,
     num_sims: int,
     alpha: float,
+    ci_type: str,
     rng: np.random.Generator,
 ) -> pd.DataFrame:
     """Simulate finite sample distribution of v_hat."""
+    allowed_ci_type = ["b2009"]
+
+    if ci_type not in allowed_ci_type:
+        msg = f"ci_type must be one of {allowed_ci_type} but got {ci_type}."
+        raise ValueError(msg)
+
     res = np.zeros((num_sims, 6))
 
     for i in range(num_sims):
         data = draw_data(num_obs, c_1, sigma, rng)
-        res[i, :] = bhatta_confidence_interval(
-            data=data,
-            c_n=c_n,
-            n_reps=1000,
-            alpha=alpha,
-            rng=rng,
-        )
+
+        if ci_type == "b2009":
+            res[i, :] = bhatta_confidence_interval(
+                data=data,
+                c_n=c_n,
+                n_reps=1000,
+                alpha=alpha,
+                rng=rng,
+            )
 
     cols = ["ci_lo", "ci_hi", "z_lo", "z_hi", "v_hat", "num_solutions"]
 
