@@ -38,6 +38,8 @@ ID_TO_KWARGS_PLOTS = {
         "ci_lo",
         "ci_hi",
         "ci_midpoint",
+        "z_lo",
+        "z_hi",
     ]
 }
 
