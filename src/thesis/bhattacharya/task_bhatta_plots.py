@@ -11,6 +11,7 @@ from pytask import Product, task
 
 from thesis.bhattacharya.bhatta_plot_funcs import (
     plot_bhatta_sims,
+    plot_bhatta_sims_conditional_on_pretest,
     plot_bhatta_sims_histogram,
 )
 from thesis.bhattacharya.task_bhatta_sims import ID_TO_KWARGS
@@ -31,6 +32,13 @@ class _ArgsPlotsHisto(NamedTuple):
     c_1: float
     c_n_alpha: str
     path_to_plot: Path
+
+
+class _ArgsBySolNumber(NamedTuple):
+    num_obs: int
+    path_to_plot: Path
+    c_n_alpha: float
+    stat_to_plot: str
 
 
 ID_TO_KWARGS_PLOTS = {
@@ -156,3 +164,50 @@ for id_histo, kwargs_histo in ID_TO_KWARGS_PLOTS_HISTO.items():
         fig = plot_bhatta_sims_histogram(data, stat_to_plot, c_1, c_n_alpha, num_obs)
 
         fig.write_image(path_to_plot)
+
+
+ID_TO_KWARGS_PLOTS_BY_SOL_NUMBER = {
+    f"{num_obs}_{stat_to_plot}_{c_n_alpha}": _ArgsBySolNumber(
+        num_obs=num_obs,
+        path_to_plot=BLD
+        / "bhatta"
+        / "plots"
+        / "by_num_solutions"
+        / f"num_solutions_{num_obs}_{stat_to_plot}_{c_n_alpha}.png",
+        c_n_alpha=c_n_alpha,
+        stat_to_plot=stat_to_plot,
+    )
+    for num_obs in [100, 1_000, 10_000]
+    for c_n_alpha in [0.05, 0.2]
+    for stat_to_plot in ["covers"]
+}
+
+# TODO(@buddejul): Need to differentiate by solution set, not only by size.
+
+for id_by_sol_number, kwargs_by_sol_number in ID_TO_KWARGS_PLOTS_BY_SOL_NUMBER.items():
+
+    @pytask.mark.bhatta()
+    @task(id=id_by_sol_number, kwargs=kwargs_by_sol_number)  # type: ignore[arg-type]
+    def task_plot_bhatta_sims_by_sol_number(
+        num_obs: int,
+        path_to_plot: Annotated[Path, Product],
+        c_n_alpha: float,
+        stat_to_plot: str,
+        path_to_combined_res: Path = BLD / "bhatta" / "sims" / "combined_res.pkl",
+    ) -> None:
+        """Description of the task."""
+        data = pd.read_pickle(path_to_combined_res)
+
+        data = data.query(f"num_obs == {num_obs}")
+
+        fig = plot_bhatta_sims_conditional_on_pretest(
+            data,
+            stat_to_plot=stat_to_plot,
+            c_n_alpha=c_n_alpha,
+        )
+
+        fig.write_image(path_to_plot)
+
+        # Also write html_figure by replacing png with html
+        path_to_html = path_to_plot.with_suffix(".html")
+        fig.write_html(path_to_html)
