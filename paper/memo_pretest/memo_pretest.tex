@@ -1,0 +1,240 @@
+% Thesis guidelines:
+% - 40 pages including graphs, graphics and pictures, TOC/appendix/bibliography not counted
+% - 1.5 line-spacing
+\documentclass[12pt,a4paper,english]{article} %document type and language
+
+\usepackage[onehalfspacing]{setspace}
+% \linespread{1.5}
+
+\usepackage[utf8]{inputenc}	% set character set to support some UTF-8
+\usepackage{babel} 	% multi-language support
+% \usepackage{sectsty}	% allow redefinition of section command formatting
+\usepackage{tabularx}	% more table options
+\usepackage{titling}	% allow redefinition of title formatting
+\usepackage{imakeidx}	% create and index of words
+\usepackage{xcolor}	% more color options
+\usepackage{enumitem}	% more list formatting options
+\usepackage{tocloft}	% redefine table of contents, new list like objects
+
+\usepackage[centering,noheadfoot,left=3cm, right=2cm, top=2cm, bottom=2cm]{geometry}
+
+%set TOC margins
+\setlength{\cftbeforesecskip}{15pt} % skip in TOC
+
+% remove paragraph white space and modify space between list items
+\usepackage{parskip}
+
+% Set font globally
+\usepackage{lmodern}                % load Latin modern fonts
+\usepackage[defaultsans]{cantarell} % cantarell fonts
+
+% HACK: https://tex.stackexchange.com/questions/58087/how-to-remove-the-warnings-font-shape-ot1-cmss-m-n-in-size-4-not-available
+\usepackage{anyfontsize}
+
+% set LaTeX global font
+\renewcommand{\familydefault}{\sfdefault}
+\renewcommand{\sfdefault}{lmss}
+
+% set styling headings
+%\allsectionsfont{\usefont{OT1}{phi}{b}{n}}
+
+\usepackage[capposition=top]{floatrow}
+
+\usepackage{float} 	% floats
+\usepackage{graphicx}	% Graphics
+\usepackage{amsmath}	% extensive math options
+\usepackage{amssymb}	% special math symbols
+\usepackage[Gray,squaren,thinqspace,thinspace]{SIunits} % elegant units
+\usepackage{listings}                                   % source code
+
+% Custom Operators
+%% Expectation symbol
+\DeclareMathOperator*{\E}{\mathbb{E}}
+\DeclareMathOperator*{\Cov}{\mathrm{Cov}}
+\DeclareMathOperator*{\Var}{\mathrm{Var}}
+
+% missing math commands
+\providecommand{\abs}[1]{\left\lvert#1\right\rvert}                    % |.|
+\providecommand{\br}[1]{\left(#1\right)}                               % (.)
+\providecommand{\sbr}[1]{\left[#1\right]}                              % [.]
+\providecommand{\ddfrac}[2]{\frac{\displaystyle #1}{\displaystyle #2}}
+% use \math rm{d} to include math differential
+
+% independence symbol
+% https://tex.stackexchange.com/questions/79434/double-perpendicular-symbol-for-independence
+\newcommand{\indep}{\perp\!\!\!\!\perp}
+
+
+% options for listings
+\lstset{
+  breaklines=true,
+  postbreak=\raisebox{0ex}[0ex][0ex]{\ensuremath{\color{red}\hookrightarrow\space}},
+  numbers=left,
+  numbersep=5pt,
+  numberstyle=\tiny\color{gray},
+  basicstyle=\footnotesize\ttfamily
+}
+
+% NEEDS to be before hyperref, cleveref and autonum
+% number figures, tables and equations within the sections
+\numberwithin{equation}{section}
+% \numberwithin{figure}{section}
+% \numberwithin{table}{section}
+
+% references and annotation, citations
+\usepackage[small,bf,hang]{caption}        % captions
+\usepackage{subcaption}                    % adds sub figure & sub caption
+\usepackage{sidecap}                       % adds side captions
+\usepackage{hyperref}                      % add hyperlinks to references
+\usepackage[noabbrev,nameinlink]{cleveref} % better references than default~\ref
+% Hack:https://tex.stackexchange.com/questions/285950/package-autonum-needs-the-obsolete-etex-package
+\expandafter\def\csname ver@etex.sty\endcsname{3000/12/31}
+\let\globcount\newcount
+% Deactivate for now to avoid issues with equation* environment.
+% \usepackage{autonum}                       % only number referenced equations
+\usepackage{url}                           % URLs
+% Biblatex throws error when cite is used.
+% Similar warning is given by natbib.
+% \usepackage{cite}                          % well formed numeric citations
+
+% % biblatex for references
+% \usepackage{biblatex}
+% \addbibresource{literature.bib}
+% % csquotes recommended: https://tex.stackexchange.com/questions/229638/package-biblatex-warning-babel-polyglossia-detected-but-csquotes-missing
+% \usepackage{csquotes}
+% \addbibresource{refs.bib}
+
+% https://tex.stackexchange.com/questions/144764/author-year-citation-in-latex
+\usepackage[round]{natbib}
+
+% Avoid space before footnotes when \footnote{...} is on next line.
+% https://tex.stackexchange.com/questions/94563/new-line-for-footnote-without-blank-space
+\usepackage{xpatch}
+\xpretocmd{\footnote}{\unskip}{}{}
+
+% format hyperlinks
+\colorlet{linkcolour}{black}
+\colorlet{urlcolour}{blue}
+\hypersetup{colorlinks=true,
+            linkcolor=linkcolour,
+            citecolor=linkcolour,
+            urlcolor=urlcolour}
+
+%\usepackage{todonotes} % add to do notes
+\usepackage{epstopdf}  % process eps-images
+\usepackage{float}     % floats
+\usepackage{fancyhdr}  % header and footer
+% HACK: https://tex.stackexchange.com/questions/664532/fancyhr-warning-footskip-is-too-small
+\setlength{\footskip}{15pt}
+
+% default path for figures
+\graphicspath{{figures/}}
+
+% If we have multiple directories, specify them like this: \graphicspath{{figures_ch1/}{figures_ch2/}}.
+
+% For rendering tikz
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+\usetikzlibrary{decorations.pathreplacing} % Load the library for drawing braces
+
+
+% Define some math environments
+\usepackage{amsthm}
+
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{corollary}{Corollary}[theorem]
+\newtheorem{lemma}[theorem]{Lemma}
+
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}[section]
+
+\theoremstyle{remark}
+\newtheorem*{remark}{Remark}
+
+\theoremstyle{plain}
+\newtheorem{assumption}{Assumption}
+
+% https://tex.stackexchange.com/questions/24840/use-courier-font-inline-on-text
+\usepackage{courier}
+
+% https://tex.stackexchange.com/questions/639234/how-to-put-braces-over-certain-parts-of-matrices
+\usepackage{nicematrix}
+
+
+% set header and footer
+\pagestyle{fancy}
+\fancyhf{}                           % clear all header and footer fields
+\cfoot{\thepage}                     % add page number
+\renewcommand{\headrulewidth}{0pt} % add horizontal line of 0.4pt thick
+
+\title{Memo: Pretesting for Non-differentiable functionals}
+\author{Julian Budde}
+\date{\today}
+\begin{document}
+
+\maketitle
+
+\section{Setting}
+We want to perform inference on the function $\phi(\theta) = \min\{0, \theta\}$ where $\theta \in \mathbb{R}$.
+We have an estimator $\hat{\theta} = Y$ where $Y \sim N(\theta, \frac{\sigma^2}{n})$.
+Finite sample normality is used as a replacement for asymptotic approximations.
+Our goal is to construct a two-sided confidence interval with coverage probability at least $1-\alpha$.
+
+Studying $\phi(\theta) = \min\{0, \theta\}$ can be motivated, for example, by considering inference on the optimal value of a linear program.
+Consider the problem $\min c_1 x_1 + c_2 x_2$ over $x\in[0,1]^2$ where $c_2\neq0$ is treated as known.
+Then the optimal value ($c'x$ evaluated at the (or an) optimal solution), is given by $\phi(c_1)$.
+The inference problem arises from treating $c_1$ as unknown.
+
+\paragraph{Finite Sample Distribution}
+We can characterize the exact finite sample distribution of $\sqrt{n}(\phi(Y) - \phi(\theta))$ as follows:
+\begin{equation}
+  G^f(\theta)=
+    \begin{cases}
+      \sqrt{n}(\min\{Y, 0\} - 0) = \min\{N(\sqrt{n}\theta, \sigma^2), 0\}& \text{if } \theta > 0,\\
+      \sqrt{n}(\min\{Y, 0\} - 0) = \min\{N(0,1), 0\}& \text{if } \theta = 0,\\
+      \sqrt{n}(\min\{Y, 0\} - \theta) =\min\{N(0,1), -\sqrt{n}\theta\}& \text{if } \theta < 0,\\
+  \end{cases}
+\end{equation}
+Importantly, this distribution is discontinuous in the unknown parameter $\theta$.
+
+\paragraph{Asymptotic Approximation}
+Typically, we build an estimator based on the following asymptotic approximation:
+\begin{equation}
+  G^a(\theta)=
+    \begin{cases}
+      0 & \text{if } \theta > 0,\\
+      \min\{N(0,1), 0\}& \text{if } \theta = 0,\\
+      N(0,1)& \text{if } \theta < 0.\\
+  \end{cases}
+\end{equation}
+
+The asymptotic distribution coincides with the finite sample one when $\theta=0$.
+When $\theta\neq0$, it is easy to see, that $G$ converges to $G^a$ when $n\to\infty$.
+However, when $\theta$ is small relative to the sample size, there is a large difference between asymptotic approximation and finite sample distribution.
+For example, consider $\theta < 0$: The asymptotic aproximmation is $N(0,1)$, while the finite sample distribution is $N(0,1)$ only to the left of $\sqrt{n}\theta$ and has the remaining mass at $-\sqrt{n}\theta$.
+If $\sqrt{n}\theta$ is close to $0$, these distributions are very different.
+For example, the $1-\alpha/2$ quantiles are $z^a_{1-\alpha/2} = 1.96$ and $z^f_{1-\alpha/2} = -\sqrt{n}\theta$ if $\alpha=0.05$.
+
+\paragraph{Estimator}
+A pretest estimator can be constructed as follows (cf., for example,~\cite{fang2019infdirdiff}):
+\begin{equation}
+  \hat{G}^a(\theta)=
+    \begin{cases}
+      0 & \text{if } \frac{\sqrt{n}\hat{\theta}_n}{\sigma^2} > \kappa_n,\\
+      \min\{N(0,1), 0\}& \text{if } |\frac{\sqrt{n}\hat{\theta}_n}{\sigma^2}| = \kappa_n,\\
+      N(0,1)& \text{if } \frac{\sqrt{n}\hat{\theta}_n}{\sigma^2} < - \kappa_n.\\
+  \end{cases}
+\end{equation}
+Here, $\kappa_n$ is a sequence of positive numbers with $\kappa_n \to \infty$ but $\frac{\kappa_n}{\sqrt{n}} \to 0$.
+Then, under $H_0: \theta = 0$, this test is cosnsistent in the sense that we select the right asymptotic distribution with probability approaching 1 as $n\to\infty$.
+
+~\cite{fang2019infdirdiff}, for example, suggest to choose $\kappa_n = \Phi^{-1}(1-\frac{\tilde{\alpha_n}}{2})$ where $r_n\to 0$ slow enough.
+This means, that the probability of a Type I error converges to zero at an appropriate rate.
+In what follows, we will hence pick $\kappa_n = \Phi^{-1}(1-\frac{\tilde{\alpha}}{2})$ for some fixed value $\tilde{\alpha}$.
+
+The goal in the following sections is to derive the exact finite sample coverage probabilities of a confidence interval based on this pretest as a function of $\tilde{\alpha}$.
+
+\bibliographystyle{../abbrvnat_my_version}
+\bibliography{../refs.bib}
+
+\end{document}
