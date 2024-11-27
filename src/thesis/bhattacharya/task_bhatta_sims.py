@@ -15,7 +15,7 @@ from thesis.config import BLD, RNG
 
 params = {
     "alpha": 0.05,
-    "num_sims": 1_000,
+    "num_sims": 10_000,
     "sigma": 1,
 }
 
@@ -33,7 +33,7 @@ class _Arguments(NamedTuple):
 
 num_obs_for_sim = [100, 1_000, 10_000]
 
-c_1_for_sim = [-0.2, -0.15, -0.1, -0.05, -0.01, 0, 0.01, 0.05, 0.1, 0.15, 0.2]
+c_1_for_sim = [-0.2, -0.15, -0.1, -0.05, -0.01, 0, 0.01, 0.05]
 
 c_n_for_sim = [
     partial(
@@ -41,7 +41,7 @@ c_n_for_sim = [
         alpha=params["alpha"] / ratio,
         sigma=params["sigma"],
     )
-    for ratio in [0.125, 0.25, 0.5, 1, 2, 4, 8]
+    for ratio in [0.5, 1, 4]
 ]
 
 ID_TO_KWARGS = {

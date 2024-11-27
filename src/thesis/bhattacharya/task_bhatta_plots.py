@@ -22,7 +22,7 @@ paths_to_sim_res = [kwargs.path_to_res for kwargs in ID_TO_KWARGS.values()]
 
 class _ArgsPlots(NamedTuple):
     num_obs: int
-    stat_to_plot: str
+    stat_to_plot: str | list[str]
     path_to_plot: Path
 
 
@@ -37,14 +37,14 @@ class _ArgsPlotsHisto(NamedTuple):
 class _ArgsBySolNumber(NamedTuple):
     num_obs: int
     path_to_plot: Path
-    c_n_alpha: float
-    stat_to_plot: str
+    c_n_alpha: float | list[float]
+    stat_to_plot: str | list[str]
 
 
 ID_TO_KWARGS_PLOTS = {
     f"{num_obs}_{stat_to_plot}": _ArgsPlots(
         num_obs=num_obs,
-        stat_to_plot=stat_to_plot,
+        stat_to_plot=stat_to_plot,  # type: ignore[arg-type]
         path_to_plot=BLD / "bhatta" / "plots" / f"{stat_to_plot}_{num_obs}.png",
     )
     for num_obs in [100, 1_000, 10_000]
@@ -59,6 +59,7 @@ ID_TO_KWARGS_PLOTS = {
         "ci_midpoint",
         "z_lo",
         "z_hi",
+        ["pretest_mid", "pretest_left", "pretest_right"],
     ]
 }
 
@@ -103,6 +104,22 @@ def task_combine_bhatta_sims(
 
     out["ci_midpoint"] = (out["ci_hi"] + out["ci_lo"]) / 2
 
+    n_values_midtest = 2
+    n_left_right = 1
+
+    out["pretest_mid"] = out["num_solutions"] == n_values_midtest
+    out["pretest_left"] = out["num_solutions"] == n_left_right & (out["v_hat"] < 0)
+    out["pretest_right"] = out["num_solutions"] == n_left_right & (out["v_hat"] >= 0)
+
+    assert np.all(
+        out[["pretest_mid", "pretest_left", "pretest_right"]].sum(axis=1) == 1,
+    )
+
+    # Create single categorical variable "pretest"
+    out["pretest"] = np.where(out["pretest_mid"], "mid", "left")
+    out["pretest"] = np.where(out["pretest_right"], "right", out["pretest"])
+    out["pretest"] = pd.Categorical(out["pretest"], categories=["mid", "left", "right"])
+
     out.to_pickle(path_to_combined_res)
 
 
@@ -112,7 +129,7 @@ for id_, kwargs in ID_TO_KWARGS_PLOTS.items():
     @task(id=id_, kwargs=kwargs)  # type: ignore[arg-type]
     def task_plot_bhatta_sims(
         num_obs: int,
-        stat_to_plot: str,
+        stat_to_plot: str | list[str],
         path_to_plot: Annotated[Path, Product],
         path_to_combined_res: Path = BLD / "bhatta" / "sims" / "combined_res.pkl",
     ) -> None:
@@ -142,7 +159,7 @@ ID_TO_KWARGS_PLOTS_HISTO = {
     for num_obs in [100, 1_000, 10_000]
     for stat_to_plot in ["z_lo", "z_hi"]
     for c_1 in [-0.01]
-    for c_n_alpha in np.array([1, 8]) * 0.05
+    for c_n_alpha in 0.05 / np.array([0.5, 1, 4])
 }
 
 
@@ -166,33 +183,31 @@ for id_histo, kwargs_histo in ID_TO_KWARGS_PLOTS_HISTO.items():
         fig.write_image(path_to_plot)
 
 
-ID_TO_KWARGS_PLOTS_BY_SOL_NUMBER = {
+ID_TO_KWARGS_PLOTS_BY_PRETEST = {
     f"{num_obs}_{stat_to_plot}_{c_n_alpha}": _ArgsBySolNumber(
         num_obs=num_obs,
         path_to_plot=BLD
         / "bhatta"
         / "plots"
-        / "by_num_solutions"
-        / f"num_solutions_{num_obs}_{stat_to_plot}_{c_n_alpha}.png",
-        c_n_alpha=c_n_alpha,
-        stat_to_plot=stat_to_plot,
+        / "by_pretest"
+        / f"by_pretest_{num_obs}_{stat_to_plot}_{c_n_alpha}.png",
+        c_n_alpha=c_n_alpha,  # type: ignore[arg-type]
+        stat_to_plot=stat_to_plot,  # type: ignore[arg-type]
     )
     for num_obs in [100, 1_000, 10_000]
-    for c_n_alpha in [0.05, 0.2]
+    for c_n_alpha in [0.05, 0.1, [0.05, 0.1]]
     for stat_to_plot in ["covers"]
 }
 
-# TODO(@buddejul): Need to differentiate by solution set, not only by size.
-
-for id_by_sol_number, kwargs_by_sol_number in ID_TO_KWARGS_PLOTS_BY_SOL_NUMBER.items():
+for id_by_pretest, kwargs_by_pretest in ID_TO_KWARGS_PLOTS_BY_PRETEST.items():
 
     @pytask.mark.bhatta()
-    @task(id=id_by_sol_number, kwargs=kwargs_by_sol_number)  # type: ignore[arg-type]
-    def task_plot_bhatta_sims_by_sol_number(
+    @task(id=id_by_pretest, kwargs=kwargs_by_pretest)  # type: ignore[arg-type]
+    def task_plot_bhatta_sims_by_pretest(
         num_obs: int,
         path_to_plot: Annotated[Path, Product],
-        c_n_alpha: float,
-        stat_to_plot: str,
+        c_n_alpha: float | list[float],
+        stat_to_plot: str | list[str],
         path_to_combined_res: Path = BLD / "bhatta" / "sims" / "combined_res.pkl",
     ) -> None:
         """Description of the task."""

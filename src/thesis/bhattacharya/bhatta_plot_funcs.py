@@ -7,10 +7,12 @@ import plotly.graph_objects as go  # type: ignore[import-untyped]
 
 def plot_bhatta_sims(
     data: pd.DataFrame,
-    stat_to_plot: str,
+    stat_to_plot: str | list[str],
 ) -> go.Figure:
     """Plot the simulation results."""
-    data_for_plot = data.groupby(["c_1", "c_n_name"]).mean()
+    stat_to_plot = stat_to_plot if isinstance(stat_to_plot, list) else [stat_to_plot]
+
+    data_for_plot = data.drop(columns=["pretest"]).groupby(["c_1", "c_n_name"]).mean()
 
     data_for_plot = data_for_plot.reset_index()
 
@@ -38,18 +40,32 @@ def plot_bhatta_sims(
 
     fig = go.Figure()
 
+    stat_to_plot_numer_to_dash = {
+        0: "solid",
+        1: "dash",
+        2: "dot",
+    }
+
     for c_n_alpha in data_for_plot["c_n_alpha"].unique():
         data = data_for_plot.query(f"c_n_alpha == {c_n_alpha}")
 
-        fig.add_trace(
-            go.Scatter(
-                x=data["c_1"],
-                y=data[stat_to_plot],
-                mode="lines",
-                name=f"c_n alpha = {c_n_alpha}",
-                line={"color": c_n_alpha_to_color[c_n_alpha]},
-            ),
-        )
+        i = 0
+        for stp in stat_to_plot:
+            fig.add_trace(
+                go.Scatter(
+                    x=data["c_1"],
+                    y=data[stp],
+                    mode="lines",
+                    name=f"c_n alpha = {c_n_alpha}",
+                    line={
+                        "color": c_n_alpha_to_color[c_n_alpha],
+                        "dash": stat_to_plot_numer_to_dash[i],
+                    },
+                ),
+            )
+            i += 1
+
+    yaxis_title = "".join([s.capitalize() for s in stat_to_plot])
 
     fig.update_layout(
         title=(
@@ -59,7 +75,7 @@ def plot_bhatta_sims(
             f" Nominal Coverage = {1 - setting['alpha']:.2f})</sub>"
         ),
         xaxis_title="True Value",
-        yaxis_title=f"{stat_to_plot.capitalize()}",
+        yaxis_title=yaxis_title,
     )
 
     c_1_min = np.min(data_for_plot["c_1"])
@@ -103,19 +119,17 @@ def plot_bhatta_sims(
 
 def plot_bhatta_sims_conditional_on_pretest(
     data: pd.DataFrame,
-    stat_to_plot: str,
-    c_n_alpha: float,
+    stat_to_plot: str | list[str],
+    c_n_alpha: float | list[float],
 ) -> go.Figure:
     """Plot the simulation results separately by alpha and | number of solutions."""
     # Drop "c_n_name" column
     data_for_plot = data.drop(columns=["c_n_name"])
-    data_for_plot = data_for_plot.query(f"c_n_alpha == {c_n_alpha}")
 
-    if data_for_plot.empty:
-        msg = f"No data for c_n_alpha = {c_n_alpha}"
-        raise ValueError(msg)
-
-    data_for_plot = data_for_plot.groupby(["c_1", "num_solutions"]).mean()
+    data_for_plot = data_for_plot.groupby(
+        ["c_1", "pretest", "c_n_alpha"],
+        observed=True,
+    ).mean()
 
     data_for_plot = data_for_plot.reset_index()
 
@@ -147,30 +161,39 @@ def plot_bhatta_sims_conditional_on_pretest(
         0.00625: "brown",
     }
 
-    num_solutions_to_dash = {
-        1: "solid",
-        2: "dash",
-        3: "dot",
-        4: "dashdot",
+    pretest_to_dash = {
+        "mid": "solid",
+        "left": "dash",
+        "right": "dot",
     }
 
     fig = go.Figure()
 
-    for num_solutions in data_for_plot["num_solutions"].unique():
-        data = data_for_plot.query(f"num_solutions == {num_solutions}")
+    c_n_alpha_to_plot = c_n_alpha if isinstance(c_n_alpha, list) else [c_n_alpha]
+    stat_to_plot = stat_to_plot if isinstance(stat_to_plot, list) else [stat_to_plot]
 
-        fig.add_trace(
-            go.Scatter(
-                x=data["c_1"],
-                y=data[stat_to_plot],
-                mode="lines",
-                name=f"num_solutions = {num_solutions}",
-                line={
-                    "color": c_n_alpha_to_color[c_n_alpha],
-                    "dash": num_solutions_to_dash[num_solutions],
-                },
-            ),
-        )
+    for cna in c_n_alpha_to_plot:
+        for pretest in data_for_plot["pretest"].unique():
+            _df = data_for_plot.query(f"pretest == '{pretest}'")
+            _df = _df.query(f"c_n_alpha == {cna}")
+
+            for stp in stat_to_plot:
+                fig.add_trace(
+                    go.Scatter(
+                        x=_df["c_1"],
+                        y=_df[stp],
+                        mode="lines+markers",
+                        name=f"pretest = {pretest}",
+                        legendgroup=cna,
+                        legendgrouptitle={"text": f"c_n alpha = {cna}"},
+                        line={
+                            "color": c_n_alpha_to_color[cna],
+                            "dash": pretest_to_dash[pretest],
+                        },
+                    ),
+                )
+
+    yaxis_title = "".join([s.capitalize() for s in stat_to_plot])
 
     fig.update_layout(
         title=(
@@ -180,7 +203,7 @@ def plot_bhatta_sims_conditional_on_pretest(
             f" Nominal Coverage = {1 - setting['alpha']:.2f})</sub>"
         ),
         xaxis_title="True Value",
-        yaxis_title=f"{stat_to_plot.capitalize()}",
+        yaxis_title=yaxis_title,
     )
 
     c_1_min = np.min(data_for_plot["c_1"])

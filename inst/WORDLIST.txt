@@ -23,6 +23,7 @@ Chue
 ci
 cirmmt
 cls
+cna
 conda
 config
 complier
