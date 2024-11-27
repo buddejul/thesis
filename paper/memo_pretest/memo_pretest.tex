@@ -234,6 +234,39 @@ In what follows, we will hence pick $\kappa_n = \Phi^{-1}(1-\frac{\tilde{\alpha}
 
 The goal in the following sections is to derive the exact finite sample coverage probabilities of a confidence interval based on this pretest as a function of $\tilde{\alpha}$.
 
+\section{Finite Sample Coverage Probabilities}
+
+We first consider the case $\theta = 0$ and then turn to a discussion of $\theta < 0$ and $\theta > 0$ (where we think of them being close to zero).
+We denote the coverage probability of a two-sided confidence interval based on the procedure above by $p(\tilde{\alpha}, \theta)$, to make explicit the dependence on the unknown $\theta$ and the tuning parameter $\tilde{\alpha}$.
+
+\paragraph{Case $\theta = 0$}
+To derive the exact coverage probabilities we make use of the normal approximation $Y\sim N(\theta, \frac{\sigma^2}{n})$.
+We will denote probabilities under $\theta = t$ by $P_t(\cdot)$, so $P_0(\cdot)$ corresponds to this first case.
+
+The covergae probabilities are derived by conditioning on the result of the pretest.
+We then calculate exact conditional coverage probabilities by noting that conditioning on pretests, $\sqrt{n}Y/\sigma$ behaves like a truncated normal variable.
+
+The result is given by
+
+\begin{align*}
+  p(0, \tilde{\alpha}) & =  \tilde{\alpha}/2 \times 1 \\
+  & + (1 - \tilde{\alpha}) \times \left(\frac{1}{2} \times 1 + \frac{1}{2} \min\left\{1, 1 - \frac{\alpha/2 - \tilde{\alpha}/2}{1/2 - \hat{\alpha}/2}\right\}\right) \\
+  & + \tilde{\alpha}/2 \times \max\left\{0, 1 - \frac{\Phi(\frac{\alpha}{2})}{\Phi(\frac{\tilde{\alpha}}{2})}\right\}.
+\end{align*}
+The first line corresponds to rejecting in favor of $\theta > 0$, the second to not rejecting $\theta = 0$ and the last line to rejecting in favor of $\theta < 0$.
+
+Some intuition:
+\begin{itemize}
+  \item Conditional on $\sqrt{n}Y/\sigma > \Phi^{-1}(1-\tilde{\alpha}/2)$, we have $\phi(Y) = 0$ and we use the asymptotic approximation $\hat{G}^a(\theta) = 0$. Hence the CI collapses to the point $0$ and coverage is $100\%$.
+  \item Conditional on $\sqrt{n}Y/\sigma < -\Phi^{-1}(1-\tilde{\alpha}/2)$, we use the $N(0,1)$ approximation for quantiles. However, we introduce a distortion by pre-testing: In the extreme case when $\tilde{\alpha} \leq \alpha$ we condition on $Y$ values so small, such that we never cover $\phi(\theta)=0$.
+  \item The pre-testing distortion is more delicate when we don't reject $\theta=0$: With probability 0.5 under $\theta=0$, we will have $Y>0$. In this case we cover with probability one since the CI is the point $0$.
+  When $Y<0$, we have a distortion by conditioning on small $Y$ values. When the pre-test is not too conservative, so $\tilde{\alpha} > \alpha$, we cover with probability one, since we condition on being in a subset of the CI.
+  When the pre-test is conservative, so $\tilde{\alpha} \leq \alpha$, we cover with probability in $[1-\alpha, 1]$.
+\footnote{The exact result follows from the CDF of a truncated normal: In the extreme, when $\tilde{\alpha} = 0$, the conditional distribution is $N(0,1)$ truncated at $0$.
+  Hence, the probability to fall below the $z_{\alpha/2}$ quantile is $2\times\alpha/2 = \alpha$.
+}
+\end{itemize}
+
 \bibliographystyle{../abbrvnat_my_version}
 \bibliography{../refs.bib}
 

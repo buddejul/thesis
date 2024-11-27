@@ -1,8 +1,11 @@
 """Functions for plotting Bhatta 2009 simulation results."""
 
+from collections.abc import Callable
+
 import numpy as np
 import pandas as pd  # type: ignore[import-untyped]
 import plotly.graph_objects as go  # type: ignore[import-untyped]
+from scipy.stats import norm  # type: ignore[import-untyped]
 
 
 def plot_bhatta_sims(
@@ -299,3 +302,80 @@ def plot_bhatta_sims_histogram(
     )
 
     return fig
+
+
+def plot_finite_sample_distribution(
+    num_obs: int,
+    theta: float | list[float],
+    sigma: float,
+    num_gridpoints: int = 1000,
+) -> go.Figure:
+    """Plot finite sample distribution of min{Y, 0}."""
+    theta = theta if isinstance(theta, list) else [theta]
+
+    fig = go.Figure()
+
+    for t in theta:
+        # Define PDF depending on value of theta
+        pdf = finite_sample_pdf(num_obs, t, sigma)
+
+        x = np.linspace(-3, 3, num_gridpoints)
+
+        # Add 0 and -np.sqrt(num_obs) * theta to the grid
+        x = np.sort(np.concatenate([x, [0, -np.sqrt(num_obs) * t]]))
+
+        y = [pdf(x_) for x_ in x]
+
+        fig.add_trace(
+            go.Scatter(
+                x=x,
+                y=y,
+                mode="lines+markers",
+                name=f"theta = {t}",
+                marker={"size": 3},
+            ),
+        )
+
+    fig.update_layout(
+        title="Finite Sample Distribution of Min{Y, 0}",
+        xaxis_title="Y",
+        yaxis_title="Density",
+    )
+
+    return fig
+
+
+def finite_sample_pdf(  # noqa: C901
+    num_obs: int,
+    theta: float,
+    sigma: float,
+) -> Callable:
+    """Return the PDF of the finite sample distribution of min{Y, 0}."""
+    if theta == 0:
+        # Minimum of 0 and a normal distribution
+        def pdf(x: float) -> float:
+            if x < 0:
+                return norm.pdf(x, loc=0, scale=sigma)
+            if x == 0:
+                return 1 - norm.cdf(0, loc=0, scale=sigma)
+            return 0
+
+    if theta > 0:
+        # Minimum of N(\sqrt{n}\theta, sigma^2) and 0
+        def pdf(x: float) -> float:
+            if x < 0:
+                return norm.pdf(x, loc=np.sqrt(num_obs) * theta, scale=sigma)
+            if x == 0:
+                return 1 - norm.cdf(0, loc=np.sqrt(num_obs) * theta, scale=sigma)
+            return 0
+
+    if theta < 0:
+        # Minimum of N(0, 1) and -\sqrt{n}\theta
+        def pdf(x: float) -> float:
+            if x < -np.sqrt(num_obs) * theta:
+                return norm.pdf(x, loc=0, scale=sigma)
+            if x == -np.sqrt(num_obs) * theta:
+                return 1 - norm.cdf(-np.sqrt(num_obs) * theta, loc=0, scale=sigma)
+            return 0
+
+    return pdf
