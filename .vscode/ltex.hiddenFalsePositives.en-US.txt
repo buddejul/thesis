@@ -1,0 +1,2 @@
+{"rule":"UPPERCASE_SENTENCE_START","sentence":"^\\Qfootline[frame number] navigation symbols frametitle\\E$"}
+{"rule":"MORFOLOGIK_RULE_EN_US","sentence":"^\\Qfootline[frame number] navigation symbols frametitle\\E$"}

@@ -23,7 +23,7 @@
 \AtBeginDocument{\toggletrue{blx@useprefix}}
 \AtBeginBibliography{\togglefalse{blx@useprefix}}
 \setlength{\bibitemsep}{1.5ex}
-\addbibresource{refs.bib}
+\addbibresource{../refs.bib}
 
 \hypersetup{colorlinks=true, linkcolor=black, anchorcolor=black, citecolor=black,
 filecolor=black, menucolor=black, runcolor=black, urlcolor=black}
@@ -37,13 +37,13 @@ filecolor=black, menucolor=black, runcolor=black, urlcolor=black}
 
 \begin{document}
 
-\title{Thesis}
+\title{Inference in Partially Identified Marginal Treatment Effect Models}
 
-% \author[Julian Budde]
-% {
-% {\bf Julian Budde}\\
-% {\small University of Bonn}\\[1ex]
-% }
+\author[Julian Budde]
+{
+{\bf Julian Budde}\\
+{\small University of Bonn}\\[1ex]
+}
 
 
 \begin{frame}
@@ -52,11 +52,47 @@ filecolor=black, menucolor=black, runcolor=black, urlcolor=black}
 \end{frame}
 
 \begin{frame}
+    \frametitle{Motivation}
+
+    \begin{itemize}
+        \item \citet{mogstad2018using} propose partial identification approach for \textit{extrapolating} information from instrumental variable estimates
+        \item Focus is on identification and estimation
+        \item Less on \textit{inference}:
+        \begin{itemize}
+            \footnotesize
+            \item Working paper version has an inference procedure \dots
+            \item \dots but no simulation results and no implementation.
+            \item Authors' \textit{R package} supports bootstrap and subsampling \dots
+            \item \dots but ``There does not currently exist a solution for the MTE framework that is both theoretically
+            satisfactory and computationally tractable\dots [implemented methods] are known to not be valid in general''
+        \end{itemize}
+        \item
+    \end{itemize}
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{This Project}
+
+    \begin{itemize}
+        \item Show the standard bootstrap is invalid in simple setting.
+        \begin{itemize}
+            \item Suggest some alternative approaches for these settings.
+        \end{itemize}
+        \item Simulation results for coverage probabilities in empirically relevant setting.
+        \item Look at inference in linear programs more generally.
+    \end{itemize}
+
+\end{frame}
+
+\begin{frame}
+    \tableofcontents
+\end{frame}
+
+\section{Background}
+
+\begin{frame}
     \frametitle{Marginal Treatment Effect Model: Notation}
-
-    Based on~\cite{mogstad2018using}.
-
-    \vspace{0.5cm}
 
     Program evaluation setting:
     \begin{itemize}
@@ -115,9 +151,6 @@ filecolor=black, menucolor=black, runcolor=black, urlcolor=black}
 
     $\Rightarrow$ Linear program to get identified set.
 
-    \vspace{0.5cm}
-
-    Question: How to perform inference?
 \end{frame}
 
 \section{Simple Example}
@@ -257,7 +290,7 @@ filecolor=black, menucolor=black, runcolor=black, urlcolor=black}
     \frametitle{Results: Coverage}
 
     \begin{figure}
-		\includegraphics[width=\textheight]{../bld/boot/figures/coverage.png}
+		% \includegraphics[width=\textheight]{../bld/boot/figures/coverage.png}
         \caption{Coverage by Method and True Parameter}
     \end{figure}
 
