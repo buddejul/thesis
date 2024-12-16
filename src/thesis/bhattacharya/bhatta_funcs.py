@@ -1,11 +1,12 @@
 """Functions for analysis of Bhattacharya 2009."""
 
 from collections.abc import Callable
+from functools import partial
 
 import numpy as np
 import pandas as pd  # type: ignore[import-untyped]
 import plotly.graph_objects as go  # type: ignore[import-untyped]
-from scipy.stats import gaussian_kde, norm  # type: ignore[import-untyped]
+from scipy.stats import gaussian_kde, norm, truncnorm  # type: ignore[import-untyped]
 
 from thesis.bhattacharya.cdd_funcs import find_extreme_points_box
 
@@ -284,3 +285,129 @@ def sim_confidence_interval(
 def c_n_normal(num_obs: int, sigma: float, alpha: float) -> float:
     """Tuning parameter c_n corresponding to N(0, sigma^2) level alpha test."""
     return sigma * norm.ppf(1 - alpha / 2) / (np.sqrt(num_obs))
+
+
+def prob_cover_finite_sample_at_zero(
+    alpha_pretest: float,
+    alpha: float,
+) -> float:
+    """Finite sample covergage probability for a pre-test confidence interval.
+
+    Special case theta = 0.
+
+    """
+    pre_right = alpha_pretest / 2 * 1
+
+    pre_mid = (1 - alpha_pretest) * (
+        0.5 * 1
+        + 0.5
+        * np.min([1, 1 - (alpha / 2 - alpha_pretest / 2) / (1 / 2 - alpha_pretest / 2)])
+    )
+
+    pre_left = (
+        alpha_pretest
+        / 2
+        * np.max([0, 1 - (norm.cdf(alpha / 2) / norm.cdf(alpha_pretest / 2))])
+    )
+
+    return pre_right + pre_mid + pre_left
+
+
+def prob_cover_finite_sample(
+    theta: float,
+    alpha: float,
+    alpha_pretest: float,
+    sigma: float,
+    num_obs: int,
+) -> float:
+    """Calculate finite sample coverage probability."""
+    # Have to check this also holds for theta > 0
+    assert theta < 0
+
+    eps = -theta
+
+    shift = eps * np.sqrt(num_obs) / sigma
+
+    z_pre = norm.ppf(1 - alpha_pretest / 2)
+
+    # Pre-test probabilities
+    pr_left = norm.cdf(-z_pre + shift)
+
+    pr_mid = 1 - norm.cdf(-z_pre + shift) - (1 - norm.cdf(z_pre + shift))
+
+    pr_neg_cond_mid = _prob_pretest_mid_negative(z_pre=z_pre, shift=shift)
+    pr_pos_cond_mid = 1 - pr_neg_cond_mid
+
+    pr_right = 1 - norm.cdf(z_pre + shift)
+
+    assert np.isclose(pr_left + pr_mid + pr_right, 1)
+    assert np.isclose(pr_neg_cond_mid + pr_pos_cond_mid, 1)
+
+    kwargs = {
+        "alpha": alpha,
+        "z_pre": z_pre,
+        "shift": shift,
+    }
+
+    # Conditional coverage probabilities
+    pr_cover_left = _prob_cover_left(**kwargs)
+
+    pr_cover_mid_and_negative = _prob_cover_mid_and_negative(**kwargs)
+    pr_cover_mid_and_positive = _prob_cover_mid_and_positive(**kwargs)
+
+    pr_cover_right = _prob_cover_right(**kwargs)
+
+    return (
+        pr_left * pr_cover_left
+        + pr_mid
+        * (
+            pr_neg_cond_mid * pr_cover_mid_and_negative
+            + pr_pos_cond_mid * pr_cover_mid_and_positive
+        )
+        + pr_right * pr_cover_right
+    )
+
+
+def _prob_pretest_mid_negative(z_pre: float, shift: float) -> float:
+    a = -z_pre + shift
+    b = z_pre + shift
+
+    phi = partial(truncnorm.cdf, a=a, b=b)
+
+    return 1 - (1 - phi(shift)) - phi(-z_pre + shift)
+
+
+def _prob_cover_left(alpha: float, z_pre: float, shift: float) -> float:
+    a = -np.inf
+    b = -z_pre + shift
+
+    phi = partial(truncnorm.cdf, a=a, b=b)
+
+    z_alpha = norm.ppf(1 - alpha / 2)
+
+    return 1 - (1 - phi(z_alpha)) - phi(-z_alpha)
+
+
+def _prob_cover_right(alpha: float, z_pre: float, shift: float) -> float:
+    del alpha, z_pre, shift
+    return 0
+
+
+def _prob_cover_mid_and_negative(alpha: float, z_pre: float, shift: float) -> float:
+    a = -z_pre + shift
+    b = shift
+
+    phi = partial(truncnorm.cdf, a=a, b=b)
+
+    z_alpha = norm.ppf(1 - alpha / 2)
+
+    return 1 - (1 - phi(0)) - phi(-z_alpha)
+
+
+def _prob_cover_mid_and_positive(alpha: float, z_pre: float, shift: float) -> float:
+    del alpha, z_pre
+
+    if shift > 0:
+        return 0
+    msg = "Shift must be positive."
+    raise ValueError(msg)

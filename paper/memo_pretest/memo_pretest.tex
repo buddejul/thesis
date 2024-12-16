@@ -260,7 +260,7 @@ Some intuition:
   \item Conditional on $\sqrt{n}Y/\sigma > \Phi^{-1}(1-\tilde{\alpha}/2)$, we have $\phi(Y) = 0$ and we use the asymptotic approximation $\hat{G}^a(\theta) = 0$. Hence the CI collapses to the point $0$ and coverage is $100\%$.
   \item Conditional on $\sqrt{n}Y/\sigma < -\Phi^{-1}(1-\tilde{\alpha}/2)$, we use the $N(0,1)$ approximation for quantiles. However, we introduce a distortion by pre-testing: In the extreme case when $\tilde{\alpha} \leq \alpha$ we condition on $Y$ values so small, such that we never cover $\phi(\theta)=0$.
   \item The pre-testing distortion is more delicate when we don't reject $\theta=0$: With probability 0.5 under $\theta=0$, we will have $Y>0$. In this case we cover with probability one since the CI is the point $0$.
-  When $Y<0$, we have a distortion by conditioning on small $Y$ values. When the pre-test is not too conservative, so $\tilde{\alpha} > \alpha$, we cover with probability one, since we condition on being in a subset of the CI.
+  When $Y<0$, we have a distortion by conditioning on small $Y$ values. When the pre-test is not too conservative, so $\tilde{\alpha} > \alpha$, we cover with probability one, since we condition on being in a subset of the CI.\@
   When the pre-test is conservative, so $\tilde{\alpha} \leq \alpha$, we cover with probability in $[1-\alpha, 1]$.
 \footnote{The exact result follows from the CDF of a truncated normal: In the extreme, when $\tilde{\alpha} = 0$, the conditional distribution is $N(0,1)$ truncated at $0$.
   Hence, the probability to fall below the $z_{\alpha/2}$ quantile is $2\times\alpha/2 = \alpha$.
