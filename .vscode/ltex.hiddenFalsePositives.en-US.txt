@@ -21,3 +21,5 @@
 {"rule":"EN_A_VS_AN","sentence":"^\\QI report results for a lower-order, and hence more restrictive polynomial of degree \\E(?:Dummy|Ina|Jimmy-)[0-9]+\\Q as well as an \\E(?:Dummy|Ina|Jimmy-)[0-9]+\\Qth order polynomial similar to the numerical example in \\E(?:Dummy|Ina|Jimmy-)[0-9]+\\Q.\\E$"}
 
 {"rule":"MASS_AGREEMENT","sentence":"^\\QMST provide no distributional results.\\E$"}
+
+{"rule":"MORFOLOGIK_RULE_EN_US","sentence":"^\\Q[allowframebreaks] References\\E$"}
