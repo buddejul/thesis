@@ -5,6 +5,7 @@ from typing import Annotated
 
 import pandas as pd  # type: ignore[import-untyped]
 import plotly.graph_objects as go  # type: ignore[import-untyped]
+import pytask
 from pytask import Product
 
 from thesis.config import BLD
@@ -18,11 +19,14 @@ KAPPA_FUNS_STRINGS = [
     get_func_as_string(kappa_fun) for kappa_fun in EPS_FUNS_NUMERICAL_DELTA
 ]
 
+KAPPA_TO_PLOT = "np.sqrt(np.log(n))"
+
 
 # TODO(@buddejul): Put graphs below in a loop, currently there is a lot of copy/paste.
 # TODO(@buddejul): Include true parameters in plots.
 # TODO(@buddejul): Split tasks, function is too complex, see noqa below.
-def task_plot_simple_model_sims(  # noqa: C901, PLR0912
+@pytask.mark.simple_model_sims
+def task_plot_simple_model_sims(  # noqa: C901, PLR0912, PLR0915
     path_to_data: Path = BLD / "simple_model" / "sim_results_combined.pkl",
     path_to_plot_coverage: Annotated[Path, Product] = Path(
         BLD / "simple_model" / "figures" / "coverage.png",
@@ -51,6 +55,23 @@ def task_plot_simple_model_sims(  # noqa: C901, PLR0912
 
     data = data.sort_values("late_complier")
 
+    # Check if n_boot and n_sims are unique; if so store else error.
+    if len(data.n_boot.unique()) > 1:
+        msg = "n_boot is not unique."
+        raise ValueError(msg)
+    n_sims = data.n_sims.unique()[0]
+    if len(data.n_sims.unique()) > 1:
+        msg = "n_sims is not unique."
+        raise ValueError(msg)
+    n_boot = data.n_boot.unique()[0]
+
+    alpha = 0.95
+
+    subtitle = (
+        f"<br><sup>Simulations = {n_sims}, Bootstrap Repetitions = {n_boot}, "
+        f"Nominal Coverage = {alpha} </sup>"
+    )
+
     color_by_bootstrap_method = {
         "standard": "blue",
         "numerical_delta": "red",
@@ -70,7 +91,7 @@ def task_plot_simple_model_sims(  # noqa: C901, PLR0912
         "npow(1div2)": "blue",
         "npow(1div3)": "red",
         "npow(1div6)": "purple",
-        "np.log(n)pow(1div2)": "green",
+        "np.sqrt(np.log(n))": "green",
         "(2xnp.log(np.log(n)))pow(1div2)": "orange",
     }
 
@@ -90,17 +111,16 @@ def task_plot_simple_model_sims(  # noqa: C901, PLR0912
                 if bootstrap_method == "numerical_delta":
                     data_sub = data_sub[data_sub["eps_fun"] == "npow(-1div2)"]
                 if bootstrap_method == "analytical_delta":
-                    data_sub = data_sub[data_sub["kappa_fun"] == "np.log(n)pow(1div2)"]
+                    data_sub = data_sub[data_sub["kappa_fun"] == KAPPA_TO_PLOT]
 
                 fig.add_trace(
                     go.Scatter(
                         x=data_sub.late_complier,
                         y=data_sub[col_to_plot],
-                        name=f"n_obs={n_obs}",
+                        name=f"N = {n_obs}",
                         legendgroup=f"{bootstrap_method}",
                         legendgrouptitle_text=(
                             f"{bootstrap_method.replace('_', ' ').capitalize()} "
-                            "Bootstrap"
                         ),
                         line={
                             "color": color_by_bootstrap_method[bootstrap_method],
@@ -111,7 +131,7 @@ def task_plot_simple_model_sims(  # noqa: C901, PLR0912
                 )
 
         fig.update_layout(
-            title=f"{col_to_plot.capitalize()} of CI for true parameter",
+            title=(f"{col_to_plot.capitalize()} of CI for true parameter" + subtitle),
             xaxis_title="LATE Complier",
             yaxis_title=f"{col_to_plot.capitalize()}",
         )
@@ -127,11 +147,11 @@ def task_plot_simple_model_sims(  # noqa: C901, PLR0912
     # Plot Means
     # ==================================================================================
     params_to_stat = {
-        "ci_lo": {"title": "Means of CI Lower Bounds", "path": path_to_plot_means_lo},
-        "ci_hi": {"title": "Means of CI Upper Bounds", "path": path_to_plot_means_hi},
+        "lo": {"title": "Means of CI Lower Bounds", "path": path_to_plot_means_lo},
+        "hi": {"title": "Means of CI Upper Bounds", "path": path_to_plot_means_hi},
     }
 
-    for stat in ["ci_hi", "ci_lo"]:
+    for stat in ["hi", "lo"]:
         fig = go.Figure()
         for n_obs in data.n_obs.unique():
             for bootstrap_method in ["standard", "numerical_delta", "analytical_delta"]:
@@ -141,7 +161,7 @@ def task_plot_simple_model_sims(  # noqa: C901, PLR0912
                 if bootstrap_method == "numerical_delta":
                     data_sub = data_sub[data_sub["eps_fun"] == "npow(-1div2)"]
                 if bootstrap_method == "analytical_delta":
-                    data_sub = data_sub[data_sub["kappa_fun"] == "npow(1div2)"]
+                    data_sub = data_sub[data_sub["kappa_fun"] == KAPPA_TO_PLOT]
                 fig.add_trace(
                     go.Scatter(
                         x=data_sub.late_complier,
@@ -160,7 +180,7 @@ def task_plot_simple_model_sims(  # noqa: C901, PLR0912
                 )
 
         fig.update_layout(
-            title=params_to_stat[stat]["title"],
+            title=(params_to_stat[stat]["title"] + subtitle),  # type: ignore[operator]
             xaxis_title="late_complier",
             yaxis_title="Mean CI Bounds",
         )
@@ -171,7 +191,6 @@ def task_plot_simple_model_sims(  # noqa: C901, PLR0912
     # Plot coverage by eps_fun
     # ==================================================================================
     fig = go.Figure()
-
     for eps_fun in data.eps_fun.unique():
         eps_fun_to_print = (
             eps_fun.replace("npow", "n^")
@@ -200,7 +219,7 @@ def task_plot_simple_model_sims(  # noqa: C901, PLR0912
             )
 
         fig.update_layout(
-            title="Coverage by eps_fun",
+            title="Coverage by eps_fun" + subtitle,
             xaxis_title="late_complier",
             yaxis_title="Coverage",
         )
@@ -240,7 +259,7 @@ def task_plot_simple_model_sims(  # noqa: C901, PLR0912
             )
 
         fig.update_layout(
-            title="Coverage by kappa_fun",
+            title="Coverage by kappa_fun" + subtitle,
             xaxis_title="late_complier",
             yaxis_title="Coverage",
         )
