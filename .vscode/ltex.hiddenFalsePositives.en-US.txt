@@ -24,3 +24,5 @@
 
 {"rule":"MORFOLOGIK_RULE_EN_US","sentence":"^\\Q[allowframebreaks] References\\E$"}
 {"rule":"UPPERCASE_SENTENCE_START","sentence":"^\\Qgiven <1,2>that <3,4>the IV slope <1,2> \\E(?:Dummy|Ina|Jimmy-)[0-9]+\\Q for all \\E(?:Dummy|Ina|Jimmy-)[0-9]+\\Q.\\E$"}
+
+{"rule":"UPPERCASE_SENTENCE_START","sentence":"^\\Qinfsimple Back\\E$"}

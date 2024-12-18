@@ -319,7 +319,7 @@ for id_, kwargs in ID_TO_KWARGS.items():
         if not show_legend:
             fig.update_layout(showlegend=False)
 
-        fig.write_image(path_to_plot)
+        fig.write_image(path_to_plot, scale=6)
 
         if path_to_plot_html is not None:
             fig.write_html(path_to_plot_html)

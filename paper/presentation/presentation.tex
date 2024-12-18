@@ -45,6 +45,15 @@ filecolor=black, menucolor=black, runcolor=black, urlcolor=black}
   \end{frame}
 }
 
+\newcommand{\backupbegin}{
+   \newcounter{framenumberappendix}
+   \setcounter{framenumberappendix}{\value{framenumber}}
+}
+\newcommand{\backupend}{
+   \addtocounter{framenumberappendix}{-\value{framenumber}}
+   \addtocounter{framenumber}{\value{framenumberappendix}}
+}
+
 \title{Inference in Partially Identified Marginal Treatment Effect Models}
 \subtitle{BGSE Brown Bag Presentation}
 \author[Julian Budde]{\bf Julian Budde}
@@ -89,18 +98,27 @@ filecolor=black, menucolor=black, runcolor=black, urlcolor=black}
 \end{frame}
 
 \begin{frame}
+    \begin{figure}
+        \includegraphics[height=0.75\textheight]{mt_handbook_table6.png}
+        \caption{\citet{mogstad2024instrumental} Handbook Chapter}
+    \end{figure}
+\end{frame}
+
+\begin{frame}
     \frametitle{This Project}
 
-        (1) Show the standard bootstrap is invalid in simple setting.
+        Show the standard bootstrap is invalid in simple MTE model.
         \begin{itemize}
-            \item Suggest alternative approaches for these settings.
+            \item Look at some alternative approaches.
         \end{itemize}
 
         \vspace{0.5cm}
-        (2) Simulation results for coverage probabilities in empirically relevant setting.
+
+        Simulation results for coverage probabilities in empirically relevant setting.
 
         \vspace{0.5cm}
-        (3) Suggest approach for conservative inference using relaxed optimization problem.
+
+        Suggest approach for conservative inference using relaxed optimization problem.
 
 \end{frame}
 
@@ -203,7 +221,7 @@ filecolor=black, menucolor=black, runcolor=black, urlcolor=black}
             \overline{\beta^*} = \sup_{(\theta_0, \theta_1) \in \Theta}\sum_{k=1}^{K_0} \theta_{0k}\Gamma^*_0(b_{0k}) + \sum_{k=1}^{K_1} \theta_{1k}\Gamma^*_1(b_{1k})
         \end{equation*}
         }
-    \only<2,3,4>{
+    \only<2,3,4,5>{
         Find the largest \textcolor{red}{ATE}
 
     \begin{equation*}
@@ -213,7 +231,7 @@ filecolor=black, menucolor=black, runcolor=black, urlcolor=black}
     \end{equation*}
     }
 
-    given \only<1,2>{that}\only<3,4>{the \textcolor{red}{IV slope}}
+    given \only<1,2>{that}\only<3,4,5>{the \textcolor{red}{IV slope}}
     \only<1,2>{
         \begin{align*}
             &\sum_{k=1}^{K_0} \theta_{0k}\Gamma_{0s}(b_{0k}) \\
@@ -221,7 +239,14 @@ filecolor=black, menucolor=black, runcolor=black, urlcolor=black}
         \end{align*}
         }
 
-        \only<3,4>{
+        \only<3>{
+            \begin{align*}
+                &\sum_{k=1}^{K_0} \theta_{0k}\Gamma_{0s}(b_{0k}) \\
+                &+ \sum_{k=1}^{K_1} \theta_{1k} \Gamma_{1s}(b_{1k}) = \textcolor{red}{\frac{Cov(Y,D)}{Var(D)}}
+    \end{align*}
+    }
+
+        \only<4,5>{
             \begin{align*}
             &\sum_{k=1}^{K_0} \theta_{0k}\textcolor{red}{E\left[\int_0^1 b_{0k}(u)\frac{Z - E[Z]}{Cov(D,Z)}I\{u > p(Z)\}du\right]} \\
             &+ \sum_{k=1}^{K_1} \theta_{1k} \textcolor{red}{E\left[\int_0^1 b_{1k}(u)\frac{Z - E[Z]}{Cov(D,Z)}I\{u\leq p(Z)\}du\right]} = \textcolor{red}{\frac{Cov(Y,D)}{Var(D)}}
@@ -230,11 +255,11 @@ filecolor=black, menucolor=black, runcolor=black, urlcolor=black}
 
     \vspace{0.5cm}
 
-    \only<1,2,3>{
+    \only<1,2,3,4>{
     $\Theta$ incorporates all shape restrictions.
     }
 
-    \only<4>{
+    \only<5>{
     \textcolor{red}{Outcome bounds}: $Y\in[0,1] \Rightarrow \Theta = [0,1]^{K_0 + K_1}$.
     }
 
@@ -286,9 +311,9 @@ filecolor=black, menucolor=black, runcolor=black, urlcolor=black}
 \end{frame}
 
 \begin{frame}
-    \frametitle{Solutions: Constant Splines 1}
+    \frametitle{Solutions}
 
-    \textbf{Nonparametric Bounds}:
+    \textbf{Bounded Outcome}:
     \begin{equation*}
         \beta^* \in [\omega\beta_s - (1 - \omega), \omega\beta_s + (1 - \omega)]
     \end{equation*}
@@ -344,7 +369,7 @@ filecolor=black, menucolor=black, runcolor=black, urlcolor=black}
     \end{figure}
 \end{frame}
 
-\begin{frame}
+\begin{frame}[label=infsimple]
     \frametitle{Inference}
 
     The \textit{standard bootstrap} fails at the kinks (e.g.~\citet{fang2019infdirdiff}).
@@ -363,49 +388,9 @@ filecolor=black, menucolor=black, runcolor=black, urlcolor=black}
         \sqrt{N}\left({\overline{\beta^*}(\hat{\beta}_s)} - \overline{\beta^*}(\beta_s)\right) \approx \overline{\beta^*}'\left(\sqrt{N}\left(\hat{\beta}_n - \beta_0\right)\right)
     \end{equation*}
 
+    \footnotesize  \hyperlink{analytical_delta}{\beamerbutton{Details}}
 
 \end{frame}
-
-% \begin{frame}
-%     \frametitle{Analytical delta bootstrap}
-%     \begin{itemize}
-%         \item[1.] Bootstrap approximation to distribution of $\sqrt{n}(\hat{\beta_s} - \beta_s)$.
-%         \item[2.] \pause Suitable estimator $\hat{\phi'_n}$ for directional derivative.
-%         \item[3.] \pause Delta method:
-%         \begin{equation*}
-%             \hat{\phi'_n}(\sqrt{n}(\hat{\beta_s}^*_n - \hat{\beta_s}_n))
-%         \end{equation*}
-%     \end{itemize}
-
-%     \vspace{0.5cm}
-%     \pause
-%     In our case: Simple pre-test
-%     \begin{equation*}
-%         \hat{\phi'_n}(h)=
-%         \begin{cases}
-%             \omega h ,& \quad \text{if } \sqrt{n}\hat{\beta_s}/\hat{\sigma^s} > \kappa_n\\
-%             \pause \max\{\omega h, -h\},& \quad \text{if } |\sqrt{n}\hat{\beta_s}/\hat{\sigma^s}| \leq \kappa_n\\
-%             \pause h,& \quad \text{if } \sqrt{n}\hat{\beta_s}/\hat{\sigma^s} < -\kappa_n\\
-%         \end{cases}
-%     \end{equation*}
-%     where we require $\kappa_n \to \infty$ but more slowly than $\sqrt{n}$, i.e. $\kappa_n / \sqrt{n} \to 0$.
-% \end{frame}
-
-% \begin{frame}
-%     \frametitle{Numerical delta bootstrap}
-
-%     Alternative: numerical approximation.
-%     \begin{equation*}
-%         \hat{\phi'}_{n, s_n} \equiv \frac{1}{s_n}\{\phi(\hat{\beta_s} + s_n h) - \phi(\hat{\beta_s})\}
-%     \end{equation*}
-
-%     Combining this with a bootstrap approximation to $\sqrt{n}(\hat{\beta_s} - \beta_s)$ we get
-%     \begin{equation*}
-%         \hat{\phi'}_{n, s_n}(\sqrt{n}(\hat{\beta_s} - \beta_s)) \equiv \frac{1}{s_n}\{\phi(\hat{\beta_s} + s_n \sqrt{n}(\hat{\beta_s} - \beta_s)) - \phi(\hat{\beta_s})\},
-%     \end{equation*}
-%     the distribution of which we can use to construct confidence intervals.
-%     We require $s_n\to0$ but $s_n\sqrt{n} \to \infty$.
-% \end{frame}
 
 \begin{frame}
     \frametitle{Monte Carlo Simulations}
@@ -453,6 +438,7 @@ filecolor=black, menucolor=black, runcolor=black, urlcolor=black}
 \section{Simulation Studies: More Realistic Example}
 
 \begin{frame}
+    \frametitle{Simulation Studies}
     Goal: Simulation study closer to empirical application.
 
     \vspace{0.5cm}
@@ -543,11 +529,14 @@ filecolor=black, menucolor=black, runcolor=black, urlcolor=black}
 
     Simulation: $Y_i = D_i m_1(u;\gamma) + (1-D_i)m_0(u;\gamma) + \epsilon_i$.
 
-    \pause
+    \only<2>{
 
     \vspace{0.5cm}
 
-    Results for the \textit{non-parametric bootstrap} and \textit{subsampling} ($B = 0.1\times N$).
+    Results for the \textit{non-parametric bootstrap} and \textit{subsampling} ($B = 0.1\times N$).\footnote{
+        Use own Python implementation hosted at {\href{https://github.com/buddejul/pyvmte}{github.com/buddejul/pyvmte}}.
+    }
+    }
 
 \end{frame}
 
@@ -572,6 +561,7 @@ filecolor=black, menucolor=black, runcolor=black, urlcolor=black}
     \frametitle{Simulation Results: Variations}
     Undercoverage is also observed for
     \begin{itemize}
+        \item all other shape constraints;
         \item different subsample size ($s\in\{0.05, 0.1, 0.2\}$);
         \item critical values adjusted for the length of the identified set;
         \item different linear program tolerances $(\kappa_n \in \{\frac{1}{n^2}, \frac{1}{n}, \frac{1}{\sqrt{n}}\})$.\footnote{
@@ -594,19 +584,117 @@ filecolor=black, menucolor=black, runcolor=black, urlcolor=black}
 
     \pause
 
-    \textbf{Thoughts}:
+    \textbf{Idea in thesis}: Convex relaxation. Optimize over $||x-k||_p\leq k'$ instead of $[0,1]^d$ \dots
+
+    \vspace{0.5cm}
+
+    \footnotesize  \hyperlink{convex_relax}{\beamerbutton{Details}}
+
+\end{frame}
+
+\begin{frame}[label=outlook_relax]
+    \frametitle{Outlook: Inference on LP Values}
+
+    \dots similar approaches exist:
     \begin{itemize}
-        \item If problem is simple enough, stick to explicit solutions.
-        \item Too flexible polynomials might complicate inference.
-        \item Is coverage the right thing to look at?
+        \item\citet{cho2024simple} propose \textit{perturbation} approach.
+
+            \[\min_{x\in[0\pm\nu_1,1\pm\nu_2]^2} (c_1 \pm \epsilon_1)x_1 + (c_2 \pm \epsilon_2)x_2\]
+
+        \item\citet{gafarov2024simple} proposes \textit{regularization} approach.
+
+            \[\min_{x\in[0,1]^2} c_1x_1 + c_2x_2 + \mu_n||x||^2\]
+
+        \end{itemize}
+    \pause
+    $\rightarrow$ Crux: \textbf{Tuning parameter choice}; maybe computational complexity.
+
+    \vspace{0.5cm}
+
+    Others:
+    \begin{itemize}
+        \item Bootstrap + pretest (\citet{bhattacharya2009inferring}, \citet{freyberger2015identification})
+        \item Projection approaches
     \end{itemize}
 
 \end{frame}
 
-\section{Outlook}
+\begin{frame}
+
+    \frametitle{Outlook: Project Direction}
+
+    Get other approaches to work.
+
+    \vspace{0.5cm}
+
+    Unless MTE problem has further special structure, theory seems difficult.
+
+    \vspace{0.5cm}
+
+    Systematic simulation study with data from literature.
+
+    \vspace{0.5cm}
+
+    Extensions: Truly sharp sets \citep{marx2024sharp}, multiple instruments \citep{mogstad2024policy}.
+
+\end{frame}
+
+
+\appendix
+\backupbegin
+
+\begin{frame}[label=analytical_delta]
+    \frametitle{Analytical Delta Method}
+
+    \begin{itemize}
+        \item[1.] Bootstrap approximation to distribution of $\sqrt{n}(\hat{\beta_s} - \beta_s)$.
+        \item[2.] Suitable estimator $\hat{\phi'_n}$ for directional derivative.
+        \item[3.] Delta method:
+        \begin{equation*}
+            \hat{\phi'_n}(\sqrt{n}(\hat{\beta_s}^*_n - \hat{\beta_s}_n))
+        \end{equation*}
+    \end{itemize}
+
+    \vspace{0.5cm}
+
+    In our case: Simple pre-test
+    \begin{equation*}
+        \hat{\phi'_n}(h)=
+        \begin{cases}
+            \omega h ,& \quad \text{if } \sqrt{n}\hat{\beta_s}/\hat{\sigma^s} > \kappa_n\\
+            \max\{\omega h, -h\},& \quad \text{if } |\sqrt{n}\hat{\beta_s}/\hat{\sigma^s}| \leq \kappa_n\\
+            h,& \quad \text{if } \sqrt{n}\hat{\beta_s}/\hat{\sigma^s} < -\kappa_n\\
+        \end{cases}
+    \end{equation*}
+    where we require $\kappa_n \to \infty$ but more slowly than $\sqrt{n}$, i.e. $\kappa_n / \sqrt{n} \to 0$.
+
+    \vspace{0.5cm}
+    \footnotesize  \hyperlink{infsimple}{\beamerbutton{Back}}
+
+\end{frame}
 
 \begin{frame}
-    \frametitle{Outlook: Convex Relaxation}
+    \frametitle{Numerical Delta Method}
+
+    Alternative: numerical approximation.
+    \begin{equation*}
+        \hat{\phi'}_{n, s_n} \equiv \frac{1}{s_n}\{\phi(\hat{\beta_s} + s_n h) - \phi(\hat{\beta_s})\}
+    \end{equation*}
+
+    Combining this with a bootstrap approximation to $\sqrt{n}(\hat{\beta_s} - \beta_s)$ we get
+    \begin{equation*}
+        \hat{\phi'}_{n, s_n}(\sqrt{n}(\hat{\beta_s} - \beta_s)) \equiv \frac{1}{s_n}\{\phi(\hat{\beta_s} + s_n \sqrt{n}(\hat{\beta_s} - \beta_s)) - \phi(\hat{\beta_s})\},
+    \end{equation*}
+    the distribution of which we can use to construct confidence intervals.
+    We require $s_n\to0$ but $s_n\sqrt{n} \to \infty$.
+
+    \vspace{0.5cm}
+    \footnotesize  \hyperlink{infsimple}{\beamerbutton{Back}}
+
+\end{frame}
+
+\begin{frame}[label=convex_relax]
+    \frametitle{Convex Relaxation}
 
     (One) problem with value of linear program is non-uniqueness of solutions.
 
@@ -628,6 +716,7 @@ filecolor=black, menucolor=black, runcolor=black, urlcolor=black}
     Might get established delta method theory for mathematical programs \citep{shapiro1991asymptotic}.
     Key question: How to choose $p$ in finite sample.
 
+    \footnotesize  \hyperlink{outlook_relax}{\beamerbutton{Back}}
 
 \end{frame}
 
@@ -655,40 +744,13 @@ filecolor=black, menucolor=black, runcolor=black, urlcolor=black}
     \end{figure}
 \end{frame}
 
-\begin{frame}
-    \frametitle{Outlook: Other Approaches}
-    Inference on values of linear programs:
-    \begin{itemize}
-        \item\citet{bhattacharya2009inferring} and~\citet{freyberger2015identification}: pretest + bootstrap.
-        \item\citet{cho2024simple} propose \textit{perturbation} approach.
-        \begin{itemize}
-            \item $\min_{x\in[0\pm\nu_1,1\pm\nu_2]^2} (c_1 \pm \epsilon_1)x_1 + (c_2 \pm \epsilon_2)x_2$
-        \end{itemize}
-        \item\citet{gafarov2024simple} proposes \textit{regularization} approach.
-        \begin{itemize}
-            \item $\min_{x\in[0,1]^2} c_1x_1 + c_2x_2 + \mu_n||x||^2$
-        \end{itemize}
-        \item Projection approaches.
-    \end{itemize}
-    \pause
-    $\rightarrow$ Crux: \textbf{Tuning parameter choice}; maybe computational complexity.
 
-    \pause
-
-    \vspace{0.5cm}
-    This project:
-    \begin{itemize}
-        \item Unless MTE problem has further special structure, theory seems difficult.
-        \item Systematic simulation study/literature review.
-    \end{itemize}
-
+\begin{frame}[allowframebreaks]
+    \frametitle{References}
+    \renewcommand{\bibfont}{\normalfont\footnotesize}
+    \printbibliography
 \end{frame}
 
-
-% \begin{frame}[allowframebreaks]
-%     \frametitle{References}
-%     \renewcommand{\bibfont}{\normalfont\footnotesize}
-%     \printbibliography
-% \end{frame}
+\backupend
 
 \end{document}

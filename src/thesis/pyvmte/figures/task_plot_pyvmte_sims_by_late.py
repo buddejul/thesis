@@ -312,13 +312,13 @@ for id_, kwargs in ID_TO_KWARGS_COVERAGE.items():
         # Make x-axis from 0 to 1
         fig.update_xaxes(range=[-0.1, 1])
 
-        write_image(fig, path_to_plot, scale=2)
+        write_image(fig, path_to_plot, scale=6)
         fig.write_html(path_to_plot_html)
 
         # Restrict x-axis to problematic region
         fig.update_xaxes(range=[np.min(problematic_region), np.max(problematic_region)])
 
-        write_image(fig, path_to_plot_problematic_region, scale=2)
+        write_image(fig, path_to_plot_problematic_region, scale=6)
         fig.write_html(path_to_plot_problematic_region_html)
 
 
@@ -398,8 +398,8 @@ for id_, kwargs in ID_TO_KWARGS_MEANS.items():
         # ------------------------------------------------------------------------------
 
         cols_to_plot = [
-            "sim_ci_lower",
-            "sim_ci_upper",
+            # "sim_ci_lower",
+            # "sim_ci_upper",
             "sim_lower_bound",
             "sim_upper_bound",
             # "true_lower_bound",
@@ -582,10 +582,10 @@ for id_, kwargs in ID_TO_KWARGS_MEANS.items():
         # Make x-axis from 0 to 1
         fig.update_xaxes(range=[-0.1, 1])
 
-        write_image(fig, path_to_plot, scale=2)
+        write_image(fig, path_to_plot, scale=6)
         fig.write_html(path_to_plot_html)
 
         fig.update_xaxes(range=[np.min(problematic_region), np.max(problematic_region)])
 
-        write_image(fig, path_to_plot_problematic_region, scale=2)
+        write_image(fig, path_to_plot_problematic_region, scale=6)
         fig.write_html(path_to_plot_problematic_region_html)
