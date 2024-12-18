@@ -91,14 +91,16 @@ filecolor=black, menucolor=black, runcolor=black, urlcolor=black}
 \begin{frame}
     \frametitle{This Project}
 
-    \begin{itemize}
-        \item Show the standard bootstrap is invalid in simple setting.
+        (1) Show the standard bootstrap is invalid in simple setting.
         \begin{itemize}
-            \item Suggest some alternative approaches for these settings.
+            \item Suggest alternative approaches for these settings.
         \end{itemize}
-        \item Simulation results for coverage probabilities in empirically relevant setting.
-        \item Look at inference in linear programs more generally.
-    \end{itemize}
+
+        \vspace{0.5cm}
+        (2) Simulation results for coverage probabilities in empirically relevant setting.
+
+        \vspace{0.5cm}
+        (3) Suggest approach for conservative inference using relaxed optimization problem.
 
 \end{frame}
 
@@ -173,7 +175,7 @@ filecolor=black, menucolor=black, runcolor=black, urlcolor=black}
 
 
     \begin{equation*}
-        \overline{\beta^*} = \underbrace{\sup_{(\theta_0, \theta_1) \in \Theta}}_{\substack{\text{Maximize over} \\ \text{basis functions.}}}\sum_{k=1}^{K_0} \theta_{0k}\overbrace{\Gamma^*_0(b_{0k})}^{\substack{\text{Map from} \\ \text{MTR to } \beta^*.}} + \sum_{k=1}^{K_1} \theta_{1k}\overbrace{\Gamma^*_1(b_{1k})}^{\substack{\text{Map from} \\ \text{MTR to } \beta^*.}}
+        \overline{\beta^*} = \underbrace{\sup_{(\theta_0, \theta_1) \in \Theta}}_{\substack{\text{Maximize over} \\ \text{bfunc coefs.}}}\sum_{k=1}^{K_0} \theta_{0k}\overbrace{\Gamma^*_0(b_{0k})}^{\substack{\text{Map from} \\ \text{MTR to } \beta^*.}} + \sum_{k=1}^{K_1} \theta_{1k}\overbrace{\Gamma^*_1(b_{1k})}^{\substack{\text{Map from} \\ \text{MTR to } \beta^*.}}
     \end{equation*}
 
     \pause
@@ -192,6 +194,49 @@ filecolor=black, menucolor=black, runcolor=black, urlcolor=black}
 
 \begin{frame}
     \frametitle{MTE Approach: Example}
+
+    \only<1>{
+        Find the largest target parameter
+
+
+        \begin{equation*}
+            \overline{\beta^*} = \sup_{(\theta_0, \theta_1) \in \Theta}\sum_{k=1}^{K_0} \theta_{0k}\Gamma^*_0(b_{0k}) + \sum_{k=1}^{K_1} \theta_{1k}\Gamma^*_1(b_{1k})
+        \end{equation*}
+        }
+    \only<2,3,4>{
+        Find the largest \textcolor{red}{ATE}
+
+    \begin{equation*}
+        \overline{\beta^*} = \sup_{(\theta_0, \theta_1) \in \Theta}
+        \sum_{k=1}^{K_0} \theta_{0k}\textcolor{red}{(-1) \int_0^1 b_{0k}(u)du}
+        + \sum_{k=1}^{K_1} \theta_{1k} \textcolor{red}{(1) \int_0^1 b_{1k}(u)du}
+    \end{equation*}
+    }
+
+    given \only<1,2>{that}\only<3,4>{the \textcolor{red}{IV slope}}
+    \only<1,2>{
+        \begin{align*}
+            &\sum_{k=1}^{K_0} \theta_{0k}\Gamma_{0s}(b_{0k}) \\
+            &+ \sum_{k=1}^{K_1} \theta_{1k} \Gamma_{1s}(b_{1k}) = \beta_s \quad \text{ for all } s\in\mathcal{S}.
+        \end{align*}
+        }
+
+        \only<3,4>{
+            \begin{align*}
+            &\sum_{k=1}^{K_0} \theta_{0k}\textcolor{red}{E\left[\int_0^1 b_{0k}(u)\frac{Z - E[Z]}{Cov(D,Z)}I\{u > p(Z)\}du\right]} \\
+            &+ \sum_{k=1}^{K_1} \theta_{1k} \textcolor{red}{E\left[\int_0^1 b_{1k}(u)\frac{Z - E[Z]}{Cov(D,Z)}I\{u\leq p(Z)\}du\right]} = \textcolor{red}{\frac{Cov(Y,D)}{Var(D)}}
+    \end{align*}
+    }
+
+    \vspace{0.5cm}
+
+    \only<1,2,3>{
+    $\Theta$ incorporates all shape restrictions.
+    }
+
+    \only<4>{
+    \textcolor{red}{Outcome bounds}: $Y\in[0,1] \Rightarrow \Theta = [0,1]^{K_0 + K_1}$.
+    }
 
 \end{frame}
 
@@ -215,7 +260,7 @@ filecolor=black, menucolor=black, runcolor=black, urlcolor=black}
 
     \vspace{0.5cm}
 
-    Constant spline basis functions (no parametric assumptions).
+    No parametric assumptions on basis functions.
 
 \end{frame}
 
@@ -260,29 +305,29 @@ filecolor=black, menucolor=black, runcolor=black, urlcolor=black}
     \vspace{0.5cm}
     \pause
 
-    \textbf{Positive Treatment Response}:
-    \begin{equation*}
-        \beta^* \in \begin{cases}
-            [\omega\beta_s, \beta_s + (1 - \omega)] & \beta_s \geq 0 \\
-            \emptyset & \beta_s < 0
-        \end{cases}
-    \end{equation*}
+    % \textbf{Positive Treatment Response}:
+    % \begin{equation*}
+    %     \beta^* \in \begin{cases}
+    %         [\omega\beta_s, \beta_s + (1 - \omega)] & \beta_s \geq 0 \\
+    %         \emptyset & \beta_s < 0
+    %     \end{cases}
+    % \end{equation*}
 
-\end{frame}
+% \end{frame}
 
-\begin{frame}
-    \frametitle{Solutions: Constant Splines II}
+% \begin{frame}
+%     \frametitle{Solutions: Constant Splines II}
 
-    \textbf{Increasing Marginal Treatment Response}:
+    \textbf{Decreasing Marginal Treatment Response}:
 
-    \begin{equation}\label{eq:solution_cs_increasing_mtr_upper}
-        \overline{\beta^*}(\beta_s, \omega)=
-        \begin{cases}
-            \omega \beta_s + (1 - \omega),& \quad \text{if } \beta_s \geq 0\\
-            \beta_s + (1 - \omega),              & \quad \text{if } \beta_s < 0,
-        \end{cases}
-    \end{equation}
-    and
+    % \begin{equation}\label{eq:solution_cs_increasing_mtr_upper}
+    %     \overline{\beta^*}(\beta_s, \omega)=
+    %     \begin{cases}
+    %         \omega \beta_s + (1 - \omega),& \quad \text{if } \beta_s \geq 0\\
+    %         \beta_s + (1 - \omega),              & \quad \text{if } \beta_s < 0,
+    %     \end{cases}
+    % \end{equation}
+    % and
     \begin{equation}\label{eq:solution_cs_increasing_mtr_lower}
         \underline{\beta^*}(\beta_s, \omega)=
         \begin{cases}
@@ -291,6 +336,12 @@ filecolor=black, menucolor=black, runcolor=black, urlcolor=black}
         \end{cases}
     \end{equation}
 
+\end{frame}
+
+\begin{frame}
+    \begin{figure}
+        \includegraphics[height=0.85\textheight]{../../bld/figures/binary_iv/id_constant_nan_shape_constraints_late_['lower', 'upper'].png}
+    \end{figure}
 \end{frame}
 
 \begin{frame}
@@ -382,17 +433,6 @@ filecolor=black, menucolor=black, runcolor=black, urlcolor=black}
 \end{frame}
 
 \begin{frame}
-    \frametitle{Simple Monte Carlo: Solution}
-
-    % TODO Add the population solution figure to see the kinks.
-    % Also check: Lower bound should be convex then lower CI should work?
-    % Since the derivative will also be convex at the kink.
-    % Question: Does this also mean the upper CI for the concave upper bound will locally control size?
-    % I think yes! Cf. simulations for min(theta, 0), which is concave.
-
-\end{frame}
-
-\begin{frame}
     \frametitle{Simple Monte Carlo: Coverage}
 
     \begin{figure}
@@ -410,7 +450,7 @@ filecolor=black, menucolor=black, runcolor=black, urlcolor=black}
 
 \end{frame}
 
-\section{Simulation Studies}
+\section{Simulation Studies: More Realistic Example}
 
 \begin{frame}
     Goal: Simulation study closer to empirical application.
@@ -439,7 +479,7 @@ filecolor=black, menucolor=black, runcolor=black, urlcolor=black}
 
     \begin{figure}
         \centering
-        \includegraphics[height=0.825\textheight]{../../bld/figures/binary_iv/id_bernstein_2_none_late.png}
+        \includegraphics[height=0.825\textheight]{../../bld/figures/binary_iv/id_bernstein_2_mte_monotone_sharp_lower.png}
     \end{figure}
 
 
@@ -449,46 +489,49 @@ filecolor=black, menucolor=black, runcolor=black, urlcolor=black}
 
     \begin{figure}
         \centering
-        \includegraphics[height=0.825\textheight]{../../bld/figures/binary_iv/id_bernstein_11_none_late.png}
+        \includegraphics[height=0.825\textheight]{../../bld/figures/binary_iv/id_bernstein_11_mte_monotone_sharp_lower.png}
     \end{figure}
 
 
 \end{frame}
 
 
-\begin{frame}
-    \frametitle{DGP\@: Construction}
+% \begin{frame}
+%     \frametitle{DGP\@: Construction}
 
+%     \textbf{Parameters}: $\gamma_d^g = E[Y_d|g(U)=g]$ with $d\in\{0,1\}$ and $g = \{at, c, nt\}$.
+
+%     \vspace{0.5cm}
+
+%     \footnotesize{Cannot just take $\gamma_1^{nt} - \gamma_0^{nt} = -1$.}
+
+%     \vspace{0.5cm}
+
+%     \normalsize
+
+%     \textbf{Step 1}: Fix point-identified $\gamma_1^{at}, \gamma_1^c, \gamma_0^c, \gamma_0^{nt}$. Solve population problem with Bernstein basis functions and all constraints.
+
+%     \vspace{0.5cm}
+
+%     \textbf{Step 2}: Use the population solutions $m_d(u;\gamma)$ for the lower bound to construct a DGP\@.
+
+%     \vspace{0.5cm}
+
+%     \footnotesize{Polynomials that imply $\gamma_1^{nt}, \gamma_0^{nt}$.}
+
+%     \vspace{0.5cm}
+%     \normalsize
+
+%     Simulation: $Y_i = D_i m_1(u;\gamma) + (1-D_i)m_0(u;\gamma) + \epsilon_i$.
+
+% \end{frame}
+
+\begin{frame}
+    \frametitle{DGP}
 
     \textbf{Parameters}: $\gamma_d^g = E[Y_d|g(U)=g]$ with $d\in\{0,1\}$ and $g = \{at, c, nt\}$.
 
     \vspace{0.5cm}
-
-    \footnotesize{Cannot just take $\gamma_1^{nt} - \gamma_0^{nt} = -1$.}
-
-    \vspace{0.5cm}
-
-    \normalsize
-
-    \textbf{Step 1}: Fix point-identified $\gamma_1^{at}, \gamma_1^c, \gamma_0^c, \gamma_0^{nt}$. Solve population problem with Bernstein basis functions and all constraints.
-
-    \vspace{0.5cm}
-
-    \textbf{Step 2}: Use the population solutions $m_d(u;\gamma)$ for the lower bound to construct a DGP\@.
-
-    \vspace{0.5cm}
-
-    \footnotesize{Polynomials that imply $\gamma_1^{nt}, \gamma_0^{nt}$.}
-
-    \vspace{0.5cm}
-    \normalsize
-
-    Simulation: $Y_i = D_i m_1(u;\gamma) + (1-D_i)m_0(u;\gamma) + \epsilon_i$.
-
-\end{frame}
-
-\begin{frame}
-    \frametitle{DGP\@: Parameter Values}
 
     View as function of LATE\@: $\gamma_1^c = \beta_s/2 + 0.5$, $\gamma_0^c = -\beta_s/2 + 0.5$.
 
@@ -498,7 +541,9 @@ filecolor=black, menucolor=black, runcolor=black, urlcolor=black}
 
     \vspace{0.5cm}
 
-    Consistent with \textit{decreasing treatment effect} (MTE function decreasing) and a \textit{positive monotone treatment response} (MTE function non-negative).
+    Simulation: $Y_i = D_i m_1(u;\gamma) + (1-D_i)m_0(u;\gamma) + \epsilon_i$.
+
+    \pause
 
     \vspace{0.5cm}
 
@@ -514,15 +559,6 @@ filecolor=black, menucolor=black, runcolor=black, urlcolor=black}
     \end{figure}
 
 \end{frame}
-
-% \begin{frame}
-%     % \frametitle{Result: Consistency}
-
-%     \begin{figure}
-%         \includegraphics[height=0.95\textheight]{../../bld/figures/pyvmte_sims/1n/sims_binary_iv_sharp_mte_monotone_means_problematic_region_bootstrap.png}
-%     \end{figure}
-
-% \end{frame}
 
 \begin{frame}
 
@@ -566,6 +602,8 @@ filecolor=black, menucolor=black, runcolor=black, urlcolor=black}
     \end{itemize}
 
 \end{frame}
+
+\section{Outlook}
 
 \begin{frame}
     \frametitle{Outlook: Convex Relaxation}
