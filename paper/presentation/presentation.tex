@@ -154,10 +154,10 @@ filecolor=black, menucolor=black, runcolor=black, urlcolor=black}
     \frametitle{MTE Approach: Latent Heterogeneity}
 
     \textbf{Treatment Choice Equation}:
-    \begin{equation}
+    \begin{equation*}
         D = I\{p(Z) - U \geq 0\}
-    \end{equation}
-    % where $p(z)$ is the propensity score and $U\sim Unif[0,1]$.
+    \end{equation*}
+    $U\indep Z$, $U\sim Unif[0,1]$.
 
     \vspace{0.5cm}
 
@@ -165,11 +165,15 @@ filecolor=black, menucolor=black, runcolor=black, urlcolor=black}
 
     \vspace{0.5cm}
 
+    Three groups: \textit{always-taker} $[0, p(1)]$, \textit{complier} $[p(0), p(1)]$, \textit{never-taker} $[p(0), 1]$.
+
+    \vspace{0.5cm}
+    \pause
     Key to the paper: Define everything in terms of unobservable MTR functions.
 
-    \begin{equation}
+    \begin{equation*}
         m_d(u) \equiv E[Y_d | U=u] \quad \text{ for } d\in\{0, 1\}.
-    \end{equation}
+    \end{equation*}
 
 \end{frame}
 
@@ -404,8 +408,8 @@ filecolor=black, menucolor=black, runcolor=black, urlcolor=black}
 
     To construct $1-\alpha = 0.95$ confidence interval for \textit{true parameter}:
     \begin{itemize}
-        \item Use asymptotic approximations from above.
-        \item Construct one-sided $\alpha$ intervals for the upper and lower bound \citep{imbens2004confidence}.
+        \item Quantiles from (adjusted) bootstrap.
+        \item One-sided $\alpha$ intervals for upper and lower bound \citep{imbens2004confidence}.
     \end{itemize}
 
     \vspace{0.5cm}
