@@ -1,3 +1,5 @@
+{"rule":"UPPERCASE_SENTENCE_START","sentence":"^\\Qfootline[frame number] navigation symbols frametitle\\E$"}
+{"rule":"MORFOLOGIK_RULE_EN_US","sentence":"^\\Qfootline[frame number] navigation symbols frametitle\\E$"}
 {"rule":"UPPERCASE_SENTENCE_START","sentence":"^\\Qbreaklines=true, postbreak=, numbers=left, numbersep=5pt, numberstyle=, basicstyle=\\E$"}
 {"rule":"MORFOLOGIK_RULE_EN_US","sentence":"^\\Qbreaklines=true, postbreak=, numbers=left, numbersep=5pt, numberstyle=, basicstyle=\\E$"}
 {"rule":"WHITESPACE_RULE","sentence":"^\\Qver@etex.sty3000/12/31\\E$"}
@@ -19,3 +21,10 @@
 {"rule":"EN_A_VS_AN","sentence":"^\\QI report results for a lower-order, and hence more restrictive polynomial of degree \\E(?:Dummy|Ina|Jimmy-)[0-9]+\\Q as well as an \\E(?:Dummy|Ina|Jimmy-)[0-9]+\\Qth order polynomial similar to the numerical example in \\E(?:Dummy|Ina|Jimmy-)[0-9]+\\Q.\\E$"}
 
 {"rule":"MASS_AGREEMENT","sentence":"^\\QMST provide no distributional results.\\E$"}
+
+{"rule":"MORFOLOGIK_RULE_EN_US","sentence":"^\\Q[allowframebreaks] References\\E$"}
+{"rule":"UPPERCASE_SENTENCE_START","sentence":"^\\Qgiven <1,2>that <3,4>the IV slope <1,2> \\E(?:Dummy|Ina|Jimmy-)[0-9]+\\Q for all \\E(?:Dummy|Ina|Jimmy-)[0-9]+\\Q.\\E$"}
+
+{"rule":"UPPERCASE_SENTENCE_START","sentence":"^\\Qinfsimple Back\\E$"}
+
+{"rule":"UPPERCASE_SENTENCE_START","sentence":"^\\Qgiven <1,2>that<3,4,5>the IV slope <1,2> \\E(?:Dummy|Ina|Jimmy-)[0-9]+\\Q for all \\E(?:Dummy|Ina|Jimmy-)[0-9]+\\Q.\\E$"}

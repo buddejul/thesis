@@ -1,4 +1,5 @@
 Budde
+subsampling
 MTE
 complier
 compliers
@@ -54,3 +55,9 @@ Gurobi
 Freyberger
 Rheinische
 Friedrich-Wilhelms-Universität
+
+unobservables
+Undercoverage
+subvector
+BGSE
+undercovering
